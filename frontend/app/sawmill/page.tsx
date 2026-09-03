@@ -1,134 +1,510 @@
-import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
-import StatCard from "@/components/StatCard";
+'use client';
 
-export default function SawmillTrackingPage() {
+import React, { useState } from 'react';
+import {
+  FileDown,
+  Plus,
+  Pencil,
+  Eye,
+  X,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+} from 'lucide-react';
+
+export type UserRole = 'admin' | 'manager';
+
+interface SawmillItem {
+  id: string;
+  sortimen: string;
+  dimensions: string;
+  volume: number;
+  stage: 'Sawmill' | 'finish Sawmill';
+  date: string;
+  suplier: string;
+  harga: number;
+}
+
+interface PlankDetail {
+  id: string;
+  sortimen: string;
+  dimensions: string;
+  volume: number;
+  grade: string;
+}
+
+const mockSawmillLogs: SawmillItem[] = Array.from({ length: 6 }).map((_, idx) => ({
+  id: `L-2026-3-A-${idx + 1}`,
+  sortimen: 'Sortimen A',
+  dimensions: '50mm x 200mm',
+  volume: 12.45,
+  stage: idx % 2 === 0 ? 'finish Sawmill' : 'Sawmill',
+  date: '23/05/2026',
+  suplier: 'PT. Suplier',
+  harga: 1000000,
+}));
+
+const mockPlankResults: PlankDetail[] = [
+  { id: 'P-2026-3-A-1', sortimen: 'Sortimen A', dimensions: '50mm x 200mm x 2400mm', volume: 12.45, grade: 'Grade A' },
+  { id: 'P-2026-3-A-2', sortimen: 'Sortimen A', dimensions: '50mm x 200mm x 2400mm', volume: 12.45, grade: 'Grade A' },
+  { id: 'P-2026-3-A-3', sortimen: 'Sortimen A', dimensions: '50mm x 200mm x 2400mm', volume: 12.45, grade: 'Grade A' },
+];
+
+export default function DataSawmillPage({ role = 'admin' }: { role?: UserRole }) {
+  const [dateFilter, setDateFilter] = useState('');
+  const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
+
+  // Modal State Management
+  const [modalType, setModalType] = useState<'input-log' | 'edit-log' | 'input-hasil' | 'detail-hasil' | null>(null);
+  const [selectedLog, setSelectedLog] = useState<SawmillItem | null>(null);
+
+  // Form States
+  const [idLogAsal, setIdLogAsal] = useState('L-2026-3-A-1');
+  const [idPlank, setIdPlank] = useState('P-2026-3-A-1');
+  const [grade, setGrade] = useState('Grade A');
+  const [panjang, setPanjang] = useState(100);
+  const [lebar, setLebar] = useState(20);
+  const [tinggi, setTinggi] = useState(5);
+  const [suplier, setSuplier] = useState('PT. Suplier');
+
+  const openDetailModal = (item: SawmillItem) => {
+    setSelectedLog(item);
+    setIdLogAsal(item.id);
+    setModalType('detail-hasil');
+  };
+
+  const openEditModal = (item: SawmillItem) => {
+    setSelectedLog(item);
+    setIdLogAsal(item.id);
+    setModalType('edit-log');
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setModalType(null);
+  };
+
   return (
-    <div className="relative min-h-screen bg-slate-50 font-['Manrope']">
-      <Sidebar />
-
-      <div className="pl-64 flex flex-col min-h-screen">
-        <Header title="Sawmill Tracking" />
-
-        <main className="max-w-[1024px] w-full p-6 mx-auto inline-flex flex-col justify-start items-start gap-4">
-          
-          {/* STATS WIDGETS */}
-          <div className="self-stretch pb-4 grid grid-cols-4 gap-4">
-            <StatCard title="ACTIVE BATCHES" value="0" bgColor="bg-lime-100" iconColor="bg-lime-800" />
-            <StatCard title="AVG. CUT TIME" value="0m" bgColor="bg-orange-100" iconColor="bg-yellow-800" />
-            <StatCard title="COMPLETED TODAY" value="0" bgColor="bg-slate-100" iconColor="bg-stone-600" />
-            <StatCard title="MAINTENANCE" value="0" bgColor="bg-rose-100" iconColor="bg-red-700" />
+    <div className="flex flex-col gap-5 p-6 max-w-[1440px] mx-auto font-sans">
+      {/* 1. Filter Bar & Actions */}
+      <section className="p-4 bg-white rounded-lg border border-stone-300 flex flex-wrap justify-between items-center gap-4 shadow-xs">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-green-700 tracking-tight whitespace-nowrap">
+              Filter by Date:
+            </span>
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="px-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:ring-1 focus:ring-green-700"
+            />
           </div>
 
-          {/* TABLE ACTIONS & FILTERS */}
-          <div className="self-stretch p-4 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-stone-300 inline-flex justify-between items-center shadow-sm">
-            <div className="flex justify-start items-center gap-4">
-              <div className="flex justify-start items-center gap-2">
-                <div className="h-3 justify-center text-stone-700 text-xs font-semibold leading-3 tracking-tight">
-                  Filter by Date:
-                </div>
-                <div className="px-3 py-1.5 bg-white rounded-sm outline outline-1 outline-offset-[-1px] outline-stone-300 cursor-pointer">
-                  <span className="text-stone-500 text-sm">mm / dd / yyyy</span>
-                </div>
-              </div>
-              <div className="flex justify-start items-center gap-2">
-                <div className="h-3 justify-center text-stone-700 text-xs font-semibold leading-3 tracking-tight">
-                  Log Grade:
-                </div>
-                <select className="px-3 py-1.5 bg-white rounded-sm outline outline-1 outline-offset-[-1px] outline-stone-300 text-stone-900 text-sm cursor-pointer">
-                  <option>All Grades</option>
-                  <option>Grade A</option>
-                  <option>Grade B</option>
-                </select>
-              </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-green-700 tracking-tight whitespace-nowrap">
+              Log Sortimen
+            </span>
+            <div className="relative">
+              <select
+                value={sortimenFilter}
+                onChange={(e) => setSortimenFilter(e.target.value)}
+                className="appearance-none pr-8 pl-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:ring-1 focus:ring-green-700 cursor-pointer"
+              >
+                <option value="All Sortimen">All Sortimen</option>
+                <option value="Sortimen A">Sortimen A</option>
+                <option value="Sortimen B">Sortimen B</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-stone-500 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
-            <div className="flex justify-start items-start gap-2">
-              <button className="px-4 py-2 bg-red-50 hover:bg-red-100 transition-colors rounded-sm outline outline-1 outline-offset-[-1px] outline-red-200 flex justify-start items-center gap-2">
-                <span className="text-stone-900 text-sm font-medium leading-5">Export PDF</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            className="px-4 py-2 bg-red-50 hover:bg-red-100/70 border border-stone-300 rounded text-xs font-semibold text-green-700 flex items-center gap-2 transition-colors cursor-pointer"
+          >
+            <FileDown className="w-3.5 h-3.5 text-green-700" />
+            <span>Export PDF</span>
+          </button>
+
+          {role === 'admin' && (
+            <button
+              type="button"
+              onClick={() => setModalType('input-log')}
+              className="px-4 py-2 bg-green-700 hover:bg-green-800 rounded text-xs font-bold text-white flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>New Batch</span>
+            </button>
+          )}
+        </div>
+      </section>
+
+      {/* 2. Main Sawmill Table */}
+      <section className="p-4 bg-white rounded-[10px] border border-stone-200 shadow-xs flex flex-col gap-3">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left">
+            <thead>
+              <tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider">
+                <th className="py-3 px-3 text-center">ID LOG</th>
+                <th className="py-3 px-3 text-center">Sortimen</th>
+                <th className="py-3 px-3 text-center">DIMENSIONS (T X W)</th>
+                <th className="py-3 px-3 text-center">Total Volume</th>
+                <th className="py-3 px-3 text-center">Stage</th>
+                <th className="py-3 px-3 text-center">Date</th>
+
+                {/* Manager-only Columns */}
+                {role === 'manager' && (
+                  <>
+                    <th className="py-3 px-3 text-center">Suplier</th>
+                    <th className="py-3 px-3 text-center">Harga</th>
+                  </>
+                )}
+
+                {/* Admin & Inspection Columns */}
+                <th className="py-3 px-3 text-center w-12">Detail</th>
+                {role === 'admin' && <th className="py-3 px-3 text-center w-12">Action</th>}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-100">
+              {mockSawmillLogs.map((item, idx) => (
+                <tr key={idx} className="text-green-700 hover:bg-stone-50/80 transition-colors">
+                  <td className="py-3 px-3 text-center font-mono font-medium">{item.id}</td>
+                  <td className="py-3 px-3 text-center font-normal">{item.sortimen}</td>
+                  <td className="py-3 px-3 text-center font-medium">{item.dimensions}</td>
+                  <td className="py-3 px-3 text-center font-medium">{item.volume.toFixed(3)} m³</td>
+                  <td className="py-3 px-3 text-center">
+                    <span
+                      className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                        item.stage === 'finish Sawmill'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-lime-100 text-green-800'
+                      }`}
+                    >
+                      {item.stage}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3 text-center font-normal text-stone-600">{item.date}</td>
+
+                  {role === 'manager' && (
+                    <>
+                      <td className="py-3 px-3 text-center font-medium text-stone-800">{item.suplier}</td>
+                      <td className="py-3 px-3 text-center font-semibold text-stone-900">
+                        {item.harga.toLocaleString('id-ID')}
+                      </td>
+                    </>
+                  )}
+
+                  {/* Detail Plank Trigger */}
+                  <td className="py-3 px-3 text-center">
+                    <button
+                      type="button"
+                      onClick={() => openDetailModal(item)}
+                      className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center"
+                      title="Lihat Detail Papan"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                  </td>
+
+                  {/* Edit Log Trigger (Admin Only) */}
+                  {role === 'admin' && (
+                    <td className="py-3 px-3 text-center">
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(item)}
+                        className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center"
+                        title="Edit Data Sawmill"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Bar */}
+        <div className="pt-3 border-t border-stone-200 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <span className="text-green-700/80 font-medium">Showing 6 of 1024</span>
+          <div className="flex items-center gap-1.5">
+            <button type="button" className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button type="button" className="w-7 h-7 rounded text-green-700 font-extrabold bg-green-100/80">
+              1
+            </button>
+            <button type="button" className="w-7 h-7 rounded text-green-700/60 font-semibold hover:bg-stone-100">
+              2
+            </button>
+            <button type="button" className="w-7 h-7 rounded text-green-700/50 font-semibold hover:bg-stone-100">
+              3
+            </button>
+            <button type="button" className="w-7 h-7 rounded text-green-700/40 font-semibold hover:bg-stone-100">
+              4
+            </button>
+            <button type="button" className="w-7 h-7 rounded text-green-700/40 font-semibold hover:bg-stone-100">
+              5
+            </button>
+            <button type="button" className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50">
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Modal Layer */}
+      {modalType && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-[620px] p-5 bg-orange-50 rounded-[10px] border border-stone-300 shadow-xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
+            {/* Modal Title Bar */}
+            <div className="flex justify-between items-center pb-2 border-b border-stone-300/60">
+              <h2 className="text-stone-800 text-xl font-bold font-sans">
+                {modalType === 'input-log' && 'Input Sawmill'}
+                {modalType === 'edit-log' && 'Edit Sawmill'}
+                {modalType === 'input-hasil' && 'Input Hasil Sawmill'}
+                {modalType === 'detail-hasil' &&
+                  (role === 'admin' ? 'Edit Detail Hasil Sawmill' : 'Detail Hasil Sawmill')}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setModalType(null)}
+                className="p-1 text-stone-500 hover:text-stone-900 rounded"
+              >
+                <X className="w-5 h-5" />
               </button>
-              <button className="px-4 py-2 bg-lime-800 hover:bg-lime-900 transition-colors rounded-sm flex justify-start items-center gap-2">
-                <span className="text-white text-sm font-bold leading-5">+ New Batch</span>
-              </button>
-            </div>
-          </div>
-
-          {/* TABLE AREA */}
-          <div className="self-stretch bg-white rounded-lg shadow-sm outline outline-1 outline-offset-[-1px] outline-stone-300 flex flex-col justify-start items-start overflow-hidden">
-            <div className="self-stretch flex flex-col justify-start items-start overflow-hidden">
-              <div className="self-stretch bg-stone-100 border-b border-stone-300 inline-flex justify-start items-start">
-                <div className="w-40 px-6 py-4"><div className="h-3 text-stone-700 text-xs font-semibold uppercase leading-3 tracking-wide">BATCH ID</div></div>
-                <div className="w-56 px-6 py-4"><div className="h-3 text-stone-700 text-xs font-semibold uppercase leading-3 tracking-wide">LOG SPECIES</div></div>
-                <div className="w-52 px-6 py-4"><div className="h-3 text-stone-700 text-xs font-semibold uppercase leading-3 tracking-wide">DIMENSIONS</div></div>
-                <div className="w-36 px-6 py-4"><div className="h-3 text-stone-700 text-xs font-semibold uppercase leading-3 tracking-wide">OPERATOR</div></div>
-                <div className="w-36 px-6 py-4"><div className="h-3 text-stone-700 text-xs font-semibold uppercase leading-3 tracking-wide">STATUS</div></div>
-                <div className="flex-1 px-6 py-4 flex justify-end"><div className="h-3 text-stone-700 text-xs font-semibold uppercase leading-3 tracking-wide">ACTIONS</div></div>
-              </div>
-              
-              <div className="self-stretch py-16 flex flex-col justify-center items-center bg-neutral-50/30">
-                <div className="size-12 mb-3 bg-stone-200 rounded-full flex justify-center items-center">
-                  <div className="size-6 bg-stone-400 rounded-sm" />
-                </div>
-                <div className="text-stone-500 text-sm font-medium">Belum ada data batch sawmill.</div>
-                <div className="text-stone-400 text-xs mt-1">Klik "New Batch" untuk mulai mencatat.</div>
-              </div>
             </div>
 
-            <div className="self-stretch px-6 py-4 bg-stone-50 border-t border-stone-300 inline-flex justify-between items-center">
-              <div className="inline-flex flex-col justify-start items-start">
-                <div className="h-3 justify-center text-stone-500 text-xs font-medium leading-3 tracking-tight">Showing 0 of 0 batches</div>
-              </div>
-              <div className="flex justify-start items-center gap-2">
-                <button className="px-3 py-1.5 text-stone-400 text-xs font-medium rounded-sm border border-stone-200" disabled>Previous</button>
-                <button className="px-3 py-1.5 text-stone-400 text-xs font-medium rounded-sm border border-stone-200" disabled>Next</button>
-              </div>
-            </div>
-          </div>
-
-          {/* BOTTOM SECTION */}
-          <div className="self-stretch pt-4 grid grid-cols-3 gap-6">
-            <div className="col-span-2 px-4 pt-4 pb-6 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-stone-300 flex flex-col gap-4 shadow-sm">
-              <div className="inline-flex justify-between items-center w-full">
-                <div className="text-stone-900 text-lg font-semibold leading-7">Production Output (Last 7 Days)</div>
-                <div className="flex justify-start items-start gap-3">
-                  <div className="flex justify-start items-center gap-1.5">
-                    <div className="size-3 bg-lime-800 rounded-sm" />
-                    <div className="text-stone-700 text-xs font-normal">High Quality</div>
-                  </div>
-                  <div className="flex justify-start items-center gap-1.5">
-                    <div className="size-3 bg-yellow-800 rounded-sm" />
-                    <div className="text-stone-700 text-xs font-normal">Standard</div>
+            {/* Modal Content: DETAIL HASIL SAWMILL (Tabel Sub-Komponen Plank) */}
+            {modalType === 'detail-hasil' && (
+              <div className="p-3.5 bg-white/80 rounded-[10px] border border-stone-400 flex flex-col gap-4 text-xs">
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-green-700">ID LOG ASAL</label>
+                  <div className="w-full px-4 py-2 bg-white border border-stone-900 rounded font-mono font-medium text-green-700">
+                    {idLogAsal}
                   </div>
                 </div>
-              </div>
-              <div className="h-48 px-4 py-2 bg-stone-50 rounded-sm flex justify-around items-end gap-4 overflow-hidden border border-stone-200">
-                <div className="flex-1 h-0 bg-lime-800/20 rounded-t-sm" />
-                <div className="flex-1 h-0 bg-lime-800/20 rounded-t-sm" />
-                <div className="flex-1 h-0 bg-lime-800/20 rounded-t-sm" />
-                <div className="flex-1 h-0 bg-lime-800/20 rounded-t-sm" />
-                <div className="flex-1 h-0 bg-lime-800/20 rounded-t-sm" />
-                <div className="flex-1 h-0 bg-lime-800/20 rounded-t-sm" />
-                <div className="flex-1 h-0 bg-lime-800/20 rounded-t-sm" />
-              </div>
-              <div className="px-4 flex justify-around items-start text-stone-500 text-[10px] font-medium">
-                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-              </div>
-            </div>
 
-            <div className="p-4 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-stone-300 flex flex-col justify-start items-start shadow-sm">
-              <div className="pb-4 w-full border-b border-stone-100">
-                <div className="text-stone-900 text-lg font-semibold leading-7">Process Alert</div>
-              </div>
-              <div className="w-full py-8 flex flex-col justify-center items-center gap-3">
-                <div className="size-14 bg-lime-100 rounded-full inline-flex justify-center items-center mb-2">
-                  <div className="size-6 bg-lime-600 rounded-full" />
+                <div className="overflow-x-auto border border-stone-200 rounded">
+                  <table className="w-full text-xs text-left">
+                    <thead>
+                      <tr className="border-b border-green-700 text-green-700 font-bold uppercase">
+                        <th className="py-2.5 px-2 text-center">ID PLANK</th>
+                        <th className="py-2.5 px-2 text-center">Sortimen</th>
+                        <th className="py-2.5 px-2 text-center">Dimensions (T x W x L)</th>
+                        <th className="py-2.5 px-2 text-center">Volume</th>
+                        <th className="py-2.5 px-2 text-center">Grade</th>
+                        {role === 'admin' && <th className="py-2.5 px-2 text-center">Action</th>}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {mockPlankResults.map((p, i) => (
+                        <tr key={i} className="text-green-700">
+                          <td className="py-2.5 px-2 text-center font-mono">{p.id}</td>
+                          <td className="py-2.5 px-2 text-center">{p.sortimen}</td>
+                          <td className="py-2.5 px-2 text-center whitespace-nowrap">{p.dimensions}</td>
+                          <td className="py-2.5 px-2 text-center">{p.volume.toFixed(3)} m³</td>
+                          <td className="py-2.5 px-2 text-center font-semibold">{p.grade}</td>
+                          {role === 'admin' && (
+                            <td className="py-2.5 px-2 text-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIdPlank(p.id);
+                                  setModalType('input-hasil');
+                                }}
+                                className="p-1 hover:bg-green-100 rounded text-green-700"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <div className="text-center text-stone-900 text-sm font-bold">All Systems Normal</div>
-                <div className="text-center text-stone-500 text-xs">Tidak ada jadwal maintenance mesin atau peringatan proses saat ini.</div>
+
+                {role === 'admin' && (
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setModalType('input-hasil')}
+                      className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white font-bold rounded flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Tambah Plank</span>
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
+
+            {/* Modal Content: INPUT / EDIT SAWMILL (Batang Log Mentah) */}
+            {(modalType === 'input-log' || modalType === 'edit-log') && (
+              <form
+                onSubmit={handleSubmit}
+                className="p-3.5 bg-white/80 rounded-[10px] border border-stone-400 flex flex-col gap-3 text-xs"
+              >
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-green-700">ID LOG ASAL</label>
+                  <select
+                    value={idLogAsal}
+                    onChange={(e) => setIdLogAsal(e.target.value)}
+                    className="w-full h-9 px-3 bg-white border border-stone-400 rounded text-green-700 font-mono font-medium focus:outline-none focus:border-green-700"
+                  >
+                    <option value="L-2026-3-A-1">L-2026-3-A-1</option>
+                    <option value="L-2026-3-A-2">L-2026-3-A-2</option>
+                    <option value="L-2026-3-A-3">L-2026-3-A-3</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-green-700">Sortimen</label>
+                  <input
+                    type="text"
+                    defaultValue="Sortimen A"
+                    className="w-full h-9 px-3 bg-white border border-stone-400 rounded text-green-700 focus:outline-none focus:border-green-700"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-green-700">Ukuran</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-0.5">
+                      <label className="text-[11px] text-green-700">Panjang (cm)</label>
+                      <input
+                        type="number"
+                        value={panjang}
+                        onChange={(e) => setPanjang(Number(e.target.value))}
+                        className="w-full h-9 px-3 bg-white border border-stone-400 rounded text-green-700 focus:outline-none focus:border-green-700"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <label className="text-[11px] text-green-700">Diameter (cm)</label>
+                      <input
+                        type="number"
+                        value={lebar}
+                        onChange={(e) => setLebar(Number(e.target.value))}
+                        className="w-full h-9 px-3 bg-white border border-stone-400 rounded text-green-700 focus:outline-none focus:border-green-700"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-green-700">Suplier</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={suplier}
+                      onChange={(e) => setSuplier(e.target.value)}
+                      className="flex-1 h-9 px-3 bg-white border border-stone-400 rounded text-green-700 font-semibold focus:outline-none focus:border-green-700"
+                    />
+                    <button
+                      type="submit"
+                      className="h-9 px-4 bg-green-700 hover:bg-green-800 text-white font-bold rounded flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer shadow-xs"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>{modalType === 'input-log' ? 'New Batch' : 'Save Batch'}</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            {/* Modal Content: INPUT HASIL SAWMILL (Hasil Olahan Papan Plank) */}
+            {modalType === 'input-hasil' && (
+              <form
+                onSubmit={handleSubmit}
+                className="p-3.5 bg-white/80 rounded-[10px] border border-stone-400 flex flex-col gap-3 text-xs"
+              >
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-green-700">ID LOG ASAL</label>
+                  <input
+                    type="text"
+                    disabled
+                    value={idLogAsal}
+                    className="w-full h-9 px-3 bg-stone-100 border border-stone-300 rounded font-mono text-green-800 font-medium"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-green-700">ID PLANK</label>
+                  <input
+                    type="text"
+                    required
+                    value={idPlank}
+                    onChange={(e) => setIdPlank(e.target.value)}
+                    className="w-full h-9 px-3 bg-white border border-stone-400 rounded font-mono text-green-700 focus:outline-none focus:border-green-700"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-green-700">Grade</label>
+                  <select
+                    value={grade}
+                    onChange={(e) => setGrade(e.target.value)}
+                    className="w-full h-9 px-3 bg-white border border-stone-400 rounded text-green-700 font-medium focus:outline-none focus:border-green-700"
+                  >
+                    <option value="Grade A">Grade A</option>
+                    <option value="Grade B">Grade B</option>
+                    <option value="Grade C">Grade C</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-green-700">Ukuran Potong</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-[11px] text-green-700">Panjang (cm)</label>
+                      <input
+                        type="number"
+                        value={panjang}
+                        onChange={(e) => setPanjang(Number(e.target.value))}
+                        className="w-full h-9 px-3 bg-white border border-stone-300 rounded text-green-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-green-700">Lebar (cm)</label>
+                      <input
+                        type="number"
+                        value={lebar}
+                        onChange={(e) => setLebar(Number(e.target.value))}
+                        className="w-full h-9 px-3 bg-white border border-stone-300 rounded text-green-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-green-700">Tinggi (cm)</label>
+                      <input
+                        type="number"
+                        value={tinggi}
+                        onChange={(e) => setTinggi(Number(e.target.value))}
+                        className="w-full h-9 px-3 bg-white border border-stone-300 rounded text-green-700"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="submit"
+                    className="h-9 px-4 bg-green-700 hover:bg-green-800 text-white font-bold rounded flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Save Plank</span>
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
-        </main>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
