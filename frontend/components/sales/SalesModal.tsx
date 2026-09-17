@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, ChevronDown } from 'lucide-react';
 import { SalesItem, SalesFormData, SalesStatus } from '@/types/sales';
+import { toISODate } from '@/lib/dates';
 
 interface SalesModalProps {
   isOpen: boolean;
@@ -24,7 +25,7 @@ export default function SalesModal({
     nama_customer: '',
     kuantitas: '',
     harga_satuan: 1000000,
-    tanggal: new Date().toLocaleDateString('id-ID'),
+    tanggal: toISODate(),
     status: 'Pending',
   });
 
@@ -35,7 +36,7 @@ export default function SalesModal({
         nama_customer: '',
         kuantitas: '',
         harga_satuan: 1000000,
-        tanggal: new Date().toLocaleDateString('id-ID'),
+        tanggal: toISODate(),
         status: 'Pending', // Sesuai SRS: default order admin berstatus Pending
       });
     }
@@ -156,7 +157,7 @@ export default function SalesModal({
             <div className="flex flex-col gap-0.5">
               <label className="font-semibold text-green-700">Sale Date</label>
               <input
-                type="text"
+                type="date"
                 required
                 value={formData.tanggal}
                 onChange={(e) =>

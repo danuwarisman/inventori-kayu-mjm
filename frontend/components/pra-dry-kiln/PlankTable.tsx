@@ -3,6 +3,7 @@
 import React from 'react';
 import { Pencil, Inbox, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PraDryKilnItem } from '@/types/pra-dry-kiln';
+import { formatDateID } from '@/lib/dates';
 
 interface PlankTableProps {
   items: PraDryKilnItem[];
@@ -87,7 +88,7 @@ export default function PlankTable({
                     </span>
                   </td>
                   <td className="py-3 px-3 text-center font-normal text-stone-600">
-                    {item.date}
+                    {formatDateID(item.date)}
                   </td>
                   {!isManager && (
                     <td className="py-3 px-3 text-center">

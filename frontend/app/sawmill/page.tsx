@@ -14,6 +14,7 @@ import {
   Inbox,
   Layers,
 } from 'lucide-react';
+import { toISODate, formatDateID } from '@/lib/dates';
 
 export type AppRole = 'admin' | 'manager' | 'admin_kantor' | 'admin_lapangan';
 
@@ -128,7 +129,7 @@ export default function DataSawmillPage({ role = 'admin' }: DataSawmillPageProps
         diameter: d,
         volume_total: vol,
         stage: 'Sawmill',
-        tanggal: new Date().toLocaleDateString('id-ID'),
+        tanggal: toISODate(),
         suplier: formSuplier,
         harga: 1000000,
         planks: [],
@@ -371,7 +372,7 @@ export default function DataSawmillPage({ role = 'admin' }: DataSawmillPageProps
                       </span>
                     </td>
                     <td className="py-3 px-3 text-center font-normal text-stone-600">
-                      {item.tanggal}
+                      {formatDateID(item.tanggal)}
                     </td>
 
                     {isManager && (

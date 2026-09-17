@@ -3,6 +3,7 @@
 import React from 'react';
 import { Pencil, Inbox, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DryKilnItem } from '@/types/dry-kiln';
+import { formatDateID } from '@/lib/dates';
 
 interface DryKilnTableProps {
   items: DryKilnItem[];
@@ -89,7 +90,7 @@ export default function DryKilnTable({
                     </span>
                   </td>
                   <td className="py-3 px-3 text-center font-normal text-stone-600">
-                    {item.date}
+                    {formatDateID(item.date)}
                   </td>
                   {!isManager && (
                     <td className="py-3 px-3 text-center">

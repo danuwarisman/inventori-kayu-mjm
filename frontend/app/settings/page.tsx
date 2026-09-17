@@ -29,6 +29,7 @@ import {
   ExportFormat,
   ManagementHistoryItem,
 } from '@/types/settings';
+import { clearSession } from '@/lib/session';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -146,6 +147,7 @@ export default function SettingsPage() {
 
   const handleLogout = () => {
     if (window.confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+      clearSession();
       router.push('/login');
     }
   };

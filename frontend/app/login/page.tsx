@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
-  TreePine,
   ShieldCheck,
   User,
   Lock,
@@ -15,6 +15,7 @@ import {
   LifeBuoy,
   CheckCircle2,
 } from 'lucide-react';
+import { saveSession, getDashboardPath, AppRole } from '@/lib/session';
 
 type PortalType = 'operational' | 'managerial';
 
@@ -32,11 +33,27 @@ export default function LoginPage() {
 
     // Simulasi autentikasi & routing sesuai role portal
     setTimeout(() => {
+      // TODO: ganti dengan panggilan API login ke backend NestJS.
+      const role: AppRole = portal === 'managerial' ? 'manager' : 'admin_lapangan';
+      const fullName =
+        username.trim() || (role === 'manager' ? 'Manager' : 'Admin Lapangan');
+
+      // Simpan sesi (cookie role untuk middleware + profil untuk UI)
+      saveSession({ username: username.trim() || fullName, fullName, role });
+
       setIsLoading(false);
-      if (portal === 'managerial') {
-        router.push('/manager-dashboard');
+
+      // Kembali ke halaman yang sempat dituju sebelum diarahkan ke login
+      const redirectCookie = document.cookie
+        .split('; ')
+        .find((c) => c.startsWith('mjm_redirect='))
+        ?.split('=')[1];
+      document.cookie = 'mjm_redirect=; path=/; max-age=0; samesite=lax';
+
+      if (redirectCookie && redirectCookie.startsWith('/') && !redirectCookie.startsWith('/login')) {
+        router.push(redirectCookie);
       } else {
-        router.push('/dashboard');
+        router.push(getDashboardPath(role));
       }
     }, 600);
   };
@@ -52,8 +69,15 @@ export default function LoginPage() {
         <div className="w-full bg-white rounded-lg shadow-xl shadow-stone-300/40 border border-stone-200/80 p-8 flex flex-col gap-6">
           {/* Logo & Identity */}
           <div className="flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-xl bg-green-800/10 text-green-800 flex items-center justify-center mb-3">
-              <TreePine className="w-8 h-8 stroke-[2.2]" />
+            <div className="w-14 h-14 rounded-xl overflow-hidden bg-green-800/10 flex items-center justify-center mb-3">
+              <Image
+                src="/logoMJM.png"
+                alt="Logo MargiJatiMakmur"
+                width={56}
+                height={56}
+                className="w-full h-full object-contain p-1"
+                priority
+              />
             </div>
             <h1 className="text-2xl font-bold text-green-800 font-sans tracking-tight">
               MargiJatiMakmur

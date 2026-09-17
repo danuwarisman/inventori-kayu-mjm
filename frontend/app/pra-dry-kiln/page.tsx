@@ -5,6 +5,7 @@ import { FileDown, Plus, ChevronDown } from 'lucide-react';
 import { PraDryKilnItem } from '@/types/pra-dry-kiln';
 import PlankTable from '@/components/pra-dry-kiln/PlankTable';
 import BatchModal from '@/components/pra-dry-kiln/BatchModal';
+import { toISODate } from '@/lib/dates';
 
 export default function PraDryKilnPage() {
   // Role switcher (Manager or Admin)
@@ -49,7 +50,7 @@ export default function PraDryKilnPage() {
       const newItem: PraDryKilnItem = {
         ...data,
         volume: vol,
-        date: new Date().toLocaleDateString('id-ID'),
+        date: toISODate(),
       };
       setItems((prev) => [newItem, ...prev]);
     } else if (modalMode === 'edit' && selectedItem) {

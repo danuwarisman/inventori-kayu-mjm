@@ -12,6 +12,7 @@ import {
   Inbox,
   Package,
 } from 'lucide-react';
+import { toISODate } from '@/lib/dates';
 import {
   StockReportItem,
   StockReportFormData,
@@ -91,7 +92,7 @@ export default function StockReportsPage() {
       dimensions: `${t}mm x ${w}mm x ${l}mm`,
       volume: vol,
       status: formData.status,
-      date: new Date().toLocaleDateString('id-ID'),
+      date: toISODate(),
     };
 
     setStocks((prev) => [newItem, ...prev]);

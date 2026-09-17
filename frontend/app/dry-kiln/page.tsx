@@ -5,6 +5,7 @@ import { FileDown, Plus, ChevronDown } from 'lucide-react';
 import { DryKilnItem } from '@/types/dry-kiln';
 import DryKilnTable from '@/components/dry-kiln/DryKilnTable';
 import DryKilnModal from '@/components/dry-kiln/DryKilnModal';
+import { toISODate } from '@/lib/dates';
 
 export default function DryKilnPage() {
   const [role] = useState<'admin' | 'manager'>('admin');
@@ -43,7 +44,7 @@ export default function DryKilnPage() {
       const newItem: DryKilnItem = {
         ...data,
         volume: vol,
-        date: new Date().toLocaleDateString('id-ID'),
+        date: toISODate(),
       };
       setItems((prev) => [newItem, ...prev]);
     } else if (modalMode === 'edit' && selectedItem) {

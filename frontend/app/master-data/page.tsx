@@ -15,6 +15,7 @@ import {
   Flame,
   PackageCheck,
 } from 'lucide-react';
+import { toISODate, formatDateID } from '@/lib/dates';
 
 export type AppRole = 'admin' | 'manager' | 'admin_kantor' | 'admin_lapangan';
 
@@ -102,7 +103,7 @@ export default function DataLogPage({ role = 'admin' }: DataLogPageProps) {
         diameter: d,
         volume: calculatedVol,
         stage: 'Log',
-        tanggal_masuk: new Date().toLocaleDateString('id-ID'),
+        tanggal_masuk: toISODate(),
         suplier: formSuplier,
         harga: 1000000,
       };
@@ -265,7 +266,7 @@ export default function DataLogPage({ role = 'admin' }: DataLogPageProps) {
                       </span>
                     </td>
                     <td className="py-3 px-3 text-center font-normal text-stone-600">
-                      {item.tanggal_masuk}
+                      {formatDateID(item.tanggal_masuk)}
                     </td>
 
                     {isManager && (

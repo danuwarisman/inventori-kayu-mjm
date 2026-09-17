@@ -3,6 +3,7 @@
 import React from 'react';
 import { ShoppingBag, ChevronLeft, ChevronRight, CheckCircle2, XCircle } from 'lucide-react';
 import { SalesItem } from '@/types/sales';
+import { formatDateID } from '@/lib/dates';
 
 interface SalesTableProps {
   items: SalesItem[];
@@ -74,7 +75,7 @@ export default function SalesTable({
                     {item.id_transaksi}
                   </td>
                   <td className="py-3 px-3 text-center font-normal text-stone-600">
-                    {item.tanggal}
+                    {formatDateID(item.tanggal)}
                   </td>
                   <td className="py-3 px-3 text-center font-semibold text-stone-900">
                     {item.nama_customer}

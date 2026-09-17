@@ -2,9 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
-  TreePine,
   LayoutDashboard,
   FileText,
   Factory,
@@ -17,8 +17,7 @@ import {
   UserCog,
   Settings,
 } from 'lucide-react';
-
-export type AppRole = 'manager' | 'admin' | 'admin_kantor' | 'admin_lapangan';
+import { AppRole, ROLE_LABELS, getDashboardPath } from '@/lib/session';
 
 interface SidebarProps {
   role?: AppRole;
@@ -36,7 +35,7 @@ interface NavItem {
 const navConfig: NavItem[] = [
   {
     label: 'Dashboard',
-    href: (role) => (role === 'manager' ? '/manager-dashboard' : '/dashboard'),
+    href: (role) => getDashboardPath(role),
     icon: LayoutDashboard,
   },
   {
@@ -93,15 +92,14 @@ const navConfig: NavItem[] = [
 ];
 
 export default function Sidebar({
-  role = 'admin',
+  role = 'admin_lapangan',
   userName = 'Unknown 123',
   userRoleLabel,
 }: SidebarProps) {
   const pathname = usePathname();
 
   const isManager = role === 'manager';
-  const roleDisplayLabel =
-    userRoleLabel || (isManager ? 'manager' : 'Office Admin');
+  const roleDisplayLabel = userRoleLabel || ROLE_LABELS[role];
 
   const visibleNavItems = navConfig
     .filter((item) => !item.managerOnly || isManager)
@@ -116,8 +114,15 @@ export default function Sidebar({
       <div className="w-full flex flex-col">
         {/* Brand Header */}
         <div className="pl-2.5 pr-4 pb-6 flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-green-700/10 text-green-700 flex items-center justify-center shrink-0">
-            <TreePine className="w-5 h-5 stroke-[2.2]" />
+          <div className="w-9 h-9 rounded-lg overflow-hidden bg-green-700/10 shrink-0">
+            <Image
+              src="/logoMJM.png"
+              alt="Logo MargiJatiMakmur"
+              width={36}
+              height={36}
+              className="w-full h-full object-contain p-0.5"
+              priority
+            />
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-green-700 text-lg font-bold leading-tight truncate">
