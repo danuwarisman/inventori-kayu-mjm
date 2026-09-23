@@ -66,12 +66,10 @@ model Approval {
 }
 
 model StokLog {
-  id        Int      @id @default(autoincrement())
-  kodeLog   String   @unique
-  panjang   Float
-  diameter  Float
-  volume    Float
-  status    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  idLog        Int      @id @default(autoincrement())
+  idPembelian  Int
+  asalSortimen String
+  dimensiLog   String
+  volumeLog    Decimal  @db.Decimal(10, 2)
+  statusLog    String
 }
