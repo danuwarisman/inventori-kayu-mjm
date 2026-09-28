@@ -16,35 +16,40 @@ model Role {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  password  String
-  nama      String
-  roleId    Int
-  role      Role     @relation(fields: [roleId], references: [id])
-  approvals Approval[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 Int                  @id @default(autoincrement())
+  username           String               @unique
+  password           String
+  nama               String
+  roleId             Int
+  role               Role                 @relation(fields: [roleId], references: [id])
+  approvals          Approval[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  transaksiPembelian TransaksiPembelian[]
+  prosesSawmill      ProsesSawmill[]
+  transaksiPenjualan TransaksiPenjualan[]
 }
 
 model Supplier {
-  id        Int      @id @default(autoincrement())
-  nama      String
-  alamat    String?
-  telepon   String?
-  email     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 Int                  @id @default(autoincrement())
+  nama               String
+  alamat             String?
+  telepon            String?
+  email              String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  transaksiPembelian TransaksiPembelian[]
 }
 
 model Customer {
-  id        Int      @id @default(autoincrement())
-  nama      String
-  alamat    String?
-  telepon   String?
-  email     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 Int                  @id @default(autoincrement())
+  nama               String
+  alamat             String?
+  telepon            String?
+  email              String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  transaksiPenjualan TransaksiPenjualan[]
 }
 
 model StatusApprove {
@@ -66,10 +71,127 @@ model Approval {
 }
 
 model StokLog {
-  idLog        Int      @id @default(autoincrement())
-  idPembelian  Int
-  asalSortimen String
-  dimensiLog   String
-  volumeLog    Decimal  @db.Decimal(10, 2)
-  statusLog    String
+  idLog           Int               @id @default(autoincrement())
+  idPembelian     Int
+  asalSortimen    String
+  dimensiLog      String
+  volumeLog       Decimal           @db.Decimal(10, 2)
+  statusLog       String
+  planks          Plank[]
+  detailPenjualan DetailPenjualan[]
+
+  transaksiPembelian TransaksiPembelian @relation(fields: [idPembelian], references: [idPembelian])
+  prosesSawmill      ProsesSawmill[]
+}
+
+model TransaksiPembelian {
+  idPembelian Int      @id @default(autoincrement())
+  idSupplier  Int
+  idUser      Int
+  tanggalBeli DateTime @db.Date
+
+  supplier Supplier  @relation(fields: [idSupplier], references: [id])
+  user     User      @relation(fields: [idUser], references: [id])
+  stokLogs StokLog[]
+}
+
+model ProsesSawmill {
+  idSawmill     Int      @id @default(autoincrement())
+  idLog         Int
+  idUserInput   Int
+  tanggalProses DateTime @db.Date
+  statusSawmill String   @db.VarChar(20)
+  planks        Plank[]
+
+  stokLog StokLog @relation(fields: [idLog], references: [idLog])
+  user    User    @relation(fields: [idUserInput], references: [id])
+}
+
+model Plank {
+  idPlank         Int               @id @default(autoincrement())
+  idSawmill       Int
+  idLogAsal       Int
+  gradePapan      String            @db.VarChar(20)
+  dimensiPlank    String            @db.VarChar(50)
+  volumePlank     Decimal           @db.Decimal(10, 2)
+  detailPalet     DetailPalet[]
+  hasilDryKiln    HasilDryKiln[]
+  detailPenjualan DetailPenjualan[]
+
+  sawmill ProsesSawmill @relation(fields: [idSawmill], references: [idSawmill])
+  stokLog StokLog       @relation(fields: [idLogAsal], references: [idLog])
+}
+
+model Palet {
+  idPalet         Int      @id @default(autoincrement())
+  tanggalSticking DateTime @db.Date
+  statusPalet     String   @db.VarChar(20)
+
+  detailPalet DetailPalet[]
+  dryKilns    DryKiln[]
+}
+
+model DetailPalet {
+  idDetailPalet Int @id @default(autoincrement())
+  idPalet       Int
+  idPlank       Int
+
+  palet Palet @relation(fields: [idPalet], references: [idPalet])
+  plank Plank @relation(fields: [idPlank], references: [idPlank])
+}
+
+model DryKiln {
+  idOven            Int            @id @default(autoincrement())
+  idPalet           Int
+  tanggalMasuk      DateTime       @db.Date
+  tanggalKeluar     DateTime?      @db.Date
+  statusPengeringan String         @db.VarChar(20)
+  hasilDryKiln      HasilDryKiln[]
+
+  palet Palet @relation(fields: [idPalet], references: [idPalet])
+}
+
+model HasilDryKiln {
+  idHasilOven     Int     @id @default(autoincrement())
+  idOven          Int
+  idPlank         Int
+  gradeAkhir      String  @db.VarChar(20)
+  volumeAkhir     Decimal @db.Decimal(10, 2)
+  kadarAirAkhir   Decimal @db.Decimal(5, 2)
+  statusKelayakan String  @db.VarChar(20)
+
+  dryKiln DryKiln @relation(fields: [idOven], references: [idOven])
+  plank   Plank   @relation(fields: [idPlank], references: [idPlank])
+}
+
+enum StatusVerifikasi {
+  PENDING
+  DISETUJUI
+  DITOLAK
+}
+
+model TransaksiPenjualan {
+  idPenjualan      Int               @id @default(autoincrement())
+  idCustomer       Int
+  idUserInput      Int
+  tanggalJual      DateTime          @db.Date
+  statusVerifikasi StatusVerifikasi  @default(PENDING)
+  detailPenjualan  DetailPenjualan[]
+
+  customer Customer @relation(fields: [idCustomer], references: [id])
+  user     User     @relation(fields: [idUserInput], references: [id])
+}
+
+model DetailPenjualan {
+  idDetail         Int     @id @default(autoincrement())
+  idPenjualan      Int
+  referensiBarang  String  @db.VarChar(50)
+  idLog            Int?
+  idPlank          Int?
+  kuantitasTerjual Decimal @db.Decimal(10, 2)
+  hargaSatuan      Decimal @db.Decimal(15, 2)
+
+  transaksiPenjualan TransaksiPenjualan @relation(fields: [idPenjualan], references: [idPenjualan])
+  stokLog            StokLog?           @relation(fields: [idLog], references: [idLog])
+  plank              Plank?             @relation(fields: [idPlank], references: [idPlank])
 }
