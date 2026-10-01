@@ -1,5 +1,10 @@
 export interface SupplierItem {
   id_supplier: string;
+  /**
+   * ID numerik dari backend (model Supplier.id), opsional karena data
+   * lokal (optimistic add/edit) belum punya ID server.
+   */
+  id_backend?: number;
   nama_supplier: string; // Company Name
   kontak_person: string; // Contact Person
   no_hp: string;         // Phone Number

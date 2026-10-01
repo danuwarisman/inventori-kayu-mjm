@@ -1,13 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Truck, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
+import { Truck, ChevronLeft, ChevronRight, Pencil, Loader2 } from 'lucide-react';
 import { SupplierItem } from '@/types/supplier';
 
 interface SupplierTableProps {
   items: SupplierItem[];
   totalCount: number;
   isManager?: boolean;
+  isLoading?: boolean;
   selectedIds: string[];
   onToggleSelect: (id: string) => void;
   onToggleSelectAll: () => void;
@@ -18,6 +19,7 @@ export default function SupplierTable({
   items,
   totalCount,
   isManager = false,
+  isLoading = false,
   selectedIds,
   onToggleSelect,
   onToggleSelectAll,
@@ -59,17 +61,29 @@ export default function SupplierTable({
                   colSpan={isManager ? 5 : 7}
                   className="py-14 text-center"
                 >
-                  <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
-                    <Truck className="w-8 h-8 stroke-[1.5]" />
-                    <p className="text-sm font-semibold text-stone-600">
-                      Belum ada data supplier
-                    </p>
-                    <p className="text-xs text-stone-400">
-                      {isManager
-                        ? 'Belum ada data pemasok kayu yang dimasukkan ke sistem.'
-                        : 'Klik tombol "Add Supplier" untuk meregistrasikan mitra pemasok kayu baru.'}
-                    </p>
-                  </div>
+                  {isLoading ? (
+                    <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
+                      <Loader2 className="w-8 h-8 stroke-[1.5] animate-spin" />
+                      <p className="text-sm font-semibold text-stone-600">
+                        Memuat data supplier...
+                      </p>
+                      <p className="text-xs text-stone-400">
+                        Mengambil data dari server, mohon tunggu sebentar.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
+                      <Truck className="w-8 h-8 stroke-[1.5]" />
+                      <p className="text-sm font-semibold text-stone-600">
+                        Belum ada data supplier
+                      </p>
+                      <p className="text-xs text-stone-400">
+                        {isManager
+                          ? 'Belum ada data pemasok kayu yang dimasukkan ke sistem.'
+                          : 'Klik tombol "Add Supplier" untuk meregistrasikan mitra pemasok kayu baru.'}
+                      </p>
+                    </div>
+                  )}
                 </td>
               </tr>
             ) : (

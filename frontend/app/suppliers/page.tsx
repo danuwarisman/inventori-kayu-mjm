@@ -1,18 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Search, Plus, Trash2, ChevronDown } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Search, Plus, Trash2, ChevronDown, RefreshCw } from 'lucide-react';
 import { SupplierItem, SupplierFormData } from '@/types/supplier';
 import SupplierTable from '@/components/suppliers/SupplierTable';
 import SupplierModal from '@/components/suppliers/SupplierModal';
+import { getApiErrorMessage, supplierApi } from '@/lib/api';
 
 export default function SuppliersPage() {
   // Role switcher: 'admin' (bisa Add/Remove Supplier), 'manager' (read-only)
   const [role] = useState<'admin' | 'manager'>('admin');
   const isManager = role === 'manager';
 
-  // State data utama tanpa dummy
+  // State data utama dari backend
   const [suppliers, setSuppliers] = useState<SupplierItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [cityFilter, setCityFilter] = useState('All Cities');
   const [statusFilter, setStatusFilter] = useState('All Status');
@@ -24,6 +27,39 @@ export default function SuppliersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'input' | 'edit'>('input');
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierItem | null>(null);
+
+  // Ambil data supplier dari backend (GET /supplier).
+  // setState hanya dijalankan pada callback promise (bukan sinkron di body effect).
+  const fetchSuppliers = useCallback(() => {
+    return supplierApi
+      .list()
+      .then((data) => {
+        setSuppliers(data);
+        setError(null);
+      })
+      .catch((err: unknown) => {
+        setError(
+          getApiErrorMessage(
+            err,
+            'Terjadi kesalahan tak terduga saat mengambil data supplier.'
+          )
+        );
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetchSuppliers();
+  }, [fetchSuppliers]);
+
+  // Retry/refresh lewat event handler: setState sinkron di sini tidak masalah
+  const handleRefresh = () => {
+    setIsLoading(true);
+    setError(null);
+    fetchSuppliers();
+  };
 
   const handleOpenInput = () => {
     setModalMode('input');
@@ -37,6 +73,8 @@ export default function SuppliersPage() {
     setIsModalOpen(true);
   };
 
+  // NOTE: endpoint POST/PUT /supplier belum tersedia di backend, jadi
+  // tambah/edit masih lokal (hilang saat refresh) sampai endpoint dibuat.
   const handleModalSubmit = (data: SupplierFormData) => {
     const preparedItem: SupplierItem = {
       ...data,
@@ -71,7 +109,8 @@ export default function SuppliersPage() {
     }
   };
 
-  // Handler Hapus Supplier Terpilih (Fitur Remove Supplier dari Figma)
+  // NOTE: endpoint DELETE /supplier/:id belum tersedia di backend, jadi
+  // hapus masih lokal (hilang saat refresh) sampai endpoint dibuat.
   const handleRemoveSelected = () => {
     if (selectedIds.length === 0) return;
     if (
@@ -149,6 +188,17 @@ export default function SuppliersPage() {
         {/* Tombol Aksi Eksklusif Admin */}
         {!isManager && (
           <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              title="Muat ulang data dari server"
+              className="p-2 text-green-700 border border-green-700 hover:bg-green-50 rounded text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw
+                className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`}
+              />
+            </button>
             {selectedIds.length > 0 && (
               <button
                 type="button"
@@ -172,11 +222,32 @@ export default function SuppliersPage() {
         )}
       </section>
 
+      {/* Banner Error */}
+      {error && (
+        <section className="p-4 bg-red-50 border border-red-200 rounded-lg flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-bold text-red-800">
+              Gagal memuat data supplier
+            </span>
+            <span className="text-xs text-red-700">{error}</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Coba Lagi</span>
+          </button>
+        </section>
+      )}
+
       {/* Tabel Supplier */}
       <SupplierTable
         items={filteredSuppliers}
         totalCount={suppliers.length}
         isManager={isManager}
+        isLoading={isLoading}
         selectedIds={selectedIds}
         onToggleSelect={handleToggleSelect}
         onToggleSelectAll={handleToggleSelectAll}
