@@ -16,8 +16,9 @@ import {
   PackageCheck,
 } from 'lucide-react';
 import { toISODate, formatDateID } from '@/lib/dates';
+import useSessionUser from '@/lib/useSessionUser';
 
-export type AppRole = 'admin' | 'manager' | 'admin_kantor' | 'admin_lapangan';
+// Role kini diambil dari sesi login (lib/session), bukan properti lokal.
 
 export interface LogItem {
   id_log: string;
@@ -31,11 +32,7 @@ export interface LogItem {
   harga?: number;
 }
 
-interface DataLogPageProps {
-  role?: AppRole;
-}
-
-export default function DataLogPage({ role = 'admin' }: DataLogPageProps) {
+export default function DataLogPage() {
   // State data utama (bersih dari data dummy)
   const [logs, setLogs] = useState<LogItem[]>([]);
 
@@ -55,7 +52,8 @@ export default function DataLogPage({ role = 'admin' }: DataLogPageProps) {
   const [formDiameter, setFormDiameter] = useState<number | ''>('');
   const [formSuplier, setFormSuplier] = useState('PT. Suplier');
 
-  const isManager = role === 'manager';
+  const user = useSessionUser();
+  const isManager = user?.role === 'manager';
 
   // Hitung volume otomatis: V = (pi/4) * (d^2) * L atau rumus kubikasi standar
   const calculateVolume = (panjangCm: number, diameterCm: number): number => {

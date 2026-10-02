@@ -6,10 +6,11 @@ import { DryKilnItem } from '@/types/dry-kiln';
 import DryKilnTable from '@/components/dry-kiln/DryKilnTable';
 import DryKilnModal from '@/components/dry-kiln/DryKilnModal';
 import { toISODate } from '@/lib/dates';
+import useSessionUser from '@/lib/useSessionUser';
 
 export default function DryKilnPage() {
-  const [role] = useState<'admin' | 'manager'>('admin');
-  const isManager = role === 'manager';
+  const user = useSessionUser();
+  const isManager = user?.role === 'manager';
 
   const [items, setItems] = useState<DryKilnItem[]>([]);
   const [dateFilter, setDateFilter] = useState('');

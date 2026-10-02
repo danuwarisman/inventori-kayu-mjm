@@ -6,11 +6,12 @@ import { SupplierItem, SupplierFormData } from '@/types/supplier';
 import SupplierTable from '@/components/suppliers/SupplierTable';
 import SupplierModal from '@/components/suppliers/SupplierModal';
 import { getApiErrorMessage, supplierApi } from '@/lib/api';
+import useSessionUser from '@/lib/useSessionUser';
 
 export default function SuppliersPage() {
-  // Role switcher: 'admin' (bisa Add/Remove Supplier), 'manager' (read-only)
-  const [role] = useState<'admin' | 'manager'>('admin');
-  const isManager = role === 'manager';
+  // Role asli dari sesi login: manager read-only; selain itu bisa Add/Remove Supplier.
+  const user = useSessionUser();
+  const isManager = user?.role === 'manager';
 
   // State data utama dari backend
   const [suppliers, setSuppliers] = useState<SupplierItem[]>([]);

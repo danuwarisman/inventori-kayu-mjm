@@ -6,11 +6,12 @@ import { SalesItem } from '@/types/sales';
 import SalesStatCards from '@/components/sales/SalesStatCards';
 import SalesTable from '@/components/sales/SalesTable';
 import SalesModal from '@/components/sales/SalesModal';
+import useSessionUser from '@/lib/useSessionUser';
 
 export default function SalesPage() {
-  // Role switcher ('admin' untuk input pesanan, 'manager' untuk approval)
-  const [role] = useState<'admin' | 'manager'>('admin');
-  const isManager = role === 'manager';
+  // Role asli dari sesi login (manager = approval saja; admin input pesanan)
+  const user = useSessionUser();
+  const isManager = user?.role === 'manager';
 
   // State data transaksi (Zero Dummy Data)
   const [sales, setSales] = useState<SalesItem[]>([]);

@@ -13,6 +13,7 @@ import {
   Package,
 } from 'lucide-react';
 import { toISODate } from '@/lib/dates';
+import useSessionUser from '@/lib/useSessionUser';
 import {
   StockReportItem,
   StockReportFormData,
@@ -20,9 +21,9 @@ import {
 } from '@/types/stock-report';
 
 export default function StockReportsPage() {
-  // Role switcher ('admin' memiliki tombol Add Stock, 'manager' bersifat read-only)
-  const [role] = useState<'admin' | 'manager'>('admin');
-  const isManager = role === 'manager';
+  // Role asli dari sesi login (manager read-only; admin punya tombol Add Stock)
+  const user = useSessionUser();
+  const isManager = user?.role === 'manager';
   const currentYear = new Date().getFullYear();
 
   // State data inventori (Zero Dummy Data)

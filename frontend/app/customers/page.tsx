@@ -6,11 +6,12 @@ import { CustomerItem, CustomerFormData } from '@/types/customer';
 import CustomerAnalytics from '@/components/customers/CustomerAnalytics';
 import CustomerTable from '@/components/customers/CustomerTable';
 import CustomerModal from '@/components/customers/CustomerModal';
+import useSessionUser from '@/lib/useSessionUser';
 
 export default function CustomersPage() {
-  // Switch role pengguna ('admin' untuk Office Admin, 'manager' untuk Manajer)
-  const [role] = useState<'admin' | 'manager'>('admin');
-  const isManager = role === 'manager';
+  // Role asli dari sesi login ('manager' untuk Manajer, selain itu Office Admin)
+  const user = useSessionUser();
+  const isManager = user?.role === 'manager';
 
   // State data utama tanpa dummy
   const [customers, setCustomers] = useState<CustomerItem[]>([]);
