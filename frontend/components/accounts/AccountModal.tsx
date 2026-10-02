@@ -141,8 +141,9 @@ export default function AccountModal({
           <div className="flex flex-col gap-1">
             <label className="font-semibold text-green-700">Password</label>
             <input
-              type="text"
+              type="password"
               required
+              autoComplete="new-password"
               placeholder="Masukkan password akun"
               value={formData.password}
               onChange={(e) =>
