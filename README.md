@@ -19,10 +19,10 @@ Proyek ini dikembangkan oleh:
 * `/frontend` - Berisi source code antarmuka pengguna (Next.js).
 * `/backend` - Berisi source code logika server dan API (NestJS).
 
-update by danu pokoknya jangan lupa ya ini
-di frontend
-npm install
-npm install lucide-react
-backend
-npm install
+update by danu pokoknya jangan lupa ya ini  
+di frontend  
+npm install  
+npm install lucide-react  
+backend  
+npm install  
 (Selebihnya tanya cikal)
