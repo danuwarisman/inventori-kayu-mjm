@@ -22,77 +22,87 @@ model User {
   nama               String
   roleId             Int
   role               Role                 @relation(fields: [roleId], references: [id])
-  approvals          Approval[]
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   transaksiPembelian TransaksiPembelian[]
   prosesSawmill      ProsesSawmill[]
   transaksiPenjualan TransaksiPenjualan[]
+
+  pengajuanSupplierDibuat     PengajuanPerubahanSupplier[] @relation("PengajuanSupplierPengaju")
+  pengajuanSupplierDiperiksa PengajuanPerubahanSupplier[] @relation("PengajuanSupplierPemeriksa")
 }
 
 model Supplier {
-  id                 Int                  @id @default(autoincrement())
-  nama               String
-  alamat             String?
-  telepon            String?
-  email              String?
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
+  idSupplier     Int     @id @default(autoincrement()) @map("id_supplier")
+  namaSupplier    String  @db.VarChar(100) @map("nama_supplier")
+  alamatSupplier  String  @db.VarChar(200) @map("alamat_supplier")
+  kontakSupplier  String  @db.VarChar(15) @map("kontak_supplier")
+
   transaksiPembelian TransaksiPembelian[]
+  pengajuanPerubahan PengajuanPerubahanSupplier[]
 }
+
+
+model PengajuanPerubahanSupplier {
+  idPengajuan    Int     @id @default(autoincrement())
+  idSupplier     Int?    @map("id_supplier")
+  idPengaju      Int     @map("id_pengaju")
+  idPemeriksa    Int?    @map("id_pemeriksa")
+
+  jenisAksi      JenisAksiSupplier       @map("jenis_aksi")
+  namaSupplier   String                  @db.VarChar(100) @map("nama_supplier")
+  alamatSupplier String                  @db.VarChar(200) @map("alamat_supplier")
+  kontakSupplier String                  @db.VarChar(15)  @map("kontak_supplier")
+
+  status         StatusPengajuanSupplier @default(MENUNGGU)
+  catatan        String?                 @db.VarChar(100)
+  diajukanPada   DateTime                @default(now()) @map("diajukan_pada")
+  diperiksaPada  DateTime?               @map("diperiksa_pada")
+
+  supplier Supplier? @relation(fields: [idSupplier], references: [idSupplier])
+  pengaju    User  @relation("PengajuanSupplierPengaju", fields: [idPengaju], references: [id])
+  pemeriksa  User? @relation("PengajuanSupplierPemeriksa", fields: [idPemeriksa], references: [id])
+
+  @@map("pengajuan_perubahan_supplier")
+}
+
 
 model Customer {
-  id                 Int                  @id @default(autoincrement())
-  nama               String
-  alamat             String?
-  telepon            String?
-  email              String?
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
+  idCustomer         Int                  @id @default(autoincrement()) @map("id_customer")
+  namaCustomer       String               @db.VarChar(100) @map("nama_customer")
+  alamatCustomer     String               @db.VarChar(200) @map("alamat_customer")
+  kontakCustomer     String               @db.VarChar(15)  @map("kontak_customer")
+
   transaksiPenjualan TransaksiPenjualan[]
-}
 
-model StatusApprove {
-  id        Int        @id @default(autoincrement())
-  nama      String     @unique
-  approvals Approval[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-}
-
-model Approval {
-  id              Int           @id @default(autoincrement())
-  statusApproveId Int
-  statusApprove   StatusApprove @relation(fields: [statusApproveId], references: [id])
-  userId          Int
-  user            User          @relation(fields: [userId], references: [id])
-  catatan         String?
-  createdAt       DateTime      @default(now())
+  @@map("customer")
 }
 
 model StokLog {
-  idLog           Int               @id @default(autoincrement())
-  idPembelian     Int
-  asalSortimen    String
-  dimensiLog      String
-  volumeLog       Decimal           @db.Decimal(10, 2)
-  statusLog       String
-  planks          Plank[]
-  detailPenjualan DetailPenjualan[]
+  idLog        Int     @id @default(autoincrement()) @map("id_log")
+  idPembelian  Int     @map("id_pembelian")
+  asalSortimen String  @map("asal_sortimen")
+  dimensiLog   String  @map("dimensi_log")
+  volumeLog    Decimal @db.Decimal(10, 2) @map("volume_log")
+  statusLog    String  @map("status_log")
 
-  transaksiPembelian TransaksiPembelian @relation(fields: [idPembelian], references: [idPembelian])
-  prosesSawmill      ProsesSawmill[]
+  planks              Plank[]
+  detailPenjualan     DetailPenjualan[]
+  transaksiPembelian  TransaksiPembelian @relation(fields: [idPembelian], references: [idPembelian])
+  prosesSawmill       ProsesSawmill[]
 }
 
 model TransaksiPembelian {
-  idPembelian Int      @id @default(autoincrement())
-  idSupplier  Int
-  idUser      Int
-  tanggalBeli DateTime @db.Date
+  idPembelian Int      @id @default(autoincrement()) @map("id_pembelian")
+  idSupplier  Int      @map("id_supplier")
+  idUser      Int      @map("id_user")
+  tanggalBeli DateTime @db.Date @map("tanggal_beli")
 
-  supplier Supplier  @relation(fields: [idSupplier], references: [id])
-  user     User      @relation(fields: [idUser], references: [id])
+  supplier Supplier @relation(fields: [idSupplier], references: [idSupplier])
+  user     User     @relation(fields: [idUser], references: [id])
   stokLogs StokLog[]
+
+  @@map("transaksi_pembelian")
 }
 
 model ProsesSawmill {
@@ -158,7 +168,7 @@ model HasilDryKiln {
   gradeAkhir      String  @db.VarChar(20)
   volumeAkhir     Decimal @db.Decimal(10, 2)
   kadarAirAkhir   Decimal @db.Decimal(5, 2)
-  statusKelayakan String  @db.VarChar(20)
+  statusKelayakan StatusKelayakanKayu
 
   dryKiln DryKiln @relation(fields: [idOven], references: [idOven])
   plank   Plank   @relation(fields: [idPlank], references: [idPlank])
@@ -170,26 +180,45 @@ enum StatusVerifikasi {
   DITOLAK
 }
 
-model TransaksiPenjualan {
-  idPenjualan      Int               @id @default(autoincrement())
-  idCustomer       Int
-  idUserInput      Int
-  tanggalJual      DateTime          @db.Date
-  statusVerifikasi StatusVerifikasi  @default(PENDING)
-  detailPenjualan  DetailPenjualan[]
+enum StatusPengajuanSupplier {
+  MENUNGGU
+  DISETUJUI
+  DITOLAK
+}
 
-  customer Customer @relation(fields: [idCustomer], references: [id])
-  user     User     @relation(fields: [idUserInput], references: [id])
+enum JenisAksiSupplier {
+  TAMBAH
+  UBAH
+  HAPUS
+}
+
+enum StatusKelayakanKayu {
+  SIAP_JUAL
+  PENGERINGAN_ULANG
+}
+
+model TransaksiPenjualan {
+  idPenjualan      Int              @id @default(autoincrement()) @map("id_penjualan")
+  idCustomer       Int              @map("id_customer")
+  idUserInput      Int              @map("id_user_input")
+  tanggalJual      DateTime         @db.Date @map("tanggal_jual")
+  statusVerifikasi StatusVerifikasi @default(PENDING) @map("status_verifikasi")
+
+  detailPenjualan DetailPenjualan[]
+  customer        Customer @relation(fields: [idCustomer], references: [idCustomer])
+  user            User     @relation(fields: [idUserInput], references: [id])
+
+  @@map("transaksi_penjualan")
 }
 
 model DetailPenjualan {
-  idDetail         Int     @id @default(autoincrement())
-  idPenjualan      Int
-  referensiBarang  String  @db.VarChar(50)
-  idLog            Int?
-  idPlank          Int?
-  kuantitasTerjual Decimal @db.Decimal(10, 2)
-  hargaSatuan      Decimal @db.Decimal(15, 2)
+  idDetail         Int     @id @default(autoincrement()) @map("id_detail")
+  idPenjualan      Int     @map("id_penjualan")
+  referensiBarang  String  @db.VarChar(50) @map("referensi_barang")
+  idLog            Int?    @map("id_log")
+  idPlank          Int?    @map("id_plank")
+  kuantitasTerjual Decimal @db.Decimal(10, 2) @map("kuantitas_terjual")
+  hargaSatuan      Decimal @db.Decimal(15, 2) @map("harga_satuan")
 
   transaksiPenjualan TransaksiPenjualan @relation(fields: [idPenjualan], references: [idPenjualan])
   stokLog            StokLog?           @relation(fields: [idLog], references: [idLog])
