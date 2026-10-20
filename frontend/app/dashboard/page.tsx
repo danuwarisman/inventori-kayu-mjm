@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Package,
@@ -13,6 +13,7 @@ import {
   Users,
   DollarSign,
 } from 'lucide-react';
+import { logApi, sawmillApi, dryKilnApi } from '@/lib/api';
 
 interface ActivityItem {
   id: string;
@@ -23,7 +24,7 @@ interface ActivityItem {
 }
 
 export default function OperationalDashboardPage() {
-  // State data operasional awal (bersih tanpa dummy)
+  // State data operasional awal
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [logCount, setLogCount] = useState<number>(0);
   const [plankCount, setPlankCount] = useState<number>(0);
@@ -31,18 +32,57 @@ export default function OperationalDashboardPage() {
   const [totalCustomers] = useState<number>(0);
   const [totalSales] = useState<number>(0);
 
+  useEffect(() => {
+    const loadDashboardStats = async () => {
+      try {
+        const [logs, planks, kilns] = await Promise.allSettled([
+          logApi.list(),
+          sawmillApi.listPlanks(),
+          dryKilnApi.list(),
+        ]);
+
+        if (logs.status === 'fulfilled' && Array.isArray(logs.value)) {
+          setLogCount(logs.value.length);
+          const recentLogs: ActivityItem[] = logs.value.slice(0, 5).map((l) => ({
+            id: l.id_log,
+            sortimen: l.sortimen,
+            grade: 'Grade A',
+            stage: l.stage,
+            time: l.tanggal_masuk,
+          }));
+          if (recentLogs.length > 0) {
+            setActivities(recentLogs);
+          }
+        }
+        if (planks.status === 'fulfilled' && Array.isArray(planks.value)) {
+          setPlankCount(planks.value.length);
+        }
+        if (kilns.status === 'fulfilled' && Array.isArray(kilns.value)) {
+          setKilnCount(kilns.value.length);
+        }
+      } catch (err) {
+        console.warn('Gagal memuat statistik dashboard:', err);
+      }
+    };
+    loadDashboardStats();
+  }, []);
+
   // Quick Entry State
   const [diameter, setDiameter] = useState<string>('');
   const [panjang, setPanjang] = useState<string>('');
   const [sortimen, setSortimen] = useState<string>('Sortimen A');
   const [suplier, setSuplier] = useState<string>('');
 
-  const handleQuickRegister = (e: React.FormEvent) => {
+  const handleQuickRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!diameter || !panjang) return;
 
+    const p = Number(panjang);
+    const d = Number(diameter);
+    const code = `L-2026-3-A-${activities.length + 1}`;
+
     const newActivity: ActivityItem = {
-      id: `L-2026-3-A-${activities.length + 1}`,
+      id: code,
       sortimen,
       grade: 'Grade A',
       stage: 'Log Masuk',
@@ -57,6 +97,20 @@ export default function OperationalDashboardPage() {
     setDiameter('');
     setPanjang('');
     setSuplier('');
+
+    // Simpan permanen ke database PostgreSQL via backend
+    try {
+      await logApi.create({
+        kodeLog: code,
+        sortimen,
+        panjang: p,
+        diameter: d,
+        suplier: suplier || 'PT. Suplier',
+        stage: 'Log',
+      });
+    } catch (err) {
+      console.warn('Gagal menyimpan log baru ke PostgreSQL:', err);
+    }
   };
 
   return (

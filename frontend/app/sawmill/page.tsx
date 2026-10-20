@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FileDown,
   Plus,
   Pencil,
   Eye,
+  Trash2,
   X,
   ChevronDown,
   ChevronLeft,
@@ -15,44 +16,42 @@ import {
   Layers,
 } from 'lucide-react';
 import { toISODate, formatDateID } from '@/lib/dates';
+import { sawmillApi } from '@/lib/api';
+import { PlankItem, SawmillItem } from '@/types/sawmill';
 
 export type AppRole = 'admin' | 'manager' | 'admin_kantor' | 'admin_lapangan';
-
-export interface PlankItem {
-  id_plank: string;
-  sortimen: string;
-  tinggi: number;  // Tebal (mm / cm)
-  lebar: number;   // Lebar (mm / cm)
-  panjang: number; // Panjang (mm / cm)
-  volume: number;  // m3
-  grade: 'Grade A' | 'Grade B' | 'Grade C';
-}
-
-export interface SawmillItem {
-  id_sawmill: string;
-  id_log_asal: string;
-  sortimen: string;
-  panjang: number;
-  diameter: number;
-  volume_total: number;
-  stage: 'Sawmill' | 'finish Sawmill';
-  tanggal: string;
-  suplier: string;
-  harga?: number;
-  planks: PlankItem[];
-}
+export { type PlankItem, type SawmillItem };
 
 interface DataSawmillPageProps {
   role?: AppRole;
 }
 
 export default function DataSawmillPage({ role = 'admin' }: DataSawmillPageProps) {
-  // State data utama (bersih dari data dummy)
+  // State data utama
   const [sawmillItems, setSawmillItems] = useState<SawmillItem[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // State Filter
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
+
+  const fetchSawmill = async () => {
+    setLoading(true);
+    try {
+      const data = await sawmillApi.list({ sortimen: sortimenFilter });
+      if (Array.isArray(data)) {
+        setSawmillItems(data);
+      }
+    } catch (err) {
+      console.warn('Gagal memuat sawmill dari backend:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSawmill();
+  }, [sortimenFilter]);
 
   // State Modal Form & Sub-modal
   const [modalType, setModalType] = useState<
@@ -112,7 +111,7 @@ export default function DataSawmillPage({ role = 'admin' }: DataSawmillPageProps
     setModalType('edit-sawmill');
   };
 
-  const handleSubmitSawmill = (e: React.FormEvent) => {
+  const handleSubmitSawmill = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formIdLog || !formPanjang || !formDiameter) return;
 
@@ -121,7 +120,7 @@ export default function DataSawmillPage({ role = 'admin' }: DataSawmillPageProps
     const vol = calcLogVolume(p, d);
 
     if (modalType === 'input-sawmill') {
-      const newItem: SawmillItem = {
+      const newItemPayload: Partial<SawmillItem> = {
         id_sawmill: `SM-${new Date().getFullYear()}-${sawmillItems.length + 1}`,
         id_log_asal: formIdLog,
         sortimen: formSortimen,
@@ -134,25 +133,56 @@ export default function DataSawmillPage({ role = 'admin' }: DataSawmillPageProps
         harga: 1000000,
         planks: [],
       };
-      setSawmillItems((prev) => [newItem, ...prev]);
+
+      try {
+        const saved = await sawmillApi.create(newItemPayload);
+        setSawmillItems((prev) => [saved, ...prev]);
+      } catch (err) {
+        console.warn('Gagal simpan sawmill ke backend:', err);
+        setSawmillItems((prev) => [newItemPayload as SawmillItem, ...prev]);
+      }
     } else if (modalType === 'edit-sawmill' && selectedSawmill) {
+      const updatedPayload: Partial<SawmillItem> = {
+        id_log_asal: formIdLog,
+        sortimen: formSortimen,
+        panjang: p,
+        diameter: d,
+        volume_total: vol,
+        suplier: formSuplier,
+      };
+
+      try {
+        if (selectedSawmill.idSawmill) {
+          await sawmillApi.update(selectedSawmill.idSawmill, updatedPayload);
+        }
+      } catch (err) {
+        console.warn('Gagal update sawmill di backend:', err);
+      }
+
       setSawmillItems((prev) =>
         prev.map((item) =>
           item.id_sawmill === selectedSawmill.id_sawmill
             ? {
                 ...item,
-                id_log_asal: formIdLog,
-                sortimen: formSortimen,
-                panjang: p,
-                diameter: d,
-                volume_total: vol,
-                suplier: formSuplier,
+                ...updatedPayload,
               }
             : item
         )
       );
     }
     setModalType(null);
+  };
+
+  const handleDeleteSawmill = async (item: SawmillItem) => {
+    if (!confirm(`Hapus batch Sawmill ${item.id_sawmill}?`)) return;
+    try {
+      if (item.idSawmill) {
+        await sawmillApi.delete(item.idSawmill);
+      }
+    } catch (err) {
+      console.warn('Gagal menghapus sawmill di backend:', err);
+    }
+    setSawmillItems((prev) => prev.filter((i) => i.id_sawmill !== item.id_sawmill));
   };
 
   // 2. Handler Buka Modal Detail Hasil (Daftar Papan)
@@ -183,7 +213,29 @@ export default function DataSawmillPage({ role = 'admin' }: DataSawmillPageProps
     setModalType('edit-hasil');
   };
 
-  const handleSubmitPlank = (e: React.FormEvent) => {
+  const handleDeletePlank = async (plank: PlankItem, index: number) => {
+    if (!selectedSawmill) return;
+    if (!confirm(`Hapus papan ${plank.id_plank}?`)) return;
+    try {
+      if (plank.idPlank) {
+        await sawmillApi.deletePlank(plank.idPlank);
+      }
+    } catch (err) {
+      console.warn('Gagal menghapus plank di backend:', err);
+    }
+    const updatedPlanks = selectedSawmill.planks.filter((_, idx) => idx !== index);
+    const updatedItem: SawmillItem = {
+      ...selectedSawmill,
+      stage: updatedPlanks.length > 0 ? 'finish Sawmill' : 'Sawmill',
+      planks: updatedPlanks,
+    };
+    setSawmillItems((prev) =>
+      prev.map((i) => (i.id_sawmill === selectedSawmill.id_sawmill ? updatedItem : i))
+    );
+    setSelectedSawmill(updatedItem);
+  };
+
+  const handleSubmitPlank = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSawmill || !formIdPlank || !formTinggiPlank || !formLebarPlank || !formPanjangPlank) return;
 
@@ -201,6 +253,25 @@ export default function DataSawmillPage({ role = 'admin' }: DataSawmillPageProps
       volume: vol,
       grade: formGrade,
     };
+
+    if (modalType === 'input-hasil' && selectedSawmill.idSawmill) {
+      try {
+        const createdPlank = await sawmillApi.addPlank(selectedSawmill.idSawmill, plankData);
+        plankData.idPlank = createdPlank.idPlank;
+        plankData.id_plank = createdPlank.id_plank;
+      } catch (err) {
+        console.warn('Gagal simpan plank ke backend:', err);
+      }
+    } else if (modalType === 'edit-hasil' && selectedPlankIndex !== null) {
+      const existingPlank = selectedSawmill.planks[selectedPlankIndex];
+      if (existingPlank?.idPlank) {
+        try {
+          await sawmillApi.updatePlank(existingPlank.idPlank, plankData);
+        } catch (err) {
+          console.warn('Gagal update plank di backend:', err);
+        }
+      }
+    }
 
     let updatedPlanks: PlankItem[] = [];
     if (modalType === 'input-hasil') {

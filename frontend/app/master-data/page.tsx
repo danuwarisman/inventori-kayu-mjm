@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FileDown,
   Plus,
   Pencil,
+  Trash2,
   X,
   ChevronDown,
   ChevronLeft,
@@ -14,31 +15,40 @@ import {
   Factory,
   Flame,
   PackageCheck,
+  RefreshCw,
 } from 'lucide-react';
 import { toISODate, formatDateID } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
+import { logApi } from '@/lib/api';
+import { LogItem } from '@/types/log';
 
-// Role kini diambil dari sesi login (lib/session), bukan properti lokal.
-
-export interface LogItem {
-  id_log: string;
-  sortimen: string;
-  panjang: number;
-  diameter: number;
-  volume: number;
-  stage: 'Log' | 'Sawmill' | 'Pra Dry Kiln' | 'Dry Kiln' | 'Ready To Sale';
-  tanggal_masuk: string;
-  suplier: string;
-  harga?: number;
-}
+export { type LogItem };
 
 export default function DataLogPage() {
-  // State data utama (bersih dari data dummy)
   const [logs, setLogs] = useState<LogItem[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // State Filter & Pencarian
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
+
+  const fetchLogs = async () => {
+    setLoading(true);
+    try {
+      const data = await logApi.list({ sortimen: sortimenFilter });
+      if (Array.isArray(data)) {
+        setLogs(data);
+      }
+    } catch (err) {
+      console.warn('Gagal memuat log dari backend:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+  }, [sortimenFilter]);
 
   // State Modal Form
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -85,7 +95,7 @@ export default function DataLogPage() {
     setIsModalOpen(true);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formIdLog || !formPanjang || !formDiameter) return;
 
@@ -94,7 +104,7 @@ export default function DataLogPage() {
     const calculatedVol = calculateVolume(p, d);
 
     if (modalMode === 'input') {
-      const newLog: LogItem = {
+      const newLogPayload: Partial<LogItem> = {
         id_log: formIdLog,
         sortimen: formSortimen,
         panjang: p,
@@ -105,19 +115,39 @@ export default function DataLogPage() {
         suplier: formSuplier,
         harga: 1000000,
       };
-      setLogs((prev) => [newLog, ...prev]);
+
+      try {
+        const saved = await logApi.create(newLogPayload);
+        setLogs((prev) => [saved, ...prev]);
+      } catch (err) {
+        console.warn('Gagal menyimpan log ke backend:', err);
+        setLogs((prev) => [newLogPayload as LogItem, ...prev]);
+      }
     } else if (modalMode === 'edit' && selectedLogId) {
+      const current = logs.find((l) => l.id_log === selectedLogId);
+      const updatePayload: Partial<LogItem> = {
+        id_log: formIdLog,
+        sortimen: formSortimen,
+        panjang: p,
+        diameter: d,
+        volume: calculatedVol,
+        suplier: formSuplier,
+      };
+
+      try {
+        if (current?.idLog) {
+          await logApi.update(current.idLog, updatePayload);
+        }
+      } catch (err) {
+        console.warn('Gagal memperbarui log di backend:', err);
+      }
+
       setLogs((prev) =>
         prev.map((item) =>
           item.id_log === selectedLogId
             ? {
                 ...item,
-                id_log: formIdLog,
-                sortimen: formSortimen,
-                panjang: p,
-                diameter: d,
-                volume: calculatedVol,
-                suplier: formSuplier,
+                ...updatePayload,
               }
             : item
         )
@@ -125,6 +155,18 @@ export default function DataLogPage() {
     }
 
     setIsModalOpen(false);
+  };
+
+  const handleDeleteLog = async (item: LogItem) => {
+    if (!confirm(`Hapus log ${item.id_log}?`)) return;
+    try {
+      if (item.idLog) {
+        await logApi.delete(item.idLog);
+      }
+    } catch (err) {
+      console.warn('Gagal menghapus log di backend:', err);
+    }
+    setLogs((prev) => prev.filter((l) => l.id_log !== item.id_log));
   };
 
   const filteredLogs = logs.filter((log) => {
@@ -280,14 +322,24 @@ export default function DataLogPage() {
 
                     {!isManager && (
                       <td className="py-3 px-3 text-center">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEdit(item)}
-                          className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
-                          title="Edit Log"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="inline-flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEdit(item)}
+                            className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                            title="Edit Log"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLog(item)}
+                            className="p-1 text-red-600 hover:bg-red-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                            title="Hapus Log"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>

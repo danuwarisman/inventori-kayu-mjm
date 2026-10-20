@@ -1,20 +1,40 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileDown, Plus, ChevronDown } from 'lucide-react';
 import { DryKilnItem } from '@/types/dry-kiln';
 import DryKilnTable from '@/components/dry-kiln/DryKilnTable';
 import DryKilnModal from '@/components/dry-kiln/DryKilnModal';
 import { toISODate } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
+import { dryKilnApi } from '@/lib/api';
 
 export default function DryKilnPage() {
   const user = useSessionUser();
   const isManager = user?.role === 'manager';
 
   const [items, setItems] = useState<DryKilnItem[]>([]);
+  const [loading, setLoading] = useState(false);
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
+
+  const fetchDryKiln = async () => {
+    setLoading(true);
+    try {
+      const data = await dryKilnApi.list({ sortimen: sortimenFilter, date: dateFilter });
+      if (Array.isArray(data)) {
+        setItems(data);
+      }
+    } catch (err) {
+      console.warn('Gagal memuat dry kiln dari backend:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDryKiln();
+  }, [sortimenFilter, dateFilter]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'input' | 'edit'>('input');
@@ -36,26 +56,45 @@ export default function DryKilnPage() {
     setIsModalOpen(true);
   };
 
-  const handleModalSubmit = (
+  const handleModalSubmit = async (
     data: Omit<DryKilnItem, 'volume' | 'date'>
   ) => {
     const vol = calculateVolume(data.tinggi, data.lebar, data.panjang);
 
     if (modalMode === 'input') {
-      const newItem: DryKilnItem = {
+      const newItemPayload: DryKilnItem = {
         ...data,
         volume: vol,
         date: toISODate(),
       };
-      setItems((prev) => [newItem, ...prev]);
+
+      try {
+        const saved = await dryKilnApi.create(newItemPayload);
+        setItems((prev) => [saved, ...prev]);
+      } catch (err) {
+        console.warn('Gagal simpan dry kiln ke backend:', err);
+        setItems((prev) => [newItemPayload, ...prev]);
+      }
     } else if (modalMode === 'edit' && selectedItem) {
+      const updatedPayload = {
+        ...data,
+        volume: vol,
+      };
+
+      try {
+        if (selectedItem.idOven) {
+          await dryKilnApi.update(selectedItem.idOven, updatedPayload);
+        }
+      } catch (err) {
+        console.warn('Gagal update dry kiln di backend:', err);
+      }
+
       setItems((prev) =>
         prev.map((item) =>
           item.id_plank === selectedItem.id_plank
             ? {
                 ...item,
-                ...data,
-                volume: vol,
+                ...updatedPayload,
               }
             : item
         )
