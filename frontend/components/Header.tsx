@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Search, Bell, X } from 'lucide-react';
+import { Search, Bell, X, Menu } from 'lucide-react';
 
 interface HeaderProps {
   title?: string;
   onSearch?: (query: string) => void;
+  onToggleMobileSidebar?: () => void;
 }
 
 // Pemetaan judul otomatis berdasarkan rute halaman aktif
@@ -21,11 +22,15 @@ const routeTitleMap: Record<string, string> = {
   '/suppliers': 'Supplier',
   '/sales': 'Sales',
   '/customers': 'Customer',
-  '/accounts': 'Acount Management',
+  '/accounts': 'Account Management',
   '/settings': 'Settings',
 };
 
-export default function Header({ title, onSearch }: HeaderProps) {
+export default function Header({
+  title,
+  onSearch,
+  onToggleMobileSidebar,
+}: HeaderProps) {
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -57,10 +62,19 @@ export default function Header({ title, onSearch }: HeaderProps) {
   };
 
   return (
-    <header className="h-16 px-6 bg-white/80 border-b border-slate-200 backdrop-blur-[6px] sticky top-0 z-20 flex items-center justify-between gap-4 font-sans select-none">
-      {/* Judul Halaman Dinamis */}
-      <div className="flex-1 min-w-0">
-        <h1 className="text-2xl font-semibold text-green-700 tracking-tight truncate font-['Manrope']">
+    <header className="h-16 px-4 sm:px-6 bg-white/80 border-b border-slate-200 backdrop-blur-[6px] sticky top-0 z-20 flex items-center justify-between gap-3 sm:gap-4 font-sans select-none">
+      {/* Tombol Hamburger & Judul Halaman Dinamis */}
+      <div className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
+        <button
+          type="button"
+          onClick={onToggleMobileSidebar}
+          className="p-2 -ml-1 text-slate-600 hover:text-green-700 hover:bg-slate-100 rounded-lg lg:hidden transition-colors cursor-pointer shrink-0"
+          aria-label="Buka menu navigasi"
+          title="Buka menu navigasi"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+        <h1 className="text-xl sm:text-2xl font-semibold text-green-700 tracking-tight truncate font-['Manrope']">
           {getPageTitle()}
         </h1>
       </div>
