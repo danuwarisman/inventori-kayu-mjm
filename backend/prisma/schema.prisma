@@ -79,17 +79,25 @@ model Customer {
 }
 
 model StokLog {
-  idLog        Int     @id @default(autoincrement()) @map("id_log")
-  idPembelian  Int     @map("id_pembelian")
-  asalSortimen String  @map("asal_sortimen")
-  dimensiLog   String  @map("dimensi_log")
-  volumeLog    Decimal @db.Decimal(10, 2) @map("volume_log")
-  statusLog    String  @map("status_log")
+  idLog        Int      @id @default(autoincrement()) @map("id_log")
+  kodeLog      String?  @map("kode_log")
+  idPembelian  Int?     @map("id_pembelian")
+  asalSortimen String   @map("asal_sortimen")
+  panjang      Decimal? @db.Decimal(10, 2)
+  diameter     Decimal? @db.Decimal(10, 2)
+  dimensiLog   String   @map("dimensi_log")
+  volumeLog    Decimal  @db.Decimal(10, 3) @map("volume_log")
+  statusLog    String   @map("status_log")
+  suplier      String?  @map("suplier")
+  harga        Decimal? @db.Decimal(15, 2)
+  tanggalMasuk DateTime? @default(now()) @map("tanggal_masuk")
 
-  planks              Plank[]
-  detailPenjualan     DetailPenjualan[]
-  transaksiPembelian  TransaksiPembelian @relation(fields: [idPembelian], references: [idPembelian])
-  prosesSawmill       ProsesSawmill[]
+  planks             Plank[]
+  detailPenjualan    DetailPenjualan[]
+  transaksiPembelian TransaksiPembelian? @relation(fields: [idPembelian], references: [idPembelian])
+  prosesSawmill      ProsesSawmill[]
+
+  @@map("stok_log")
 }
 
 model TransaksiPembelian {
@@ -106,30 +114,41 @@ model TransaksiPembelian {
 }
 
 model ProsesSawmill {
-  idSawmill     Int      @id @default(autoincrement())
-  idLog         Int
-  idUserInput   Int
-  tanggalProses DateTime @db.Date
-  statusSawmill String   @db.VarChar(20)
+  idSawmill     Int       @id @default(autoincrement()) @map("id_sawmill")
+  kodeSawmill   String?   @map("kode_sawmill")
+  idLog         Int       @map("id_log")
+  idUserInput   Int?      @map("id_user_input")
+  tanggalProses DateTime? @default(now()) @db.Date @map("tanggal_proses")
+  statusSawmill String    @db.VarChar(20) @map("status_sawmill")
   planks        Plank[]
 
   stokLog StokLog @relation(fields: [idLog], references: [idLog])
-  user    User    @relation(fields: [idUserInput], references: [id])
+  user    User?   @relation(fields: [idUserInput], references: [id])
+
+  @@map("proses_sawmill")
 }
 
 model Plank {
-  idPlank         Int               @id @default(autoincrement())
-  idSawmill       Int
-  idLogAsal       Int
-  gradePapan      String            @db.VarChar(20)
-  dimensiPlank    String            @db.VarChar(50)
-  volumePlank     Decimal           @db.Decimal(10, 2)
+  idPlank         Int      @id @default(autoincrement()) @map("id_plank")
+  kodePlank       String?  @map("kode_plank")
+  idSawmill       Int?     @map("id_sawmill")
+  idLogAsal       Int      @map("id_log_asal")
+  gradePapan      String   @db.VarChar(20) @map("grade_papan")
+  dimensiPlank    String   @db.VarChar(50) @map("dimensi_plank")
+  tinggi          Decimal? @db.Decimal(10, 2)
+  lebar           Decimal? @db.Decimal(10, 2)
+  panjang         Decimal? @db.Decimal(10, 2)
+  volumePlank     Decimal  @db.Decimal(10, 3) @map("volume_plank")
+  stage           String?  @default("Sawmill") @db.VarChar(30)
+  
   detailPalet     DetailPalet[]
   hasilDryKiln    HasilDryKiln[]
   detailPenjualan DetailPenjualan[]
 
-  sawmill ProsesSawmill @relation(fields: [idSawmill], references: [idSawmill])
-  stokLog StokLog       @relation(fields: [idLogAsal], references: [idLog])
+  sawmill ProsesSawmill? @relation(fields: [idSawmill], references: [idSawmill])
+  stokLog StokLog        @relation(fields: [idLogAsal], references: [idLog])
+
+  @@map("plank")
 }
 
 model Palet {
@@ -151,14 +170,27 @@ model DetailPalet {
 }
 
 model DryKiln {
-  idOven            Int            @id @default(autoincrement())
-  idPalet           Int
-  tanggalMasuk      DateTime       @db.Date
-  tanggalKeluar     DateTime?      @db.Date
-  statusPengeringan String         @db.VarChar(20)
-  hasilDryKiln      HasilDryKiln[]
+  idOven            Int       @id @default(autoincrement()) @map("id_oven")
+  idPalet           Int?      @map("id_palet")
+  idPlank           Int?      @map("id_plank")
+  kodeOven          String?   @map("kode_oven")
+  sortimen          String?   @map("sortimen")
+  grade             String?   @map("grade")
+  panjang           Decimal?  @db.Decimal(10, 2)
+  lebar             Decimal?  @db.Decimal(10, 2)
+  tinggi            Decimal?  @db.Decimal(10, 2)
+  volume            Decimal?  @db.Decimal(10, 3)
+  tanggalMasuk      DateTime? @default(now()) @db.Date @map("tanggal_masuk")
+  tanggalKeluar     DateTime? @db.Date @map("tanggal_keluar")
+  statusPengeringan String    @default("in-drykiln") @db.VarChar(50) @map("status_pengeringan")
+  stage             String?   @default("in-drykiln") @db.VarChar(50)
+  kodeLog           String?   @map("kode_log")
+  kodePlank         String?   @map("kode_plank")
 
-  palet Palet @relation(fields: [idPalet], references: [idPalet])
+  hasilDryKiln      HasilDryKiln[]
+  palet             Palet?    @relation(fields: [idPalet], references: [idPalet])
+
+  @@map("dry_kiln")
 }
 
 model HasilDryKiln {
