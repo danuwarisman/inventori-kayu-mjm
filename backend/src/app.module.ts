@@ -6,6 +6,7 @@ import { SupplierModule } from './supplier/supplier.module';
 import { LogModule } from './log/log.module';
 import { SawmillModule } from './sawmill/sawmill.module';
 import { DryKilnModule } from './dry-kiln/dry-kiln.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { DryKilnModule } from './dry-kiln/dry-kiln.module';
     LogModule,
     SawmillModule,
     DryKilnModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

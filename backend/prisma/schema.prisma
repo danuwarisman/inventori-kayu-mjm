@@ -24,6 +24,7 @@ model User {
   role               Role                 @relation(fields: [roleId], references: [id])
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
+  approvals Approval[]
   transaksiPembelian TransaksiPembelian[]
   prosesSawmill      ProsesSawmill[]
   transaksiPenjualan TransaksiPenjualan[]
@@ -109,8 +110,33 @@ model TransaksiPembelian {
   supplier Supplier @relation(fields: [idSupplier], references: [idSupplier])
   user     User     @relation(fields: [idUser], references: [id])
   stokLogs StokLog[]
+  approvals Approval[]
 
   @@map("transaksi_pembelian")
+}
+
+model StatusApprove {
+  idStatusApprove Int        @id @default(autoincrement()) @map("id_status_approve")
+  namaStatus      String     @unique @db.VarChar(20) @map("nama_status")
+
+  approvals Approval[]
+
+  @@map("status_approve")
+}
+
+model Approval {
+  idApproval       Int      @id @default(autoincrement()) @map("id_approval")
+  idUserManager    Int      @map("id_user_manager")
+  idPembelian      Int      @map("id_pembelian")
+  idStatusApprove  Int      @map("id_status_approve")
+  keteranganCatatan String? @db.VarChar(100) @map("keterangan_catatan")
+  tanggalApprove   DateTime @default(now()) @map("tanggal_approve")
+
+  manager       User         @relation(fields: [idUserManager], references: [id])
+  pembelian     TransaksiPembelian @relation(fields: [idPembelian], references: [idPembelian])
+  statusApprove StatusApprove @relation(fields: [idStatusApprove], references: [idStatusApprove])
+
+  @@map("approval")
 }
 
 model ProsesSawmill {
