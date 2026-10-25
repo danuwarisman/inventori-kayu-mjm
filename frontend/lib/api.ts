@@ -12,7 +12,7 @@ import { SupplierItem } from '@/types/supplier';
 import { LogItem } from '@/types/log';
 import { SawmillItem, PlankItem } from '@/types/sawmill';
 import { DryKilnItem } from '@/types/dry-kiln';
-import { clearSession } from '@/lib/session';
+import { clearSession, getAccessToken } from '@/lib/session';
 
 /** Base URL backend, di-set via NEXT_PUBLIC_API_URL (lihat .env.local). */
 export const API_BASE_URL =
@@ -68,18 +68,50 @@ function handleUnauthorized(): void {
   }, 0);
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+interface RequestOptions {
+  /**
+   * Jangan jalankan interceptor 401 (clear session + redirect).
+   * Dipakai oleh request login: 401 di sana berarti kredensial salah,
+   * bukan sesi kedaluwarsa.
+   */
+  skipAuthRedirect?: boolean;
+}
+
+/** Ambil pesan error dari body JSON backend ({ message: string | string[] }). */
+async function readBackendMessage(res: Response): Promise<string | null> {
+  try {
+    const data: unknown = await res.json();
+    if (data && typeof data === 'object' && 'message' in data) {
+      const message = (data as { message?: unknown }).message;
+      if (typeof message === 'string') return message;
+      if (Array.isArray(message)) return message.join(', ');
+    }
+  } catch {
+    // Body bukan JSON (mis. error HTML dari proxy) -> pakai pesan default.
+  }
+  return null;
+}
+
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  options?: RequestOptions
+): Promise<T> {
+  const token = getAccessToken();
+
   let res: Response;
   try {
     res = await fetch(`${API_BASE_URL}${path}`, {
       ...init,
-      // Kirim cookie sesi (HttpOnly dari backend) ke setiap request.
-      // Wajib agar auth berbasis cookie bekerja lintas origin (dev).
+      // Kirim cookie (bila backend nanti memakai cookie HttpOnly) ke setiap
+      // request lintas origin (dev).
       credentials: 'include',
       headers: {
         // Content-Type hanya perlu saat ada body (menghindari preflight
         // OPTIONS yang tidak perlu pada request GET)
         ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+        // Backend memvalidasi JWT dari header Authorization (Bearer).
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...init?.headers,
       },
       cache: 'no-store',
@@ -93,9 +125,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (!res.ok) {
+    const backendMessage = await readBackendMessage(res);
+
     // Interceptor status khusus sebelum error dilempar ke pemanggil.
     // 401: sesi tidak valid -> bersihkan sesi + redirect ke halaman login.
     if (res.status === 401) {
+      if (options?.skipAuthRedirect) {
+        throw new ApiError(
+          backendMessage ?? 'Username atau password salah.',
+          401
+        );
+      }
       handleUnauthorized();
       throw new ApiError('Sesi Anda telah berakhir. Silakan login kembali.', 401);
     }
@@ -106,7 +146,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       throw new ApiError(FORBIDDEN_MESSAGE, 403);
     }
     throw new ApiError(
-      `Backend merespons ${res.status} ${res.statusText} untuk ${path}`,
+      backendMessage ??
+        `Backend merespons ${res.status} ${res.statusText} untuk ${path}`,
       res.status
     );
   }
@@ -155,6 +196,45 @@ export function mapBackendSupplier(b: BackendSupplier): SupplierItem {
     status: 'Active',
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* Auth Endpoints                                                      */
+/* ------------------------------------------------------------------ */
+
+/** User yang dikembalikan `POST /auth/login` (lihat auth.service.ts). */
+export interface BackendLoginUser {
+  id: number;
+  username: string;
+  nama: string;
+  /** Nama role dari tabel `role`, sudah di-uppercase oleh backend. */
+  role: string;
+}
+
+/** Respons `POST /auth/login` backend NestJS. */
+export interface LoginResponse {
+  accessToken: string;
+  tokenType: string;
+  expiresIn: string;
+  user: BackendLoginUser;
+}
+
+export const authApi = {
+  /**
+   * POST /auth/login -> tukar username/password dengan JWT.
+   * 401 di endpoint ini berarti kredensial salah (bukan sesi habis),
+   * jadi interceptor redirect sengaja dilewati.
+   */
+  login: async (username: string, password: string): Promise<LoginResponse> => {
+    return request<LoginResponse>(
+      '/auth/login',
+      {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+      },
+      { skipAuthRedirect: true }
+    );
+  },
+};
 
 /* ------------------------------------------------------------------ */
 /* Endpoints                                                           */

@@ -1,13 +1,17 @@
 /**
- * Sesi login sederhana berbasis cookie (dibaca oleh middleware) + localStorage
- * (detail profil untuk UI). NOTE: ini proteksi UI-level untuk pengembangan;
- * otorisasi sebenarnya tetap harus divalidasi di backend/API.
+ * Sesi login: cookie role (dibaca middleware) + localStorage (profil UI & JWT).
+ *
+ * JWT di sini dipakai sebagai Bearer token ke backend NestJS. Cookie role
+ * hanya proteksi UI-level; otorisasi sebenarnya tetap divalidasi backend.
+ * Idealnya nanti token disimpan di cookie HttpOnly yang di-set backend.
  */
 
 export type AppRole = 'manager' | 'admin_kantor' | 'admin_lapangan';
 
 export const SESSION_COOKIE = 'mjm_session';
 export const SESSION_USER_KEY = 'mjm_session_user';
+/** JWT dari backend (POST /auth/login). Prefix `mjm_` agar ikut dibersihkan clearSession. */
+export const ACCESS_TOKEN_KEY = 'mjm_access_token';
 
 /** User yang sedang login. */
 export interface SessionUser {
@@ -44,6 +48,43 @@ export function getDashboardPath(role: AppRole): string {
   return role === 'manager' ? '/manager-dashboard' : '/dashboard';
 }
 
+/**
+ * Normalisasi nama role dari backend ke `AppRole`.
+ *
+ * Backend mengirim `role.nama.toUpperCase()` (contoh: "MANAGER",
+ * "ADMIN KANTOR", "ADMIN LAPANGAN"), sedangkan UI memakai bentuk
+ * snake_case. Perbandingan mengabaikan spasi, tanda hubung, dan
+ * underscore agar "Admin Kantor", "ADMIN_KANTOR", dan "AdminKantor"
+ * sama-sama valid.
+ *
+ * @returns role yang dikenali, atau null bila tidak ada padanannya.
+ */
+export function normalizeRole(rawRole: string | null | undefined): AppRole | null {
+  if (!rawRole) return null;
+
+  const key = rawRole.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  const compactKey = key.replace(/_/g, '');
+
+  for (const role of Object.keys(ROLE_LABELS) as AppRole[]) {
+    if (role === key || role.replace(/_/g, '') === compactKey) {
+      return role;
+    }
+  }
+
+  return null;
+}
+
+/** Simpan JWT dari backend agar bisa dipakai sebagai Bearer token. */
+export function saveAccessToken(token: string): void {
+  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+}
+
+/** Ambil JWT yang tersimpan (null saat SSR / belum login). */
+export function getAccessToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
+}
+
 function encodeSession(user: SessionUser): string {
   return JSON.stringify(user);
 }
@@ -68,8 +109,7 @@ function decodeSession(raw: string): SessionUser | null {
 /** Simpan sesi: cookie ringan (role) untuk middleware + profil lengkap di localStorage. */
 export function saveSession(user: SessionUser): void {
   // Cookie dibaca middleware: hanya menyimpan role agar tetap ringan.
-  // NOTE: saat auth backend sudah jalan, token sesi harus berupa cookie
-  // HttpOnly + Secure + SameSite yang diset oleh SERVER (bukan di sini).
+  // JWT-nya sendiri disimpan terpisah via saveAccessToken (lihat ACCESS_TOKEN_KEY).
   document.cookie = `${SESSION_COOKIE}=${user.role}; path=/; max-age=${60 * 60 * 8}; samesite=lax`;
   localStorage.setItem(SESSION_USER_KEY, encodeSession(user));
   notifySessionChange();

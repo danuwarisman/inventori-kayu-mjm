@@ -9,39 +9,56 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Factory,
-  Briefcase,
   ArrowRight,
   LifeBuoy,
-  CheckCircle2,
+  AlertCircle,
 } from 'lucide-react';
-import { saveSession, getDashboardPath, AppRole } from '@/lib/session';
-
-type PortalType = 'operational' | 'managerial';
+import {
+  saveSession,
+  saveAccessToken,
+  normalizeRole,
+  getDashboardPath,
+} from '@/lib/session';
+import { authApi, getApiErrorMessage } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [portal, setPortal] = useState<PortalType>('operational');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
+
+    setError('');
     setIsLoading(true);
 
-    // Simulasi autentikasi & routing sesuai role portal
-    setTimeout(() => {
-      // TODO: ganti dengan panggilan API login ke backend NestJS.
-      const role: AppRole = portal === 'managerial' ? 'manager' : 'admin_lapangan';
-      const fullName =
-        username.trim() || (role === 'manager' ? 'Manager' : 'Admin Lapangan');
+    try {
+      // Autentikasi ke backend NestJS (POST /auth/login).
+      const data = await authApi.login(username.trim(), password);
 
-      // Simpan sesi (cookie role untuk middleware + profil untuk UI)
-      saveSession({ username: username.trim() || fullName, fullName, role });
+      // Backend mengirim nama role uppercase (mis. "ADMIN KANTOR");
+      // UI memakai bentuk snake_case.
+      const role = normalizeRole(data.user.role);
+      if (!role) {
+        setError(
+          `Role akun "${data.user.role}" tidak dikenali oleh aplikasi. ` +
+            'Hubungi administrator untuk memperbaiki data role.'
+        );
+        return;
+      }
 
-      setIsLoading(false);
+      // Simpan JWT (dipakai sebagai Bearer token oleh api client) dan sesi UI
+      // (cookie role untuk middleware + profil untuk Sidebar/Header).
+      saveAccessToken(data.accessToken);
+      saveSession({
+        username: data.user.username,
+        fullName: data.user.nama,
+        role,
+      });
 
       // Kembali ke halaman yang sempat dituju sebelum diarahkan ke login
       const redirectCookie = document.cookie
@@ -55,7 +72,12 @@ export default function LoginPage() {
       } else {
         router.push(getDashboardPath(role));
       }
-    }, 600);
+    } catch (err) {
+      // 401 dari /auth/login = username/password salah (pesan dari backend).
+      setError(getApiErrorMessage(err, 'Login gagal. Silakan coba lagi.'));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -106,6 +128,10 @@ export default function LoginPage() {
                 <input
                   type="text"
                   required
+                  maxLength={50}
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
@@ -132,6 +158,8 @@ export default function LoginPage() {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
+                  maxLength={100}
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -147,39 +175,17 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Portal Selector */}
-            <div className="flex flex-col gap-2 pt-1">
-              <span className="text-xs font-medium text-stone-500">
-                Select Access Portal
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPortal('operational')}
-                  className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-md border text-sm font-medium transition-all ${
-                    portal === 'operational'
-                      ? 'bg-green-800/10 border-green-800 text-green-800 shadow-xs'
-                      : 'bg-white border-stone-300 text-stone-600 hover:bg-stone-50'
-                  }`}
-                >
-                  <Factory className="w-4 h-4 shrink-0" />
-                  <span>Operational</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPortal('managerial')}
-                  className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-md border text-sm font-medium transition-all ${
-                    portal === 'managerial'
-                      ? 'bg-green-800/10 border-green-800 text-green-800 shadow-xs'
-                      : 'bg-white border-stone-300 text-stone-600 hover:bg-stone-50'
-                  }`}
-                >
-                  <Briefcase className="w-4 h-4 shrink-0" />
-                  <span>Managerial</span>
-                </button>
+            {/* Pesan error login (kredensial salah, backend mati, role tak dikenal) */}
+            {error && (
+              <div
+                role="alert"
+                aria-live="polite"
+                className="px-3.5 py-2.5 bg-red-50 border border-red-200 rounded-md flex items-start gap-2.5"
+              >
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <span className="text-xs text-red-700 font-medium">{error}</span>
               </div>
-            </div>
+            )}
 
             {/* Submit Button */}
             <button
