@@ -1,24 +1,30 @@
+/**
+ * Bentuk data supplier yang dipakai UI.
+ *
+ * Sesuai model `Supplier` di backend:
+ * - idSupplier   -> id_backend (angka, untuk update/delete)
+ * - namaSupplier -> nama_supplier
+ * - alamatSupplier -> alamat_supplier
+ * - kontakSupplier -> kontak_supplier
+ *
+ * `id_supplier` hanya kode tampilan turunan dari id_backend (SUP-001).
+ */
 export interface SupplierItem {
-  id_supplier: string;
-  /**
-   * ID numerik dari backend (model Supplier.id), opsional karena data
-   * lokal (optimistic add/edit) belum punya ID server.
-   */
-  id_backend?: number;
-  nama_supplier: string; // Company Name
-  kontak_person: string; // Contact Person
-  no_hp: string;         // Phone Number
-  harga: number;         // IDR Price
-  kota: string;
-  status: 'Active' | 'Inactive';
-}
-
-export interface SupplierFormData {
+  /** ID numerik dari backend (Supplier.idSupplier). */
+  id_backend: number;
+  /** Kode tampilan, mis. "SUP-001". */
   id_supplier: string;
   nama_supplier: string;
-  kontak_person: string;
-  no_hp: string;
-  harga: number | '';
-  kota: string;
-  status: 'Active' | 'Inactive';
+  alamat_supplier: string;
+  kontak_supplier: string;
+}
+
+/**
+ * Data yang dikirim ke backend saat create/update.
+ * Backend hanya menerima ketiga field ini (CreateSupplierDto/UpdateSupplierDto).
+ */
+export interface SupplierFormData {
+  nama_supplier: string;
+  alamat_supplier: string;
+  kontak_supplier: string;
 }

@@ -2,13 +2,13 @@
  * API client frontend -> backend NestJS.
  *
  * CATATAN KONTRAK (per skema Prisma backend saat ini):
- * - Baru ada endpoint GET /supplier (bentuk respons mengikuti model `Supplier`).
- * - Field UI seperti kontak_person, harga, kota, status BELUM ada di backend,
- *   jadi mapper mengisinya dengan nilai default ('-' / 0 / 'Active').
- *   Update mapper ini begitu backend menambah field/endpoint.
+ * - Supplier memakai field camelCase: idSupplier, namaSupplier,
+ *   alamatSupplier, kontakSupplier (lihat model `Supplier`).
+ * - Endpoint supplier yang tersedia: GET/POST /supplier dan
+ *   GET/PATCH/DELETE /supplier/:id.
  */
 
-import { SupplierItem } from '@/types/supplier';
+import { SupplierItem, SupplierFormData } from '@/types/supplier';
 import { LogItem } from '@/types/log';
 import { SawmillItem, PlankItem } from '@/types/sawmill';
 import { DryKilnItem } from '@/types/dry-kiln';
@@ -162,38 +162,38 @@ async function request<T>(
 
 /** Respons GET /supplier sesuai model `Supplier` di schema.prisma. */
 export interface BackendSupplier {
-  id: number;
-  nama: string;
-  alamat: string | null;
-  telepon: string | null;
-  email: string | null;
-  createdAt: string;
-  updatedAt: string;
+  idSupplier: number;
+  namaSupplier: string;
+  alamatSupplier: string;
+  kontakSupplier: string;
 }
 
 /* ------------------------------------------------------------------ */
 /* Mapper: backend -> types frontend                                   */
 /* ------------------------------------------------------------------ */
 
-/**
- * Petakan `BackendSupplier` ke `SupplierItem` yang dipakai UI.
- * Field tanpa padanan di backend diberi default + komentar di bawah.
- */
+/** Petakan `BackendSupplier` ke `SupplierItem` yang dipakai UI. */
 export function mapBackendSupplier(b: BackendSupplier): SupplierItem {
   return {
-    // simpan id numerik backend untuk keperluan edit/hapus nantinya
-    id_backend: b.id,
-    id_supplier: `SUP-${String(b.id).padStart(3, '0')}`,
-    nama_supplier: b.nama,
-    // backend belum punya "contact person"; pakai email sebagai kontak terdekat
-    kontak_person: b.email ?? '-',
-    no_hp: b.telepon ?? '-',
-    // backend belum punya field harga untuk supplier
-    harga: 0,
-    // backend punya `alamat` (alamat lengkap), UI menyaring per kota
-    kota: b.alamat ?? '-',
-    // backend belum punya status aktif/nonaktif
-    status: 'Active',
+    // id numerik backend dipakai untuk endpoint PATCH/DELETE /supplier/:id
+    id_backend: b.idSupplier,
+    id_supplier: `SUP-${String(b.idSupplier).padStart(3, '0')}`,
+    nama_supplier: b.namaSupplier,
+    alamat_supplier: b.alamatSupplier,
+    kontak_supplier: b.kontakSupplier,
+  };
+}
+
+/**
+ * Ubah form UI ke payload DTO backend (camelCase).
+ * Hanya tiga field ini yang diterima CreateSupplierDto/UpdateSupplierDto;
+ * ValidationPipe memakai forbidNonWhitelisted, jadi field lain akan ditolak.
+ */
+function toBackendSupplierPayload(data: SupplierFormData) {
+  return {
+    namaSupplier: data.nama_supplier,
+    alamatSupplier: data.alamat_supplier,
+    kontakSupplier: data.kontak_supplier,
   };
 }
 
@@ -245,6 +245,29 @@ export const supplierApi = {
   list: async (): Promise<SupplierItem[]> => {
     const data = await request<BackendSupplier[]>('/supplier');
     return (Array.isArray(data) ? data : []).map(mapBackendSupplier);
+  },
+
+  /** POST /supplier -> tambah supplier baru (200/201 dari backend). */
+  create: async (data: SupplierFormData): Promise<SupplierItem> => {
+    const created = await request<BackendSupplier>('/supplier', {
+      method: 'POST',
+      body: JSON.stringify(toBackendSupplierPayload(data)),
+    });
+    return mapBackendSupplier(created);
+  },
+
+  /** PATCH /supplier/:id -> ubah data supplier. */
+  update: async (id: number, data: SupplierFormData): Promise<SupplierItem> => {
+    const updated = await request<BackendSupplier>(`/supplier/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(toBackendSupplierPayload(data)),
+    });
+    return mapBackendSupplier(updated);
+  },
+
+  /** DELETE /supplier/:id -> hapus supplier. */
+  remove: async (id: number): Promise<void> => {
+    await request<BackendSupplier>(`/supplier/${id}`, { method: 'DELETE' });
   },
 };
 

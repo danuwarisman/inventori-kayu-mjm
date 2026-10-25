@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Search, Plus, Trash2, ChevronDown, RefreshCw } from 'lucide-react';
+import { Search, Plus, Trash2, RefreshCw, Loader2 } from 'lucide-react';
 import { SupplierItem, SupplierFormData } from '@/types/supplier';
 import SupplierTable from '@/components/suppliers/SupplierTable';
 import SupplierModal from '@/components/suppliers/SupplierModal';
@@ -16,10 +16,10 @@ export default function SuppliersPage() {
   // State data utama dari backend
   const [suppliers, setSuppliers] = useState<SupplierItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [cityFilter, setCityFilter] = useState('All Cities');
-  const [statusFilter, setStatusFilter] = useState('All Status');
 
   // State Seleksi Checkbox (Untuk fitur Remove Supplier)
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -28,6 +28,7 @@ export default function SuppliersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'input' | 'edit'>('input');
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierItem | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   // Ambil data supplier dari backend (GET /supplier).
   // setState hanya dijalankan pada callback promise (bukan sinkron di body effect).
@@ -36,6 +37,8 @@ export default function SuppliersPage() {
       .list()
       .then((data) => {
         setSuppliers(data);
+        // ID bisa berubah/hilang setelah refresh, jadi seleksi direset.
+        setSelectedIds([]);
         setError(null);
       })
       .catch((err: unknown) => {
@@ -57,6 +60,7 @@ export default function SuppliersPage() {
 
   // Retry/refresh lewat event handler: setState sinkron di sini tidak masalah
   const handleRefresh = () => {
+    if (isLoading) return;
     setIsLoading(true);
     setError(null);
     fetchSuppliers();
@@ -65,33 +69,58 @@ export default function SuppliersPage() {
   const handleOpenInput = () => {
     setModalMode('input');
     setSelectedSupplier(null);
+    setModalError(null);
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (item: SupplierItem) => {
     setModalMode('edit');
     setSelectedSupplier(item);
+    setModalError(null);
     setIsModalOpen(true);
   };
 
-  // NOTE: endpoint POST/PUT /supplier belum tersedia di backend, jadi
-  // tambah/edit masih lokal (hilang saat refresh) sampai endpoint dibuat.
-  const handleModalSubmit = (data: SupplierFormData) => {
-    const preparedItem: SupplierItem = {
-      ...data,
-      harga: Number(data.harga) || 0,
-    };
+  const handleCloseModal = () => {
+    if (isSaving) return;
+    setIsModalOpen(false);
+    setModalError(null);
+  };
 
-    if (modalMode === 'input') {
-      setSuppliers((prev) => [preparedItem, ...prev]);
-    } else if (modalMode === 'edit' && selectedSupplier) {
-      setSuppliers((prev) =>
-        prev.map((item) =>
-          item.id_supplier === selectedSupplier.id_supplier
-            ? preparedItem
-            : item
+  // Simpan ke backend: POST /supplier (tambah) atau PATCH /supplier/:id (edit).
+  // Modal baru ditutup setelah request sukses.
+  const handleModalSubmit = async (data: SupplierFormData) => {
+    if (isSaving) return;
+
+    setIsSaving(true);
+    setModalError(null);
+
+    try {
+      if (modalMode === 'input') {
+        const created = await supplierApi.create(data);
+        setSuppliers((prev) => [created, ...prev]);
+      } else if (selectedSupplier) {
+        const updated = await supplierApi.update(selectedSupplier.id_backend, data);
+        setSuppliers((prev) =>
+          prev.map((item) =>
+            item.id_backend === updated.id_backend ? updated : item
+          )
+        );
+      }
+
+      setIsModalOpen(false);
+      setSelectedSupplier(null);
+      setError(null);
+    } catch (err) {
+      setModalError(
+        getApiErrorMessage(
+          err,
+          modalMode === 'input'
+            ? 'Gagal menyimpan supplier. Silakan coba lagi.'
+            : 'Gagal memperbarui supplier. Silakan coba lagi.'
         )
       );
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -110,33 +139,70 @@ export default function SuppliersPage() {
     }
   };
 
-  // NOTE: endpoint DELETE /supplier/:id belum tersedia di backend, jadi
-  // hapus masih lokal (hilang saat refresh) sampai endpoint dibuat.
-  const handleRemoveSelected = () => {
-    if (selectedIds.length === 0) return;
+  // Hapus supplier terpilih lewat DELETE /supplier/:id.
+  const handleRemoveSelected = async () => {
+    if (selectedIds.length === 0 || isDeleting) return;
+
+    const targets = suppliers.filter((item) =>
+      selectedIds.includes(item.id_supplier)
+    );
+    if (targets.length === 0) return;
+
     if (
-      window.confirm(
-        `Apakah Anda yakin ingin menghapus ${selectedIds.length} supplier terpilih?`
+      !window.confirm(
+        `Apakah Anda yakin ingin menghapus ${targets.length} supplier terpilih?`
       )
     ) {
-      setSuppliers((prev) =>
-        prev.filter((item) => !selectedIds.includes(item.id_supplier))
-      );
-      setSelectedIds([]);
+      return;
     }
+
+    setIsDeleting(true);
+    setError(null);
+
+    const results = await Promise.allSettled(
+      targets.map((item) => supplierApi.remove(item.id_backend))
+    );
+
+    const removedIds = new Set(
+      targets
+        .filter((_, index) => results[index].status === 'fulfilled')
+        .map((item) => item.id_backend)
+    );
+    const failed = targets.filter(
+      (_, index) => results[index].status === 'rejected'
+    );
+
+    setSuppliers((prev) => prev.filter((item) => !removedIds.has(item.id_backend)));
+    setSelectedIds([]);
+
+    if (failed.length > 0) {
+      const firstRejection = results.find(
+        (result): result is PromiseRejectedResult => result.status === 'rejected'
+      );
+      setError(
+        `${failed.length} supplier gagal dihapus (${failed
+          .map((item) => item.nama_supplier)
+          .join(', ')}). ` +
+          getApiErrorMessage(
+            firstRejection?.reason,
+            'Silakan muat ulang data lalu coba lagi.'
+          )
+      );
+    }
+
+    setIsDeleting(false);
   };
 
   const filteredSuppliers = suppliers.filter((item) => {
-    const matchesQuery =
-      item.id_supplier.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.nama_supplier.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.kontak_person.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCity =
-      cityFilter === 'All Cities' || item.kota === cityFilter;
-    const matchesStatus =
-      statusFilter === 'All Status' || item.status === statusFilter;
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
 
-    return matchesQuery && matchesCity && matchesStatus;
+    return (
+      item.id_supplier.toLowerCase().includes(query) ||
+      item.nama_supplier.toLowerCase().includes(query) ||
+      item.alamat_supplier.toLowerCase().includes(query) ||
+      item.kontak_supplier.toLowerCase().includes(query)
+    );
   });
 
   return (
@@ -144,45 +210,16 @@ export default function SuppliersPage() {
       {/* Filter & Action Toolbar */}
       <section className="p-4 bg-white rounded-lg border border-stone-300 flex flex-wrap justify-between items-center gap-4 shadow-2xs">
         <div className="flex flex-wrap items-center gap-4 flex-1">
-          {/* Search Bar: ID / Supplier */}
-          <div className="relative w-64">
+          {/* Search Bar: ID / Nama / Alamat / Kontak */}
+          <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-stone-400 absolute left-3 top-2.5 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search ID / Supplier..."
+              placeholder="Search ID / Supplier / Address / Phone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-9 pl-9 pr-3 text-xs bg-white border border-stone-300 rounded focus:outline-none focus:border-green-700 text-stone-900"
             />
-          </div>
-
-          {/* Filter Kota (All Cities) */}
-          <div className="relative">
-            <select
-              value={cityFilter}
-              onChange={(e) => setCityFilter(e.target.value)}
-              className="appearance-none pr-8 pl-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700 cursor-pointer"
-            >
-              <option value="All Cities">All Cities</option>
-              <option value="Solo">Solo</option>
-              <option value="Semarang">Semarang</option>
-              <option value="Jepara">Jepara</option>
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-stone-500 absolute right-2.5 top-2.5 pointer-events-none" />
-          </div>
-
-          {/* Filter Status (All Status) */}
-          <div className="relative">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="appearance-none pr-8 pl-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700 cursor-pointer"
-            >
-              <option value="All Status">All Status</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-stone-500 absolute right-2.5 top-2.5 pointer-events-none" />
           </div>
         </div>
 
@@ -204,10 +241,19 @@ export default function SuppliersPage() {
               <button
                 type="button"
                 onClick={handleRemoveSelected}
-                className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Remove Supplier ({selectedIds.length})</span>
+                {isDeleting ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Trash2 className="w-3.5 h-3.5" />
+                )}
+                <span>
+                  {isDeleting
+                    ? 'Removing...'
+                    : `Remove Supplier (${selectedIds.length})`}
+                </span>
               </button>
             )}
 
@@ -228,14 +274,15 @@ export default function SuppliersPage() {
         <section className="p-4 bg-red-50 border border-red-200 rounded-lg flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-bold text-red-800">
-              Gagal memuat data supplier
+              Gagal memproses data supplier
             </span>
             <span className="text-xs text-red-700">{error}</span>
           </div>
           <button
             type="button"
             onClick={handleRefresh}
-            className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+            disabled={isLoading}
+            className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 disabled:opacity-60"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Coba Lagi</span>
@@ -257,12 +304,14 @@ export default function SuppliersPage() {
 
       {/* Modal Input & Edit Supplier */}
       <SupplierModal
+        key={`${isModalOpen}-${modalMode}-${selectedSupplier?.id_backend ?? 'new'}`}
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseModal}
         onSubmit={handleModalSubmit}
         initialData={selectedSupplier}
         mode={modalMode}
-        nextIndex={suppliers.length + 1}
+        isSaving={isSaving}
+        errorMessage={modalError}
       />
     </div>
   );

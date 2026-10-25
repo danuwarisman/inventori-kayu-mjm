@@ -46,10 +46,8 @@ export default function SupplierTable({
               )}
               <th className="py-3 px-3 text-center">ID Supplier</th>
               <th className="py-3 px-3 text-center">Company Name</th>
-              <th className="py-3 px-3 text-center">Contact Person</th>
+              <th className="py-3 px-3 text-center">Address</th>
               <th className="py-3 px-3 text-center">Phone Number</th>
-              <th className="py-3 px-3 text-center">Harga</th>
-              <th className="py-3 px-3 text-center">Status</th>
               {!isManager && (
                 <th className="py-3 px-3 text-center w-12">Action</th>
               )}
@@ -59,7 +57,7 @@ export default function SupplierTable({
             {items.length === 0 ? (
               <tr>
                 <td
-                  colSpan={isManager ? 6 : 8}
+                  colSpan={isManager ? 4 : 6}
                   className="py-14 text-center"
                 >
                   {isLoading ? (
@@ -115,24 +113,10 @@ export default function SupplierTable({
                       {item.nama_supplier}
                     </td>
                     <td className="py-3 px-3 text-center font-medium">
-                      {item.kontak_person}
+                      {item.alamat_supplier}
                     </td>
                     <td className="py-3 px-3 text-center font-mono font-medium">
-                      {item.no_hp}
-                    </td>
-                    <td className="py-3 px-3 text-center font-semibold text-stone-900">
-                      Rp {item.harga.toLocaleString('id-ID')}
-                    </td>
-                    <td className="py-3 px-3 text-center">
-                      <span
-                        className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                          item.status === 'Active'
-                            ? 'bg-green-100/80 text-green-700'
-                            : 'bg-stone-200 text-stone-500'
-                        }`}
-                      >
-                        {item.status}
-                      </span>
+                      {item.kontak_supplier}
                     </td>
                     {!isManager && (
                       <td className="py-3 px-3 text-center">
