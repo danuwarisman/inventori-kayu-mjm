@@ -272,6 +272,46 @@ export const supplierApi = {
 };
 
 /* ------------------------------------------------------------------ */
+/* Helper payload                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Buang field `undefined`/`null` sebelum body di-JSON-stringify.
+ * Backend memakai `whitelist` + `forbidNonWhitelisted`, jadi body harus
+ * berisi field DTO saja dan tidak perlu membawa key kosong.
+ */
+function compactPayload<T extends Record<string, unknown>>(payload: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(payload).filter(
+      ([, value]) => value !== undefined && value !== null
+    )
+  ) as Partial<T>;
+}
+
+/**
+ * Petakan `LogItem` (bentuk UI) ke `CreateLogDto`/`UpdateLogDto` (backend).
+ *
+ * Perbedaan nama field yang wajib dijembatani:
+ * - `sortimen`      -> `asalSortimen`
+ * - `volume`        -> `volumeLog`
+ * - `tanggal_masuk` -> `tanggalMasuk`
+ * - `id_log`        -> `kodeLog`
+ */
+function toBackendLogPayload(data: Partial<LogItem>) {
+  return compactPayload({
+    kodeLog: data.kodeLog ?? data.id_log,
+    asalSortimen: data.sortimen,
+    panjang: data.panjang,
+    diameter: data.diameter,
+    volumeLog: data.volumeLog ?? data.volume,
+    stage: data.stage,
+    suplier: data.suplier,
+    harga: data.harga,
+    tanggalMasuk: data.tanggal_masuk,
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /* Log Endpoints                                                       */
 /* ------------------------------------------------------------------ */
 
@@ -295,7 +335,7 @@ export const logApi = {
   create: async (data: Partial<LogItem>): Promise<LogItem> => {
     return request<LogItem>('/log', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(toBackendLogPayload(data)),
     });
   },
 
@@ -303,7 +343,7 @@ export const logApi = {
   update: async (id: number, data: Partial<LogItem>): Promise<LogItem> => {
     return request<LogItem>(`/log/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify(data),
+      body: JSON.stringify(toBackendLogPayload(data)),
     });
   },
 
@@ -318,6 +358,107 @@ export const logApi = {
 /* ------------------------------------------------------------------ */
 /* Sawmill Endpoints                                                   */
 /* ------------------------------------------------------------------ */
+
+/** Respons mentah plank dari endpoint tulis backend (model Prisma). */
+interface BackendPlank {
+  idPlank: number;
+  kodePlank?: string | null;
+  gradePapan?: string | null;
+  tinggi?: number | string | null;
+  lebar?: number | string | null;
+  panjang?: number | string | null;
+  volumePlank?: number | string | null;
+  stage?: string | null;
+}
+
+/**
+ * Petakan plank backend -> `PlankItem` UI.
+ * Endpoint `POST /sawmill/:id/plank` dan `PATCH /sawmill/plank/:id`
+ * mengembalikan model Prisma mentah, bukan bentuk `PlankItem`.
+ */
+function mapBackendPlank(
+  b: BackendPlank,
+  fallback?: Partial<PlankItem>
+): PlankItem {
+  return {
+    idPlank: b.idPlank,
+    id_plank: b.kodePlank || fallback?.id_plank || `P-${b.idPlank}`,
+    kodePlank: b.kodePlank ?? undefined,
+    sortimen: fallback?.sortimen ?? '',
+    tinggi: Number(b.tinggi ?? fallback?.tinggi ?? 0),
+    lebar: Number(b.lebar ?? fallback?.lebar ?? 0),
+    panjang: Number(b.panjang ?? fallback?.panjang ?? 0),
+    volume: Number(b.volumePlank ?? fallback?.volume ?? 0),
+    grade: (b.gradePapan ?? fallback?.grade ?? 'Grade A') as PlankItem['grade'],
+    stage: b.stage ?? fallback?.stage,
+  };
+}
+
+/**
+ * Petakan `SawmillItem` (bentuk UI) ke `CreateSawmillDto`.
+ * `id_sawmill` bukan field DTO; kode tampilan dipetakan ke `kodeSawmill`.
+ */
+function toBackendSawmillPayload(data: Partial<SawmillItem>) {
+  return compactPayload({
+    kodeSawmill: data.kodeSawmill ?? data.id_sawmill,
+    idLog: data.idLog,
+    id_log_asal: data.id_log_asal,
+    sortimen: data.sortimen,
+    panjang: data.panjang,
+    diameter: data.diameter,
+    volume_total: data.volume_total,
+    stage: data.stage,
+    suplier: data.suplier,
+    harga: data.harga,
+    tanggal: data.tanggal,
+    // Nested plank pada CreateSawmillDto dibaca backend dengan nama UI
+    // (`id_plank`, `grade`, `volume`), jadi tidak dipetakan ulang di sini.
+    planks: data.planks,
+  });
+}
+
+/**
+ * PATCH /sawmill/:id hanya menyimpan `stage`/`statusSawmill` dan
+ * `kodeSawmill`; jangan kirim field lain yang tidak dipakai service.
+ */
+function toBackendSawmillUpdatePayload(data: Partial<SawmillItem>) {
+  return compactPayload({
+    kodeSawmill: data.kodeSawmill,
+    stage: data.stage,
+  });
+}
+
+/**
+ * Petakan `PlankItem` (bentuk UI) ke `CreatePlankDto`.
+ * - `id_plank` -> `kodePlank`
+ * - `grade`    -> `gradePapan`
+ * - `volume`   -> `volumePlank`
+ */
+function toBackendPlankCreatePayload(data: Partial<PlankItem>) {
+  return compactPayload({
+    kodePlank: data.kodePlank ?? data.id_plank,
+    gradePapan: data.grade,
+    tinggi: data.tinggi,
+    lebar: data.lebar,
+    panjang: data.panjang,
+    volumePlank: data.volume,
+    stage: data.stage,
+    sortimen: data.sortimen,
+  });
+}
+
+/** Petakan `PlankItem` ke `UpdatePlankDto` (tanpa field di luar DTO). */
+function toBackendPlankUpdatePayload(data: Partial<PlankItem>) {
+  return compactPayload({
+    kodePlank: data.kodePlank ?? data.id_plank,
+    gradePapan: data.grade,
+    tinggi: data.tinggi,
+    lebar: data.lebar,
+    panjang: data.panjang,
+    volumePlank: data.volume,
+    stage: data.stage,
+  });
+}
 
 export const sawmillApi = {
   /** GET /sawmill -> daftar proses sawmill dan papan potong */
@@ -345,7 +486,7 @@ export const sawmillApi = {
   create: async (data: Partial<SawmillItem>): Promise<SawmillItem> => {
     return request<SawmillItem>('/sawmill', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(toBackendSawmillPayload(data)),
     });
   },
 
@@ -353,7 +494,7 @@ export const sawmillApi = {
   update: async (id: number, data: Partial<SawmillItem>): Promise<SawmillItem> => {
     return request<SawmillItem>(`/sawmill/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify(data),
+      body: JSON.stringify(toBackendSawmillUpdatePayload(data)),
     });
   },
 
@@ -366,18 +507,20 @@ export const sawmillApi = {
 
   /** POST /sawmill/:id/plank -> tambah hasil potong papan (plank) ke sawmill */
   addPlank: async (idSawmill: number, data: Partial<PlankItem>): Promise<PlankItem> => {
-    return request<PlankItem>(`/sawmill/${idSawmill}/plank`, {
+    const created = await request<BackendPlank>(`/sawmill/${idSawmill}/plank`, {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(toBackendPlankCreatePayload(data)),
     });
+    return mapBackendPlank(created, data);
   },
 
   /** PATCH /sawmill/plank/:idPlank -> perbarui dimensi/grade papan */
   updatePlank: async (idPlank: number, data: Partial<PlankItem>): Promise<PlankItem> => {
-    return request<PlankItem>(`/sawmill/plank/${idPlank}`, {
+    const updated = await request<BackendPlank>(`/sawmill/plank/${idPlank}`, {
       method: 'PATCH',
-      body: JSON.stringify(data),
+      body: JSON.stringify(toBackendPlankUpdatePayload(data)),
     });
+    return mapBackendPlank(updated, data);
   },
 
   /** DELETE /sawmill/plank/:idPlank -> hapus plank */

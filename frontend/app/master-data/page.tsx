@@ -15,7 +15,6 @@ import {
   Factory,
   Flame,
   PackageCheck,
-  RefreshCw,
 } from 'lucide-react';
 import { toISODate, formatDateID } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
@@ -26,28 +25,30 @@ export { type LogItem };
 
 export default function DataLogPage() {
   const [logs, setLogs] = useState<LogItem[]>([]);
-  const [loading, setLoading] = useState(false);
 
   // State Filter & Pencarian
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
 
-  const fetchLogs = async () => {
-    setLoading(true);
-    try {
-      const data = await logApi.list({ sortimen: sortimenFilter });
-      if (Array.isArray(data)) {
-        setLogs(data);
-      }
-    } catch (err) {
-      console.warn('Gagal memuat log dari backend:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchLogs();
+    let cancelled = false;
+
+    logApi
+      .list({ sortimen: sortimenFilter })
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) {
+          setLogs(data);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.warn('Gagal memuat log dari backend:', err);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [sortimenFilter]);
 
   // State Modal Form

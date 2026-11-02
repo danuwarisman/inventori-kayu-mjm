@@ -6,7 +6,6 @@ import {
   Plus,
   Pencil,
   Eye,
-  Trash2,
   X,
   ChevronDown,
   ChevronLeft,
@@ -17,40 +16,41 @@ import {
 } from 'lucide-react';
 import { toISODate, formatDateID } from '@/lib/dates';
 import { sawmillApi } from '@/lib/api';
+import useSessionUser from '@/lib/useSessionUser';
 import { PlankItem, SawmillItem } from '@/types/sawmill';
 
-export type AppRole = 'admin' | 'manager' | 'admin_kantor' | 'admin_lapangan';
 export { type PlankItem, type SawmillItem };
 
-interface DataSawmillPageProps {
-  role?: AppRole;
-}
+export default function DataSawmillPage() {
+  const user = useSessionUser();
+  const isManager = user?.role === 'manager';
 
-export default function DataSawmillPage({ role = 'admin' }: DataSawmillPageProps) {
   // State data utama
   const [sawmillItems, setSawmillItems] = useState<SawmillItem[]>([]);
-  const [loading, setLoading] = useState(false);
 
   // State Filter
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
 
-  const fetchSawmill = async () => {
-    setLoading(true);
-    try {
-      const data = await sawmillApi.list({ sortimen: sortimenFilter });
-      if (Array.isArray(data)) {
-        setSawmillItems(data);
-      }
-    } catch (err) {
-      console.warn('Gagal memuat sawmill dari backend:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchSawmill();
+    let cancelled = false;
+
+    sawmillApi
+      .list({ sortimen: sortimenFilter })
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) {
+          setSawmillItems(data);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.warn('Gagal memuat sawmill dari backend:', err);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [sortimenFilter]);
 
   // State Modal Form & Sub-modal
@@ -73,8 +73,6 @@ export default function DataSawmillPage({ role = 'admin' }: DataSawmillPageProps
   const [formTinggiPlank, setFormTinggiPlank] = useState<number | ''>('');
   const [formLebarPlank, setFormLebarPlank] = useState<number | ''>('');
   const [formPanjangPlank, setFormPanjangPlank] = useState<number | ''>('');
-
-  const isManager = role === 'manager';
 
   // Kalkulasi Volume Log: V = (pi/4) * (d^2) * L (m3)
   const calcLogVolume = (pCm: number, dCm: number): number => {
