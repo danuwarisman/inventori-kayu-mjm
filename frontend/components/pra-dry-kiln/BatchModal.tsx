@@ -8,6 +8,13 @@ import {
   PlankGrade,
   PraDryKilnStage,
 } from '@/types/pra-dry-kiln';
+import FormError from '@/components/FormError';
+import {
+  firstError,
+  maxLength,
+  positiveNumber,
+  required,
+} from '@/lib/validation';
 
 interface BatchModalProps {
   isOpen: boolean;
@@ -38,6 +45,7 @@ export default function BatchModal({
     tinggi: '',
     stage: 'finish pra-drykiln',
   });
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData && mode === 'edit') {
@@ -67,21 +75,38 @@ export default function BatchModal({
 
   if (!isOpen) return null;
 
+  const updateForm = (patch: Partial<PraDryKilnFormData>) => {
+    setFormData((prev) => ({ ...prev, ...patch }));
+    if (formError) setFormError(null);
+  };
+
+  const handleClose = () => {
+    setFormError(null);
+    onClose();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !formData.id_plank ||
-      !formData.id_log ||
-      formData.panjang === '' ||
-      formData.lebar === '' ||
-      formData.tinggi === ''
-    ) {
+
+    const validationError = firstError(
+      required(formData.id_plank, 'ID Plank'),
+      maxLength(formData.id_plank, 'ID Plank', 50),
+      required(formData.id_log, 'ID Log'),
+      maxLength(formData.id_log, 'ID Log', 50),
+      positiveNumber(formData.panjang, 'Panjang'),
+      positiveNumber(formData.lebar, 'Lebar'),
+      positiveNumber(formData.tinggi, 'Tinggi')
+    );
+
+    if (validationError) {
+      setFormError(validationError);
       return;
     }
 
+    setFormError(null);
     onSubmit({
-      id_plank: formData.id_plank,
-      id_log: formData.id_log,
+      id_plank: formData.id_plank.trim(),
+      id_log: formData.id_log.trim(),
       sortimen: formData.sortimen,
       grade: formData.grade,
       panjang: Number(formData.panjang),
@@ -102,7 +127,7 @@ export default function BatchModal({
           </h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1 text-stone-500 hover:text-stone-900 rounded transition-colors"
           >
             <X className="w-5 h-5" />
@@ -119,8 +144,9 @@ export default function BatchModal({
             <input
               type="text"
               required
+              maxLength={50}
               value={formData.id_log}
-              onChange={(e) => setFormData({ ...formData, id_log: e.target.value })}
+              onChange={(e) => updateForm({ id_log: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-300 rounded font-mono text-green-700 focus:outline-none focus:border-green-700"
             />
           </div>
@@ -131,8 +157,9 @@ export default function BatchModal({
             <input
               type="text"
               required
+              maxLength={50}
               value={formData.id_plank}
-              onChange={(e) => setFormData({ ...formData, id_plank: e.target.value })}
+              onChange={(e) => updateForm({ id_plank: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-800 rounded font-mono text-green-700 font-medium focus:outline-none focus:border-green-700"
             />
           </div>
@@ -144,7 +171,7 @@ export default function BatchModal({
               <div className="relative">
                 <select
                   value={formData.sortimen}
-                  onChange={(e) => setFormData({ ...formData, sortimen: e.target.value })}
+                  onChange={(e) => updateForm({ sortimen: e.target.value })}
                   className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded text-green-700 appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
                 >
                   <option value="Sortimen A">Sortimen A</option>
@@ -161,7 +188,7 @@ export default function BatchModal({
                 <select
                   value={formData.grade}
                   onChange={(e) =>
-                    setFormData({ ...formData, grade: e.target.value as PlankGrade })
+                    updateForm({ grade: e.target.value as PlankGrade })
                   }
                   className="w-full h-10 pl-3 pr-8 bg-white border border-stone-800 rounded text-green-700 font-medium appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
                 >
@@ -183,11 +210,12 @@ export default function BatchModal({
                 <input
                   type="number"
                   required
+                  min={0.1}
+                  step="any"
                   placeholder="240"
                   value={formData.panjang}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
+                    updateForm({
                       panjang: e.target.value === '' ? '' : Number(e.target.value),
                     })
                   }
@@ -200,11 +228,12 @@ export default function BatchModal({
                 <input
                   type="number"
                   required
+                  min={0.1}
+                  step="any"
                   placeholder="20"
                   value={formData.lebar}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
+                    updateForm({
                       lebar: e.target.value === '' ? '' : Number(e.target.value),
                     })
                   }
@@ -217,11 +246,12 @@ export default function BatchModal({
                 <input
                   type="number"
                   required
+                  min={0.1}
+                  step="any"
                   placeholder="5"
                   value={formData.tinggi}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
+                    updateForm({
                       tinggi: e.target.value === '' ? '' : Number(e.target.value),
                     })
                   }
@@ -238,7 +268,7 @@ export default function BatchModal({
               <select
                 value={formData.stage}
                 onChange={(e) =>
-                  setFormData({ ...formData, stage: e.target.value as PraDryKilnStage })
+                  updateForm({ stage: e.target.value as PraDryKilnStage })
                 }
                 className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded text-green-700 font-semibold appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
               >
@@ -248,6 +278,8 @@ export default function BatchModal({
               <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
             </div>
           </div>
+
+          <FormError message={formError} />
 
           {/* Action Button */}
           <div className="flex justify-end pt-2">

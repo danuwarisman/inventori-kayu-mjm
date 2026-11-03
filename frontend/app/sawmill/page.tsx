@@ -15,10 +15,18 @@ import {
   Layers,
 } from 'lucide-react';
 import { toISODate, formatDateID } from '@/lib/dates';
-import { sawmillApi } from '@/lib/api';
+import { getApiErrorMessage, sawmillApi } from '@/lib/api';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 import { PlankItem, SawmillItem } from '@/types/sawmill';
+import FormError from '@/components/FormError';
+import ErrorBanner from '@/components/ErrorBanner';
+import {
+  firstError,
+  maxLength,
+  positiveNumber,
+  required,
+} from '@/lib/validation';
 
 export { type PlankItem, type SawmillItem };
 
@@ -37,6 +45,8 @@ export default function DataSawmillPage() {
   // State Filter
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
+  const [pageError, setPageError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,18 +56,28 @@ export default function DataSawmillPage() {
       .then((data) => {
         if (!cancelled && Array.isArray(data)) {
           setSawmillItems(data);
+          setPageError(null);
         }
       })
       .catch((err) => {
         if (!cancelled) {
-          console.warn('Gagal memuat sawmill dari backend:', err);
+          setPageError(
+            getApiErrorMessage(
+              err,
+              'Gagal memuat data sawmill dari server. Periksa koneksi backend.'
+            )
+          );
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [sortimenFilter]);
+  }, [sortimenFilter, refreshKey]);
+
+  const handleRetryLoad = () => {
+    setRefreshKey((key) => key + 1);
+  };
 
   // State Modal Form & Sub-modal
   const [modalType, setModalType] = useState<
@@ -79,6 +99,7 @@ export default function DataSawmillPage() {
   const [formTinggiPlank, setFormTinggiPlank] = useState<number | ''>('');
   const [formLebarPlank, setFormLebarPlank] = useState<number | ''>('');
   const [formPanjangPlank, setFormPanjangPlank] = useState<number | ''>('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Kalkulasi Volume Log: V = (pi/4) * (d^2) * L (m3)
   const calcLogVolume = (pCm: number, dCm: number): number => {
@@ -102,6 +123,7 @@ export default function DataSawmillPage() {
     setFormDiameter('');
     setFormSuplier('PT. Suplier');
     setSelectedSawmill(null);
+    setFormError(null);
     setModalType('input-sawmill');
   };
 
@@ -112,28 +134,47 @@ export default function DataSawmillPage() {
     setFormPanjang(item.panjang);
     setFormDiameter(item.diameter);
     setFormSuplier(item.suplier);
+    setFormError(null);
     setModalType('edit-sawmill');
   };
 
   const handleSubmitSawmill = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formIdLog || !formPanjang || !formDiameter) return;
+
+    const idLog = formIdLog.trim();
+    const suplier = formSuplier.trim();
+    const validationError = firstError(
+      required(idLog, 'ID Log Asal'),
+      maxLength(idLog, 'ID Log Asal', 50),
+      positiveNumber(formPanjang, 'Panjang'),
+      positiveNumber(formDiameter, 'Diameter'),
+      required(suplier, 'Supplier'),
+      maxLength(suplier, 'Supplier', 100)
+    );
+
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
 
     const p = Number(formPanjang);
     const d = Number(formDiameter);
     const vol = calcLogVolume(p, d);
 
+    setFormError(null);
+    setPageError(null);
+
     if (modalType === 'input-sawmill') {
       const newItemPayload: Partial<SawmillItem> = {
         id_sawmill: `SM-${new Date().getFullYear()}-${sawmillItems.length + 1}`,
-        id_log_asal: formIdLog,
+        id_log_asal: idLog,
         sortimen: formSortimen,
         panjang: p,
         diameter: d,
         volume_total: vol,
         stage: 'Sawmill',
         tanggal: toISODate(),
-        suplier: formSuplier,
+        suplier,
         harga: 1000000,
         planks: [],
       };
@@ -142,17 +183,22 @@ export default function DataSawmillPage() {
         const saved = await sawmillApi.create(newItemPayload);
         setSawmillItems((prev) => [saved, ...prev]);
       } catch (err) {
-        console.warn('Gagal simpan sawmill ke backend:', err);
+        setPageError(
+          `Batch sawmill ${idLog} ditampilkan sementara karena gagal disimpan ke server. ${getApiErrorMessage(
+            err,
+            'Silakan coba lagi.'
+          )}`
+        );
         setSawmillItems((prev) => [newItemPayload as SawmillItem, ...prev]);
       }
     } else if (modalType === 'edit-sawmill' && selectedSawmill) {
       const updatedPayload: Partial<SawmillItem> = {
-        id_log_asal: formIdLog,
+        id_log_asal: idLog,
         sortimen: formSortimen,
         panjang: p,
         diameter: d,
         volume_total: vol,
-        suplier: formSuplier,
+        suplier,
       };
 
       try {
@@ -160,7 +206,12 @@ export default function DataSawmillPage() {
           await sawmillApi.update(selectedSawmill.idSawmill, updatedPayload);
         }
       } catch (err) {
-        console.warn('Gagal update sawmill di backend:', err);
+        setPageError(
+          `Perubahan sawmill ${idLog} hanya tersimpan sementara karena gagal dikirim ke server. ${getApiErrorMessage(
+            err,
+            'Silakan coba lagi.'
+          )}`
+        );
       }
 
       setSawmillItems((prev) =>
@@ -179,14 +230,22 @@ export default function DataSawmillPage() {
 
   const handleDeleteSawmill = async (item: SawmillItem) => {
     if (!confirm(`Hapus batch Sawmill ${item.id_sawmill}?`)) return;
+    setPageError(null);
     try {
       if (item.idSawmill) {
         await sawmillApi.delete(item.idSawmill);
       }
+      setSawmillItems((prev) =>
+        prev.filter((i) => i.id_sawmill !== item.id_sawmill)
+      );
     } catch (err) {
-      console.warn('Gagal menghapus sawmill di backend:', err);
+      setPageError(
+        `Gagal menghapus batch sawmill ${item.id_sawmill} dari server. ${getApiErrorMessage(
+          err,
+          'Data tidak dihapus agar tidak berbeda dengan server.'
+        )}`
+      );
     }
-    setSawmillItems((prev) => prev.filter((i) => i.id_sawmill !== item.id_sawmill));
   };
 
   // 2. Handler Buka Modal Detail Hasil (Daftar Papan)
@@ -204,6 +263,7 @@ export default function DataSawmillPage() {
     setFormLebarPlank(20);
     setFormPanjangPlank(100);
     setSelectedPlankIndex(null);
+    setFormError(null);
     setModalType('input-hasil');
   };
 
@@ -214,42 +274,70 @@ export default function DataSawmillPage() {
     setFormLebarPlank(plank.lebar);
     setFormPanjangPlank(plank.panjang);
     setSelectedPlankIndex(index);
+    setFormError(null);
     setModalType('edit-hasil');
   };
 
   const handleDeletePlank = async (plank: PlankItem, index: number) => {
     if (!selectedSawmill) return;
     if (!confirm(`Hapus papan ${plank.id_plank}?`)) return;
+    setPageError(null);
     try {
       if (plank.idPlank) {
         await sawmillApi.deletePlank(plank.idPlank);
       }
+      const updatedPlanks = selectedSawmill.planks.filter(
+        (_, idx) => idx !== index
+      );
+      const updatedItem: SawmillItem = {
+        ...selectedSawmill,
+        stage: updatedPlanks.length > 0 ? 'finish Sawmill' : 'Sawmill',
+        planks: updatedPlanks,
+      };
+      setSawmillItems((prev) =>
+        prev.map((i) =>
+          i.id_sawmill === selectedSawmill.id_sawmill ? updatedItem : i
+        )
+      );
+      setSelectedSawmill(updatedItem);
     } catch (err) {
-      console.warn('Gagal menghapus plank di backend:', err);
+      setPageError(
+        `Gagal menghapus plank ${plank.id_plank} dari server. ${getApiErrorMessage(
+          err,
+          'Data tidak dihapus agar tidak berbeda dengan server.'
+        )}`
+      );
     }
-    const updatedPlanks = selectedSawmill.planks.filter((_, idx) => idx !== index);
-    const updatedItem: SawmillItem = {
-      ...selectedSawmill,
-      stage: updatedPlanks.length > 0 ? 'finish Sawmill' : 'Sawmill',
-      planks: updatedPlanks,
-    };
-    setSawmillItems((prev) =>
-      prev.map((i) => (i.id_sawmill === selectedSawmill.id_sawmill ? updatedItem : i))
-    );
-    setSelectedSawmill(updatedItem);
   };
 
   const handleSubmitPlank = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedSawmill || !formIdPlank || !formTinggiPlank || !formLebarPlank || !formPanjangPlank) return;
+    if (!selectedSawmill) return;
+
+    const idPlank = formIdPlank.trim();
+    const validationError = firstError(
+      required(idPlank, 'ID Plank'),
+      maxLength(idPlank, 'ID Plank', 50),
+      positiveNumber(formPanjangPlank, 'Panjang'),
+      positiveNumber(formLebarPlank, 'Lebar'),
+      positiveNumber(formTinggiPlank, 'Tinggi/Tebal')
+    );
+
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
 
     const t = Number(formTinggiPlank);
     const w = Number(formLebarPlank);
     const l = Number(formPanjangPlank);
     const vol = calcPlankVolume(t, w, l);
 
+    setFormError(null);
+    setPageError(null);
+
     const plankData: PlankItem = {
-      id_plank: formIdPlank,
+      id_plank: idPlank,
       sortimen: selectedSawmill.sortimen,
       tinggi: t,
       lebar: w,
@@ -264,7 +352,12 @@ export default function DataSawmillPage() {
         plankData.idPlank = createdPlank.idPlank;
         plankData.id_plank = createdPlank.id_plank;
       } catch (err) {
-        console.warn('Gagal simpan plank ke backend:', err);
+        setPageError(
+          `Plank ${idPlank} ditampilkan sementara karena gagal disimpan ke server. ${getApiErrorMessage(
+            err,
+            'Silakan coba lagi.'
+          )}`
+        );
       }
     } else if (modalType === 'edit-hasil' && selectedPlankIndex !== null) {
       const existingPlank = selectedSawmill.planks[selectedPlankIndex];
@@ -272,7 +365,12 @@ export default function DataSawmillPage() {
         try {
           await sawmillApi.updatePlank(existingPlank.idPlank, plankData);
         } catch (err) {
-          console.warn('Gagal update plank di backend:', err);
+          setPageError(
+            `Perubahan plank ${idPlank} hanya tersimpan sementara karena gagal dikirim ke server. ${getApiErrorMessage(
+              err,
+              'Silakan coba lagi.'
+            )}`
+          );
         }
       }
     }
@@ -366,6 +464,15 @@ export default function DataSawmillPage() {
           )}
         </div>
       </section>
+
+      {pageError && (
+        <ErrorBanner
+          title="Gagal memproses data sawmill"
+          message={pageError}
+          onRetry={handleRetryLoad}
+          retryLabel="Muat Ulang"
+        />
+      )}
 
       {/* 2. Main Sawmill Table */}
       <section className="p-4 bg-white rounded-[10px] border border-stone-200 shadow-2xs flex flex-col gap-3">
@@ -539,7 +646,10 @@ export default function DataSawmillPage() {
               </h2>
               <button
                 type="button"
-                onClick={() => setModalType(null)}
+                onClick={() => {
+                  setFormError(null);
+                  setModalType(null);
+                }}
                 className="p-1 text-stone-500 hover:text-stone-900 rounded"
               >
                 <X className="w-5 h-5" />
@@ -548,6 +658,9 @@ export default function DataSawmillPage() {
 
             <form
               onSubmit={handleSubmitSawmill}
+              onInput={() => {
+                if (formError) setFormError(null);
+              }}
               className="p-4 bg-white/80 rounded-[10px] border border-stone-800/80 flex flex-col gap-3 text-xs"
             >
               <div className="flex flex-col gap-1">
@@ -555,6 +668,7 @@ export default function DataSawmillPage() {
                 <input
                   type="text"
                   required
+                  maxLength={50}
                   placeholder="L-2026-X-X-X"
                   value={formIdLog}
                   onChange={(e) => setFormIdLog(e.target.value)}
@@ -586,6 +700,8 @@ export default function DataSawmillPage() {
                     <input
                       type="number"
                       required
+                      min={0.1}
+                      step="any"
                       placeholder="100"
                       value={formPanjang}
                       onChange={(e) =>
@@ -601,6 +717,8 @@ export default function DataSawmillPage() {
                     <input
                       type="number"
                       required
+                      min={0.1}
+                      step="any"
                       placeholder="20"
                       value={formDiameter}
                       onChange={(e) =>
@@ -620,6 +738,7 @@ export default function DataSawmillPage() {
                   <input
                     type="text"
                     required
+                    maxLength={100}
                     placeholder="PT. Suplier"
                     value={formSuplier}
                     onChange={(e) => setFormSuplier(e.target.value)}
@@ -643,6 +762,8 @@ export default function DataSawmillPage() {
                   </button>
                 </div>
               </div>
+
+              <FormError message={formError} />
             </form>
           </div>
         </div>
@@ -769,7 +890,10 @@ export default function DataSawmillPage() {
               </h2>
               <button
                 type="button"
-                onClick={() => setModalType('detail-hasil')}
+                onClick={() => {
+                  setFormError(null);
+                  setModalType('detail-hasil');
+                }}
                 className="p-1 text-stone-500 hover:text-stone-900 rounded"
               >
                 <X className="w-5 h-5" />
@@ -778,6 +902,9 @@ export default function DataSawmillPage() {
 
             <form
               onSubmit={handleSubmitPlank}
+              onInput={() => {
+                if (formError) setFormError(null);
+              }}
               className="p-4 bg-white/80 rounded-[10px] border border-stone-800/80 flex flex-col gap-3 text-xs"
             >
               <div className="flex flex-col gap-1">
@@ -795,6 +922,7 @@ export default function DataSawmillPage() {
                 <input
                   type="text"
                   required
+                  maxLength={50}
                   placeholder="P-2026-X-X-X"
                   value={formIdPlank}
                   onChange={(e) => setFormIdPlank(e.target.value)}
@@ -828,6 +956,8 @@ export default function DataSawmillPage() {
                     <input
                       type="number"
                       required
+                      min={0.1}
+                      step="any"
                       placeholder="100"
                       value={formPanjangPlank}
                       onChange={(e) =>
@@ -843,6 +973,8 @@ export default function DataSawmillPage() {
                     <input
                       type="number"
                       required
+                      min={0.1}
+                      step="any"
                       placeholder="20"
                       value={formLebarPlank}
                       onChange={(e) =>
@@ -858,6 +990,8 @@ export default function DataSawmillPage() {
                     <input
                       type="number"
                       required
+                      min={0.1}
+                      step="any"
                       placeholder="5"
                       value={formTinggiPlank}
                       onChange={(e) =>
@@ -870,6 +1004,8 @@ export default function DataSawmillPage() {
                   </div>
                 </div>
               </div>
+
+              <FormError message={formError} />
 
               <div className="flex justify-end pt-2">
                 <button

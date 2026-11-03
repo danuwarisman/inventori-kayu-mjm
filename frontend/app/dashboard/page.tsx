@@ -13,9 +13,17 @@ import {
   Users,
   DollarSign,
 } from 'lucide-react';
-import { logApi, sawmillApi, dryKilnApi } from '@/lib/api';
+import { dryKilnApi, getApiErrorMessage, logApi, sawmillApi } from '@/lib/api';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
+import FormError from '@/components/FormError';
+import ErrorBanner from '@/components/ErrorBanner';
+import {
+  firstError,
+  maxLength,
+  positiveNumber,
+  required,
+} from '@/lib/validation';
 
 interface ActivityItem {
   id: string;
@@ -36,6 +44,8 @@ export default function OperationalDashboardPage() {
   const [kilnCount, setKilnCount] = useState<number>(0);
   const [totalCustomers] = useState<number>(0);
   const [totalSales] = useState<number>(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [quickError, setQuickError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadDashboardStats = async () => {
@@ -65,8 +75,26 @@ export default function OperationalDashboardPage() {
         if (kilns.status === 'fulfilled' && Array.isArray(kilns.value)) {
           setKilnCount(kilns.value.length);
         }
+
+        const failed = [logs, planks, kilns].find(
+          (result): result is PromiseRejectedResult =>
+            result.status === 'rejected'
+        );
+        setLoadError(
+          failed
+            ? `Sebagian data dashboard gagal dimuat. ${getApiErrorMessage(
+                failed.reason,
+                'Periksa koneksi ke backend.'
+              )}`
+            : null
+        );
       } catch (err) {
-        console.warn('Gagal memuat statistik dashboard:', err);
+        setLoadError(
+          getApiErrorMessage(
+            err,
+            'Gagal memuat statistik dashboard dari server.'
+          )
+        );
       }
     };
     loadDashboardStats();
@@ -80,7 +108,20 @@ export default function OperationalDashboardPage() {
 
   const handleQuickRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canCreate || !diameter || !panjang) return;
+    if (!canCreate) return;
+
+    const supplier = suplier.trim();
+    const validationError = firstError(
+      positiveNumber(diameter, 'Diameter'),
+      positiveNumber(panjang, 'Panjang'),
+      required(supplier, 'Supplier'),
+      maxLength(supplier, 'Supplier', 100)
+    );
+
+    if (validationError) {
+      setQuickError(validationError);
+      return;
+    }
 
     const p = Number(panjang);
     const d = Number(diameter);
@@ -97,6 +138,7 @@ export default function OperationalDashboardPage() {
       }),
     };
 
+    setQuickError(null);
     setActivities((prev) => [newActivity, ...prev]);
     setLogCount((prev) => prev + 1);
     setDiameter('');
@@ -110,16 +152,29 @@ export default function OperationalDashboardPage() {
         sortimen,
         panjang: p,
         diameter: d,
-        suplier: suplier || 'PT. Suplier',
+        suplier: supplier,
         stage: 'Log',
       });
+      setLoadError(null);
     } catch (err) {
-      console.warn('Gagal menyimpan log baru ke PostgreSQL:', err);
+      setQuickError(
+        `Log ${code} tampil sementara karena gagal disimpan ke server. ${getApiErrorMessage(
+          err,
+          'Silakan coba lagi.'
+        )}`
+      );
     }
   };
 
   return (
     <div className="flex flex-col gap-5 p-6 max-w-[1440px] mx-auto font-sans">
+      {loadError && (
+        <ErrorBanner
+          title="Gagal memuat sebagian data dashboard"
+          message={loadError}
+        />
+      )}
+
       {/* 1. Top Stat Cards */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Log Ready */}
@@ -274,7 +329,13 @@ export default function OperationalDashboardPage() {
             <h3 className="text-lg font-bold text-stone-900">Quick Entry</h3>
 
             {canCreate ? (
-              <form onSubmit={handleQuickRegister} className="flex flex-col gap-3 text-xs">
+              <form
+                onSubmit={handleQuickRegister}
+                onInput={() => {
+                  if (quickError) setQuickError(null);
+                }}
+                className="flex flex-col gap-3 text-xs"
+              >
                 <div className="flex flex-col gap-1">
                   <label className="font-semibold text-stone-700">
                     Log Diameter (cm)
@@ -282,6 +343,7 @@ export default function OperationalDashboardPage() {
                   <input
                     type="number"
                     step="0.1"
+                    min={0.1}
                     required
                     placeholder="0.0"
                     value={diameter}
@@ -297,6 +359,7 @@ export default function OperationalDashboardPage() {
                   <input
                     type="number"
                     step="0.1"
+                    min={0.1}
                     required
                     placeholder="0.0"
                     value={panjang}
@@ -322,12 +385,16 @@ export default function OperationalDashboardPage() {
                   <label className="font-semibold text-stone-700">Suplier</label>
                   <input
                     type="text"
+                    required
+                    maxLength={100}
                     placeholder="Nama PT / CV Supplier"
                     value={suplier}
                     onChange={(e) => setSuplier(e.target.value)}
                     className="w-full h-10 px-3 border border-stone-300 rounded text-stone-900 focus:border-green-700 focus:outline-none"
                   />
                 </div>
+
+                <FormError message={quickError} />
 
                 <button
                   type="submit"

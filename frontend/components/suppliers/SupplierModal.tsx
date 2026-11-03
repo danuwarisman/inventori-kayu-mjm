@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Check, Plus, AlertCircle, Loader2 } from 'lucide-react';
 import { SupplierItem, SupplierFormData } from '@/types/supplier';
+import { phone, firstError, maxLength, required } from '@/lib/validation';
 
 interface SupplierModalProps {
   isOpen: boolean;
@@ -71,8 +72,17 @@ export default function SupplierModal({
       kontak_supplier: formData.kontak_supplier.trim(),
     };
 
-    if (!payload.nama_supplier || !payload.alamat_supplier || !payload.kontak_supplier) {
-      setFormError('Nama, alamat, dan kontak supplier wajib diisi.');
+    const validationError = firstError(
+      required(payload.nama_supplier, 'Nama supplier'),
+      maxLength(payload.nama_supplier, 'Nama supplier', 100),
+      required(payload.alamat_supplier, 'Alamat supplier'),
+      maxLength(payload.alamat_supplier, 'Alamat supplier', 200),
+      phone(payload.kontak_supplier, 'Kontak supplier'),
+      maxLength(payload.kontak_supplier, 'Kontak supplier', 15)
+    );
+
+    if (validationError) {
+      setFormError(validationError);
       return;
     }
 

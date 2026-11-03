@@ -3,6 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, Plus } from 'lucide-react';
 import { CustomerItem, CustomerFormData } from '@/types/customer';
+import FormError from '@/components/FormError';
+import {
+  email,
+  firstError,
+  maxLength,
+  phone,
+  required,
+} from '@/lib/validation';
 
 interface CustomerModalProps {
   isOpen: boolean;
@@ -30,6 +38,7 @@ export default function CustomerModal({
     no_hp: '',
     email: '',
   });
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData && mode === 'edit') {
@@ -53,12 +62,48 @@ export default function CustomerModal({
 
   if (!isOpen) return null;
 
+  const updateForm = (patch: Partial<CustomerFormData>) => {
+    setFormData((prev) => ({ ...prev, ...patch }));
+    if (formError) setFormError(null);
+  };
+
+  const handleClose = () => {
+    setFormError(null);
+    onClose();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.id_customer || !formData.nama || !formData.alamat || !formData.no_hp) {
+
+    const payload: CustomerFormData = {
+      ...formData,
+      id_customer: formData.id_customer.trim(),
+      nama: formData.nama.trim(),
+      alamat: formData.alamat.trim(),
+      no_hp: formData.no_hp.trim(),
+      email: formData.email.trim(),
+    };
+
+    const validationError = firstError(
+      required(payload.id_customer, 'ID Customer'),
+      maxLength(payload.id_customer, 'ID Customer', 50),
+      required(payload.nama, 'Nama customer'),
+      maxLength(payload.nama, 'Nama customer', 100),
+      required(payload.alamat, 'Alamat'),
+      maxLength(payload.alamat, 'Alamat', 200),
+      phone(payload.no_hp, 'No HP'),
+      maxLength(payload.no_hp, 'No HP', 20),
+      email(payload.email),
+      maxLength(payload.email, 'Email', 100)
+    );
+
+    if (validationError) {
+      setFormError(validationError);
       return;
     }
-    onSubmit(formData);
+
+    setFormError(null);
+    onSubmit(payload);
     onClose();
   };
 
@@ -71,7 +116,7 @@ export default function CustomerModal({
           </h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1 text-stone-500 hover:text-stone-900 rounded transition-colors"
           >
             <X className="w-5 h-5" />
@@ -88,10 +133,9 @@ export default function CustomerModal({
             <input
               type="text"
               required
+              maxLength={50}
               value={formData.id_customer}
-              onChange={(e) =>
-                setFormData({ ...formData, id_customer: e.target.value })
-              }
+              onChange={(e) => updateForm({ id_customer: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-800 rounded font-mono text-green-700 focus:outline-none focus:border-green-700"
             />
           </div>
@@ -102,9 +146,10 @@ export default function CustomerModal({
             <input
               type="text"
               required
+              maxLength={100}
               placeholder="Contoh: PT. Abadi Jaya"
               value={formData.nama}
-              onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+              onChange={(e) => updateForm({ nama: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-300 rounded text-stone-900 focus:outline-none focus:border-green-700"
             />
           </div>
@@ -115,9 +160,10 @@ export default function CustomerModal({
             <textarea
               rows={2}
               required
+              maxLength={200}
               placeholder="Alamat operasional kantor/gudang mitra"
               value={formData.alamat}
-              onChange={(e) => setFormData({ ...formData, alamat: e.target.value })}
+              onChange={(e) => updateForm({ alamat: e.target.value })}
               className="w-full px-3 py-2 bg-white border border-stone-300 rounded text-stone-900 focus:outline-none focus:border-green-700 resize-none"
             />
           </div>
@@ -128,9 +174,11 @@ export default function CustomerModal({
             <input
               type="text"
               required
+              inputMode="tel"
+              maxLength={20}
               placeholder="0857-xxxx-xxxx"
               value={formData.no_hp}
-              onChange={(e) => setFormData({ ...formData, no_hp: e.target.value })}
+              onChange={(e) => updateForm({ no_hp: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-300 rounded font-mono text-stone-900 focus:outline-none focus:border-green-700"
             />
           </div>
@@ -141,12 +189,15 @@ export default function CustomerModal({
             <input
               type="email"
               required
+              maxLength={100}
               placeholder="kontak@perusahaan.com"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) => updateForm({ email: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-300 rounded text-stone-900 focus:outline-none focus:border-green-700"
             />
           </div>
+
+          <FormError message={formError} />
 
           {/* Submit Button */}
           <div className="flex justify-end pt-2">

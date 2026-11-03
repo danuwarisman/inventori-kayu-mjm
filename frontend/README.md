@@ -5,8 +5,9 @@ Dokumentasi ini menjelaskan kondisi **frontend** aplikasi inventori kayu PT. Mar
 - **Scope:** hanya folder `frontend/`
 - **Backend:** NestJS di folder `backend/` (tidak diubah oleh dokumentasi ini)
 - **Terakhir diperbarui:** 3 November 2026
-- **Commit frontend terakhir yang didokumentasikan:** `26d6dcf` — `fix(frontend): sinkronkan payload log/sawmill dan RBAC manager`
+- **Commit frontend terakhir yang didokumentasikan:** `751ae80` — `feat(frontend): perketat izin aksi per role`
 - **RBAC per aksi:** diterapkan di `lib/permissions.ts` dan dipakai halaman operasional (lihat §7.9)
+- **Validasi & pesan error:** helper di `lib/validation.ts`, komponen `FormError` dan `ErrorBanner` (lihat §12.6)
 
 > Istilah **“live”** di dokumen ini berarti data dibaca/ditulis ke backend NestJS + PostgreSQL. **“Lokal”** berarti data hanya hidup di state React dan hilang saat halaman di-refresh.
 
@@ -176,6 +177,8 @@ frontend/
 │  ├─ Header.tsx                 # Judul halaman, search, notifikasi
 │  ├─ StatCard.tsx               # Kartu statistik generik
 │  ├─ ConfirmModal.tsx           # Modal konfirmasi generik
+│  ├─ FormError.tsx              # Banner error inline di form/modal
+│  ├─ ErrorBanner.tsx            # Banner error halaman + aksi muat ulang
 │  ├─ accounts/                  # AccountCard, AccountModal
 │  ├─ customers/                 # CustomerAnalytics, CustomerModal, CustomerTable
 │  ├─ dry-kiln/                  # DryKilnModal, DryKilnTable
@@ -188,6 +191,7 @@ frontend/
 │  ├─ dates.ts                   # Helper tanggal ISO & format id-ID
 │  ├─ permissions.ts             # Matriks izin aksi per role
 │  ├─ session.ts                 # Sesi, role, RBAC route, storage
+│  ├─ validation.ts              # Helper validasi form (required, angka, email, telepon)
 │  ├─ useInactivityLogout.ts     # Auto-logout inactivity
 │  └─ useSessionUser.ts          # Hook sesi reaktif
 │
@@ -853,6 +857,8 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 | `Header` | `components/Header.tsx` | Judul halaman otomatis, tombol mobile, search, notifikasi |
 | `StatCard` | `components/StatCard.tsx` | Kartu statistik generik (belum dipakai halaman mana pun) |
 | `ConfirmModal` | `components/ConfirmModal.tsx` | Modal konfirmasi generik (belum dipakai halaman mana pun) |
+| `FormError` | `components/FormError.tsx` | Banner error inline untuk validasi form dan error API di dalam modal |
+| `ErrorBanner` | `components/ErrorBanner.tsx` | Banner error halaman dengan tombol muat ulang opsional |
 
 ### 10.2 Domain
 
@@ -1004,7 +1010,15 @@ Konvensi: tanggal disimpan sebagai ISO `yyyy-mm-dd` agar cocok dengan `<input ty
 - Format uang: `Rp ${nilai.toLocaleString('id-ID')}`.
 - Volume disimpan dalam m³ dengan pembulatan 3 desimal pada perhitungan frontend.
 
-### 12.6 Path alias
+### 12.6 Validasi dan pesan error
+
+- Gunakan helper di `lib/validation.ts` (`required`, `maxLength`, `positiveNumber`, `positiveInteger`, `email`, `phone`, `firstError`) agar pesan konsisten.
+- Validasi form dilakukan sebelum memanggil `onSubmit`/API. Tampilkan pesan pertama yang gagal lewat `FormError` di dalam modal/form.
+- Error API yang memengaruhi halaman ditampilkan lewat `ErrorBanner`, bukan hanya `console.warn`. Sertakan aksi **Muat Ulang** bila error berasal dari proses baca data.
+- Untuk fallback lokal (master-data, sawmill, dry-kiln), data tetap ditampilkan agar UI tidak kosong, tetapi banner wajib menjelaskan bahwa data mungkin hanya sementara/tidak tersimpan di server.
+- Hapus data lokal hanya setelah request delete berhasil; bila gagal, pertahankan data dan tampilkan pesan error.
+
+### 12.7 Path alias
 
 `tsconfig.json`:
 
@@ -1035,8 +1049,8 @@ npm run build
 Kondisi terakhir:
 
 - `npx tsc --noEmit` ✅
-- `npx eslint` untuk file yang diubah ✅
 - `npm run build` ✅ (Next.js 16.3.2)
+- `npm run lint` ⚠️ masih gagal karena error **pre-existing** `react-hooks/set-state-in-effect` di `AppShell`, beberapa modal, dan `dry-kiln/page.tsx`. Error ini bukan berasal dari perubahan validasi/pesan error.
 - Build hanya mengeluarkan warning deprecation `middleware` → `proxy`.
 
 Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
@@ -1141,7 +1155,8 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 
 | Tanggal | Commit | Perubahan |
 |---|---|---|
-| 2026-11-03 | *(working tree)* | RBAC per aksi terpusat di `lib/permissions.ts`: create/update/delete Log, Sawmill/Plank, Dry Kiln, Pra Dry Kiln, Supplier, Customer, Sales, Stock, Quick Entry, dan Data Management dibatasi sesuai role |
+| 2026-11-03 | *(working tree)* | Validasi form terpusat di `lib/validation.ts`, komponen `FormError`/`ErrorBanner`, pesan error API yang terlihat di dashboard/master-data/sawmill/dry-kiln/settings/stock-reports, dan validasi modal Account/Customer/Sales/Dry Kiln/Batch/Supplier |
+| 2026-11-03 | `751ae80` | RBAC per aksi terpusat di `lib/permissions.ts`: create/update/delete Log, Sawmill/Plank, Dry Kiln, Pra Dry Kiln, Supplier, Customer, Sales, Stock, Quick Entry, dan Data Management dibatasi sesuai role |
 | 2026-11-02 | `26d6dcf` | Perbaikan payload Log (master-data + dashboard quick entry), payload create batch/plank Sawmill, normalisasi respons plank, dan RBAC manager Sawmill via `useSessionUser()` |
 | 2026-10-25 | `0b62d93` | Sinkronisasi modul Supplier dengan API backend: mapper `idSupplier/namaSupplier/alamatSupplier/kontakSupplier`, create/update/delete, form dan tabel disesuaikan |
 | 2026-10-25 | `849cb6b` | Login memakai `POST /auth/login`, simpan JWT, kirim Bearer token, normalisasi role |
@@ -1164,6 +1179,9 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 | File | Kenapa penting |
 |---|---|
 | `lib/api.ts` | Semua endpoint, timeout, auth header, error handling, mapper Supplier/Log/Sawmill/Plank |
+| `lib/validation.ts` | Helper validasi form yang dipakai lintas modal/halaman |
+| `components/FormError.tsx` | Banner error inline di dalam form/modal |
+| `components/ErrorBanner.tsx` | Banner error halaman dengan aksi muat ulang |
 | `lib/permissions.ts` | Matriks izin aksi per role dan helper `can()` |
 | `lib/session.ts` | `AppRole`, `ROLE_LABELS`, `ROLE_ACCESS`, normalisasi role, storage sesi |
 | `middleware.ts` | Guard route berdasarkan cookie role |

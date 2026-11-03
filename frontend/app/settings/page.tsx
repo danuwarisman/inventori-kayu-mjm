@@ -31,6 +31,14 @@ import {
 import { clearSession } from '@/lib/session';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
+import FormError from '@/components/FormError';
+import {
+  email,
+  firstError,
+  maxLength,
+  phone,
+  required,
+} from '@/lib/validation';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -62,6 +70,7 @@ export default function SettingsPage() {
   const [editFullName, setEditFullName] = useState(profile.fullName);
   const [editEmail, setEditEmail] = useState(profile.email);
   const [editPhone, setEditPhone] = useState(profile.phone);
+  const [profileError, setProfileError] = useState('');
 
   // Form States (Change Password)
   const [currentPassword, setCurrentPassword] = useState('');
@@ -111,25 +120,53 @@ export default function SettingsPage() {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const fullName = editFullName.trim();
+    const emailAddress = editEmail.trim();
+    const phoneNumber = editPhone.trim();
+    const validationError = firstError(
+      required(fullName, 'Nama lengkap'),
+      maxLength(fullName, 'Nama lengkap', 100),
+      email(emailAddress),
+      maxLength(emailAddress, 'Email', 100),
+      phone(phoneNumber, 'Nomor telepon'),
+      maxLength(phoneNumber, 'Nomor telepon', 20)
+    );
+
+    if (validationError) {
+      setProfileError(validationError);
+      return;
+    }
+
+    setProfileError('');
     setProfile((prev) => ({
       ...prev,
-      fullName: editFullName,
-      email: editEmail,
-      phone: editPhone,
+      fullName,
+      email: emailAddress,
+      phone: phoneNumber,
     }));
     setIsEditProfileOpen(false);
   };
 
   const handleUpdatePassword = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword.length < 8) {
-      setPasswordError('Password baru minimal 8 karakter.');
+
+    const validationError = firstError(
+      required(currentPassword, 'Password saat ini'),
+      required(newPassword, 'Password baru'),
+      newPassword.length < 8 ? 'Password baru minimal 8 karakter.' : null,
+      maxLength(newPassword, 'Password baru', 100),
+      required(confirmPassword, 'Konfirmasi password'),
+      newPassword !== confirmPassword
+        ? 'Konfirmasi password tidak cocok.'
+        : null
+    );
+
+    if (validationError) {
+      setPasswordError(validationError);
       return;
     }
-    if (newPassword !== confirmPassword) {
-      setPasswordError('Konfirmasi password tidak cocok.');
-      return;
-    }
+
     setPasswordError('');
     setCurrentPassword('');
     setNewPassword('');
@@ -181,6 +218,7 @@ export default function SettingsPage() {
                   setEditFullName(profile.fullName);
                   setEditEmail(profile.email);
                   setEditPhone(profile.phone);
+                  setProfileError('');
                   setIsEditProfileOpen(true);
                 }}
                 className="w-full p-3 rounded-lg hover:bg-stone-50 border border-transparent hover:border-stone-200 flex items-center justify-between text-left transition-colors cursor-pointer group"
@@ -460,19 +498,30 @@ export default function SettingsPage() {
               <h3 className="text-base font-bold text-stone-900">Edit Profile</h3>
               <button
                 type="button"
-                onClick={() => setIsEditProfileOpen(false)}
+                onClick={() => {
+                  setProfileError('');
+                  setIsEditProfileOpen(false);
+                }}
                 className="p-1 text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveProfile} className="p-5 flex flex-col gap-4 text-xs">
+            <form
+              onSubmit={handleSaveProfile}
+              onInput={() => {
+                if (profileError) setProfileError('');
+              }}
+              className="p-5 flex flex-col gap-4 text-xs"
+            >
               <div className="flex flex-col gap-1">
                 <label className="font-semibold text-green-700">Full Name</label>
                 <input
                   type="text"
                   required
+                  maxLength={100}
+                  autoComplete="name"
                   value={editFullName}
                   onChange={(e) => setEditFullName(e.target.value)}
                   className="w-full h-10 px-3 border border-stone-300 rounded text-stone-900 focus:outline-none focus:border-green-700"
@@ -484,6 +533,8 @@ export default function SettingsPage() {
                 <input
                   type="email"
                   required
+                  maxLength={100}
+                  autoComplete="email"
                   value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
                   className="w-full h-10 px-3 border border-stone-300 rounded text-stone-900 focus:outline-none focus:border-green-700"
@@ -495,6 +546,9 @@ export default function SettingsPage() {
                 <input
                   type="text"
                   required
+                  inputMode="tel"
+                  maxLength={20}
+                  autoComplete="tel"
                   value={editPhone}
                   onChange={(e) => setEditPhone(e.target.value)}
                   className="w-full h-10 px-3 border border-stone-300 rounded font-mono text-stone-900 focus:outline-none focus:border-green-700"
@@ -511,10 +565,15 @@ export default function SettingsPage() {
                 />
               </div>
 
+              <FormError message={profileError} />
+
               <div className="pt-2 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsEditProfileOpen(false)}
+                  onClick={() => {
+                    setProfileError('');
+                    setIsEditProfileOpen(false);
+                  }}
                   className="px-4 py-2 border border-stone-300 rounded text-stone-700 hover:bg-stone-50 cursor-pointer"
                 >
                   Cancel
@@ -539,19 +598,24 @@ export default function SettingsPage() {
               <h3 className="text-base font-bold text-stone-900">Change Password</h3>
               <button
                 type="button"
-                onClick={() => setIsChangePasswordOpen(false)}
+                onClick={() => {
+                  setPasswordError('');
+                  setIsChangePasswordOpen(false);
+                }}
                 className="p-1 text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleUpdatePassword} className="p-5 flex flex-col gap-3.5 text-xs">
-              {passwordError && (
-                <div className="p-2.5 bg-red-50 border border-red-200 text-red-700 rounded text-xs">
-                  {passwordError}
-                </div>
-              )}
+            <form
+              onSubmit={handleUpdatePassword}
+              onInput={() => {
+                if (passwordError) setPasswordError('');
+              }}
+              className="p-5 flex flex-col gap-3.5 text-xs"
+            >
+              <FormError message={passwordError} />
 
               <div className="flex flex-col gap-1">
                 <label className="font-semibold text-green-700">Current Password</label>
@@ -559,6 +623,8 @@ export default function SettingsPage() {
                   <input
                     type={showCurrent ? 'text' : 'password'}
                     required
+                    maxLength={100}
+                    autoComplete="current-password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     className="w-full h-10 pl-3 pr-10 border border-stone-300 rounded font-mono text-stone-900 focus:outline-none focus:border-green-700"
@@ -579,6 +645,9 @@ export default function SettingsPage() {
                   <input
                     type={showNew ? 'text' : 'password'}
                     required
+                    minLength={8}
+                    maxLength={100}
+                    autoComplete="new-password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="w-full h-10 pl-3 pr-10 border border-stone-300 rounded font-mono text-stone-900 focus:outline-none focus:border-green-700"
@@ -599,6 +668,9 @@ export default function SettingsPage() {
                   <input
                     type={showConfirm ? 'text' : 'password'}
                     required
+                    minLength={8}
+                    maxLength={100}
+                    autoComplete="new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full h-10 pl-3 pr-10 border border-stone-300 rounded font-mono text-stone-900 focus:outline-none focus:border-green-700"
@@ -620,7 +692,10 @@ export default function SettingsPage() {
               <div className="pt-2 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsChangePasswordOpen(false)}
+                  onClick={() => {
+                    setPasswordError('');
+                    setIsChangePasswordOpen(false);
+                  }}
                   className="px-4 py-2 border border-stone-300 rounded text-stone-700 hover:bg-stone-50 cursor-pointer"
                 >
                   Cancel

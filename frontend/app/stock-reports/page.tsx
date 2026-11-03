@@ -19,6 +19,13 @@ import {
   StockReportFormData,
   StockStatus,
 } from '@/types/stock-report';
+import FormError from '@/components/FormError';
+import {
+  firstError,
+  maxLength,
+  positiveNumber,
+  required,
+} from '@/lib/validation';
 
 export default function StockReportsPage() {
   // Input stok dilakukan Admin Lapangan; role lain read-only.
@@ -48,6 +55,7 @@ export default function StockReportsPage() {
     length: 2400,
     status: 'Available',
   });
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Hitung volume kubikasi: T(mm) * W(mm) * L(mm) / 1.000.000.000 (m³)
   const calculateVolume = (t: number, w: number, l: number): number => {
@@ -66,18 +74,28 @@ export default function StockReportsPage() {
       length: 2400,
       status: 'Available',
     });
+    setFormError(null);
     setIsModalOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canCreate) return;
-    if (
-      !formData.id_log ||
-      formData.thickness === '' ||
-      formData.width === '' ||
-      formData.length === ''
-    ) {
+
+    const idLog = formData.id_log.trim();
+    const validationError = firstError(
+      required(idLog, 'ID Log'),
+      maxLength(idLog, 'ID Log', 50),
+      positiveNumber(formData.thickness, 'Thickness'),
+      positiveNumber(formData.width, 'Width'),
+      positiveNumber(formData.length, 'Length'),
+      stocks.some((item) => item.id_log.toLowerCase() === idLog.toLowerCase())
+        ? 'ID Log sudah terdaftar. Gunakan ID lain.'
+        : null
+    );
+
+    if (validationError) {
+      setFormError(validationError);
       return;
     }
 
@@ -87,7 +105,7 @@ export default function StockReportsPage() {
     const vol = calculateVolume(t, w, l);
 
     const newItem: StockReportItem = {
-      id_log: formData.id_log,
+      id_log: idLog,
       sortimen: formData.sortimen,
       grade: formData.grade,
       thickness: t,
@@ -100,6 +118,7 @@ export default function StockReportsPage() {
     };
 
     setStocks((prev) => [newItem, ...prev]);
+    setFormError(null);
     setIsModalOpen(false);
   };
 
@@ -311,7 +330,10 @@ export default function StockReportsPage() {
               </h2>
               <button
                 type="button"
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setFormError(null);
+                  setIsModalOpen(false);
+                }}
                 className="p-1 text-stone-500 hover:text-stone-900 rounded transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -320,6 +342,9 @@ export default function StockReportsPage() {
 
             <form
               onSubmit={handleSubmit}
+              onInput={() => {
+                if (formError) setFormError(null);
+              }}
               className="p-4 bg-white/80 rounded-[10px] border border-stone-800 flex flex-col gap-3 text-xs"
             >
               {/* ID LOG */}
@@ -328,6 +353,7 @@ export default function StockReportsPage() {
                 <input
                   type="text"
                   required
+                  maxLength={50}
                   placeholder="L-2026-X-X-X"
                   value={formData.id_log}
                   onChange={(e) =>
@@ -387,6 +413,8 @@ export default function StockReportsPage() {
                     <input
                       type="number"
                       required
+                      min={0.1}
+                      step="any"
                       placeholder="50"
                       value={formData.thickness}
                       onChange={(e) =>
@@ -407,6 +435,8 @@ export default function StockReportsPage() {
                     <input
                       type="number"
                       required
+                      min={0.1}
+                      step="any"
                       placeholder="200"
                       value={formData.width}
                       onChange={(e) =>
@@ -427,6 +457,8 @@ export default function StockReportsPage() {
                     <input
                       type="number"
                       required
+                      min={0.1}
+                      step="any"
                       placeholder="2400"
                       value={formData.length}
                       onChange={(e) =>
@@ -463,6 +495,8 @@ export default function StockReportsPage() {
                   <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
                 </div>
               </div>
+
+              <FormError message={formError} />
 
               {/* Submit Button */}
               <div className="flex justify-end pt-2">

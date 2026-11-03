@@ -4,6 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { X, Check, ChevronDown } from 'lucide-react';
 import { SalesItem, SalesFormData, SalesStatus } from '@/types/sales';
 import { toISODate } from '@/lib/dates';
+import FormError from '@/components/FormError';
+import {
+  firstError,
+  maxLength,
+  positiveInteger,
+  positiveNumber,
+  required,
+} from '@/lib/validation';
 
 interface SalesModalProps {
   isOpen: boolean;
@@ -28,6 +36,7 @@ export default function SalesModal({
     tanggal: toISODate(),
     status: 'Pending',
   });
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -44,20 +53,38 @@ export default function SalesModal({
 
   if (!isOpen) return null;
 
+  const updateForm = (patch: Partial<SalesFormData>) => {
+    setFormData((prev) => ({ ...prev, ...patch }));
+    if (formError) setFormError(null);
+  };
+
+  const handleClose = () => {
+    setFormError(null);
+    onClose();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !formData.id_transaksi ||
-      !formData.nama_customer ||
-      formData.kuantitas === '' ||
-      formData.harga_satuan === ''
-    ) {
+
+    const validationError = firstError(
+      required(formData.id_transaksi, 'ID Transaksi'),
+      maxLength(formData.id_transaksi, 'ID Transaksi', 50),
+      required(formData.nama_customer, 'Nama customer'),
+      maxLength(formData.nama_customer, 'Nama customer', 100),
+      positiveInteger(formData.kuantitas, 'Kuantitas'),
+      positiveNumber(formData.harga_satuan, 'Harga satuan'),
+      required(formData.tanggal, 'Tanggal penjualan')
+    );
+
+    if (validationError) {
+      setFormError(validationError);
       return;
     }
 
+    setFormError(null);
     onSubmit({
-      id_transaksi: formData.id_transaksi,
-      nama_customer: formData.nama_customer,
+      id_transaksi: formData.id_transaksi.trim(),
+      nama_customer: formData.nama_customer.trim(),
       kuantitas: Number(formData.kuantitas),
       harga_satuan: Number(formData.harga_satuan),
       tanggal: formData.tanggal,
@@ -75,7 +102,7 @@ export default function SalesModal({
           </h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1 text-stone-500 hover:text-stone-900 rounded transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -92,10 +119,9 @@ export default function SalesModal({
             <input
               type="text"
               required
+              maxLength={50}
               value={formData.id_transaksi}
-              onChange={(e) =>
-                setFormData({ ...formData, id_transaksi: e.target.value })
-              }
+              onChange={(e) => updateForm({ id_transaksi: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-800 rounded font-mono text-green-700 focus:outline-none focus:border-green-700"
             />
           </div>
@@ -106,11 +132,10 @@ export default function SalesModal({
             <input
               type="text"
               required
+              maxLength={100}
               placeholder="Contoh: PT Kayu Nusantara"
               value={formData.nama_customer}
-              onChange={(e) =>
-                setFormData({ ...formData, nama_customer: e.target.value })
-              }
+              onChange={(e) => updateForm({ nama_customer: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-300 rounded text-stone-900 font-medium focus:outline-none focus:border-green-700"
             />
           </div>
@@ -122,11 +147,12 @@ export default function SalesModal({
               <input
                 type="number"
                 required
+                min={1}
+                step={1}
                 placeholder="50"
                 value={formData.kuantitas}
                 onChange={(e) =>
-                  setFormData({
-                    ...formData,
+                  updateForm({
                     kuantitas: e.target.value === '' ? '' : Number(e.target.value),
                   })
                 }
@@ -138,11 +164,12 @@ export default function SalesModal({
               <input
                 type="number"
                 required
+                min={1}
+                step="any"
                 placeholder="1000000"
                 value={formData.harga_satuan}
                 onChange={(e) =>
-                  setFormData({
-                    ...formData,
+                  updateForm({
                     harga_satuan:
                       e.target.value === '' ? '' : Number(e.target.value),
                   })
@@ -160,9 +187,7 @@ export default function SalesModal({
                 type="date"
                 required
                 value={formData.tanggal}
-                onChange={(e) =>
-                  setFormData({ ...formData, tanggal: e.target.value })
-                }
+                onChange={(e) => updateForm({ tanggal: e.target.value })}
                 className="w-full h-9 px-3 bg-white border border-stone-300 rounded text-stone-900 focus:outline-none focus:border-green-700"
               />
             </div>
@@ -173,10 +198,7 @@ export default function SalesModal({
                 <select
                   value={formData.status}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      status: e.target.value as SalesStatus,
-                    })
+                    updateForm({ status: e.target.value as SalesStatus })
                   }
                   className="w-full h-9 pl-3 pr-8 bg-white border border-stone-300 rounded text-green-700 font-semibold appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
                 >
@@ -188,6 +210,8 @@ export default function SalesModal({
               </div>
             </div>
           </div>
+
+          <FormError message={formError} />
 
           {/* Action Button */}
           <div className="flex justify-end pt-2">

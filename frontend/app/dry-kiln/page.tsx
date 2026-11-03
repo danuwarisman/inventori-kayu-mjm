@@ -8,7 +8,8 @@ import DryKilnModal from '@/components/dry-kiln/DryKilnModal';
 import { toISODate } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
-import { dryKilnApi } from '@/lib/api';
+import { dryKilnApi, getApiErrorMessage } from '@/lib/api';
+import ErrorBanner from '@/components/ErrorBanner';
 
 export default function DryKilnPage() {
   const user = useSessionUser();
@@ -20,16 +21,23 @@ export default function DryKilnPage() {
   const [, setLoading] = useState(false);
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
+  const [pageError, setPageError] = useState<string | null>(null);
 
   const fetchDryKiln = async () => {
     setLoading(true);
+    setPageError(null);
     try {
       const data = await dryKilnApi.list({ sortimen: sortimenFilter, date: dateFilter });
       if (Array.isArray(data)) {
         setItems(data);
       }
     } catch (err) {
-      console.warn('Gagal memuat dry kiln dari backend:', err);
+      setPageError(
+        getApiErrorMessage(
+          err,
+          'Gagal memuat data dry kiln dari server. Periksa koneksi backend.'
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -63,6 +71,7 @@ export default function DryKilnPage() {
     data: Omit<DryKilnItem, 'volume' | 'date'>
   ) => {
     const vol = calculateVolume(data.tinggi, data.lebar, data.panjang);
+    setPageError(null);
 
     if (modalMode === 'input') {
       const newItemPayload: DryKilnItem = {
@@ -75,7 +84,12 @@ export default function DryKilnPage() {
         const saved = await dryKilnApi.create(newItemPayload);
         setItems((prev) => [saved, ...prev]);
       } catch (err) {
-        console.warn('Gagal simpan dry kiln ke backend:', err);
+        setPageError(
+          `Batch dry kiln ${data.id_plank} ditampilkan sementara karena gagal disimpan ke server. ${getApiErrorMessage(
+            err,
+            'Silakan coba lagi.'
+          )}`
+        );
         setItems((prev) => [newItemPayload, ...prev]);
       }
     } else if (modalMode === 'edit' && selectedItem) {
@@ -89,7 +103,12 @@ export default function DryKilnPage() {
           await dryKilnApi.update(selectedItem.idOven, updatedPayload);
         }
       } catch (err) {
-        console.warn('Gagal update dry kiln di backend:', err);
+        setPageError(
+          `Perubahan dry kiln ${data.id_plank} hanya tersimpan sementara karena gagal dikirim ke server. ${getApiErrorMessage(
+            err,
+            'Silakan coba lagi.'
+          )}`
+        );
       }
 
       setItems((prev) =>
@@ -169,6 +188,15 @@ export default function DryKilnPage() {
           )}
         </div>
       </section>
+
+      {pageError && (
+        <ErrorBanner
+          title="Gagal memproses data dry kiln"
+          message={pageError}
+          onRetry={fetchDryKiln}
+          retryLabel="Muat Ulang"
+        />
+      )}
 
       <DryKilnTable
         items={filteredItems}

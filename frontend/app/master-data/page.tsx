@@ -19,8 +19,16 @@ import {
 import { toISODate, formatDateID } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
-import { logApi } from '@/lib/api';
+import { getApiErrorMessage, logApi } from '@/lib/api';
 import { LogItem } from '@/types/log';
+import FormError from '@/components/FormError';
+import ErrorBanner from '@/components/ErrorBanner';
+import {
+  firstError,
+  maxLength,
+  positiveNumber,
+  required,
+} from '@/lib/validation';
 
 export { type LogItem };
 
@@ -30,6 +38,8 @@ export default function DataLogPage() {
   // State Filter & Pencarian
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
+  const [pageError, setPageError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,18 +49,28 @@ export default function DataLogPage() {
       .then((data) => {
         if (!cancelled && Array.isArray(data)) {
           setLogs(data);
+          setPageError(null);
         }
       })
       .catch((err) => {
         if (!cancelled) {
-          console.warn('Gagal memuat log dari backend:', err);
+          setPageError(
+            getApiErrorMessage(
+              err,
+              'Gagal memuat data log dari server. Periksa koneksi backend.'
+            )
+          );
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [sortimenFilter]);
+  }, [sortimenFilter, refreshKey]);
+
+  const handleRetryLoad = () => {
+    setRefreshKey((key) => key + 1);
+  };
 
   // State Modal Form
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,6 +83,7 @@ export default function DataLogPage() {
   const [formPanjang, setFormPanjang] = useState<number | ''>('');
   const [formDiameter, setFormDiameter] = useState<number | ''>('');
   const [formSuplier, setFormSuplier] = useState('PT. Suplier');
+  const [formError, setFormError] = useState<string | null>(null);
 
   const user = useSessionUser();
   const isManager = user?.role === 'manager';
@@ -87,6 +108,7 @@ export default function DataLogPage() {
     setFormPanjang('');
     setFormDiameter('');
     setFormSuplier('PT. Suplier');
+    setFormError(null);
     setIsModalOpen(true);
   };
 
@@ -98,27 +120,46 @@ export default function DataLogPage() {
     setFormPanjang(item.panjang);
     setFormDiameter(item.diameter);
     setFormSuplier(item.suplier);
+    setFormError(null);
     setIsModalOpen(true);
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formIdLog || !formPanjang || !formDiameter) return;
+
+    const idLog = formIdLog.trim();
+    const suplier = formSuplier.trim();
+    const validationError = firstError(
+      required(idLog, 'ID Log'),
+      maxLength(idLog, 'ID Log', 50),
+      positiveNumber(formPanjang, 'Panjang'),
+      positiveNumber(formDiameter, 'Diameter'),
+      required(suplier, 'Supplier'),
+      maxLength(suplier, 'Supplier', 100)
+    );
+
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
 
     const p = Number(formPanjang);
     const d = Number(formDiameter);
     const calculatedVol = calculateVolume(p, d);
 
+    setFormError(null);
+    setPageError(null);
+
     if (modalMode === 'input') {
       const newLogPayload: Partial<LogItem> = {
-        id_log: formIdLog,
+        id_log: idLog,
         sortimen: formSortimen,
         panjang: p,
         diameter: d,
         volume: calculatedVol,
         stage: 'Log',
         tanggal_masuk: toISODate(),
-        suplier: formSuplier,
+        suplier,
         harga: 1000000,
       };
 
@@ -126,18 +167,23 @@ export default function DataLogPage() {
         const saved = await logApi.create(newLogPayload);
         setLogs((prev) => [saved, ...prev]);
       } catch (err) {
-        console.warn('Gagal menyimpan log ke backend:', err);
+        setPageError(
+          `Log ${idLog} ditampilkan sementara karena gagal disimpan ke server. ${getApiErrorMessage(
+            err,
+            'Silakan coba lagi.'
+          )}`
+        );
         setLogs((prev) => [newLogPayload as LogItem, ...prev]);
       }
     } else if (modalMode === 'edit' && selectedLogId) {
       const current = logs.find((l) => l.id_log === selectedLogId);
       const updatePayload: Partial<LogItem> = {
-        id_log: formIdLog,
+        id_log: idLog,
         sortimen: formSortimen,
         panjang: p,
         diameter: d,
         volume: calculatedVol,
-        suplier: formSuplier,
+        suplier,
       };
 
       try {
@@ -145,7 +191,12 @@ export default function DataLogPage() {
           await logApi.update(current.idLog, updatePayload);
         }
       } catch (err) {
-        console.warn('Gagal memperbarui log di backend:', err);
+        setPageError(
+          `Perubahan log ${idLog} hanya tersimpan sementara karena gagal dikirim ke server. ${getApiErrorMessage(
+            err,
+            'Silakan coba lagi.'
+          )}`
+        );
       }
 
       setLogs((prev) =>
@@ -165,14 +216,21 @@ export default function DataLogPage() {
 
   const handleDeleteLog = async (item: LogItem) => {
     if (!confirm(`Hapus log ${item.id_log}?`)) return;
+
+    setPageError(null);
     try {
       if (item.idLog) {
         await logApi.delete(item.idLog);
       }
+      setLogs((prev) => prev.filter((l) => l.id_log !== item.id_log));
     } catch (err) {
-      console.warn('Gagal menghapus log di backend:', err);
+      setPageError(
+        `Gagal menghapus log ${item.id_log} dari server. ${getApiErrorMessage(
+          err,
+          'Data tidak dihapus agar tidak berbeda dengan server.'
+        )}`
+      );
     }
-    setLogs((prev) => prev.filter((l) => l.id_log !== item.id_log));
   };
 
   const filteredLogs = logs.filter((log) => {
@@ -240,6 +298,15 @@ export default function DataLogPage() {
           )}
         </div>
       </section>
+
+      {pageError && (
+        <ErrorBanner
+          title="Gagal memproses data log"
+          message={pageError}
+          onRetry={handleRetryLoad}
+          retryLabel="Muat Ulang"
+        />
+      )}
 
       {/* 2. Main Data Table */}
       <section className="p-4 bg-white rounded-[10px] border border-stone-200 shadow-2xs flex flex-col gap-3">
@@ -434,7 +501,10 @@ export default function DataLogPage() {
               </h2>
               <button
                 type="button"
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setFormError(null);
+                  setIsModalOpen(false);
+                }}
                 className="p-1 text-stone-500 hover:text-stone-900 rounded"
               >
                 <X className="w-5 h-5" />
@@ -443,6 +513,9 @@ export default function DataLogPage() {
 
             <form
               onSubmit={handleFormSubmit}
+              onInput={() => {
+                if (formError) setFormError(null);
+              }}
               className="p-4 bg-white/80 rounded-[10px] border border-stone-800/80 flex flex-col gap-3 text-xs"
             >
               {/* ID LOG */}
@@ -451,6 +524,7 @@ export default function DataLogPage() {
                 <input
                   type="text"
                   required
+                  maxLength={50}
                   placeholder="L-2026-X-X-X"
                   value={formIdLog}
                   onChange={(e) => setFormIdLog(e.target.value)}
@@ -486,6 +560,8 @@ export default function DataLogPage() {
                     <input
                       type="number"
                       required
+                      min={0.1}
+                      step="any"
                       placeholder="100"
                       value={formPanjang}
                       onChange={(e) =>
@@ -503,6 +579,8 @@ export default function DataLogPage() {
                     <input
                       type="number"
                       required
+                      min={0.1}
+                      step="any"
                       placeholder="20"
                       value={formDiameter}
                       onChange={(e) =>
@@ -523,6 +601,7 @@ export default function DataLogPage() {
                   <input
                     type="text"
                     required
+                    maxLength={100}
                     placeholder="PT. Suplier"
                     value={formSuplier}
                     onChange={(e) => setFormSuplier(e.target.value)}
@@ -547,6 +626,8 @@ export default function DataLogPage() {
                   </button>
                 </div>
               </div>
+
+              <FormError message={formError} />
             </form>
           </div>
         </div>

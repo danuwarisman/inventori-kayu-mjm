@@ -3,6 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, Plus, ChevronDown } from 'lucide-react';
 import { AccountItem, AccountFormData, AccountDivision } from '@/types/account';
+import FormError from '@/components/FormError';
+import {
+  email,
+  firstError,
+  maxLength,
+  required,
+} from '@/lib/validation';
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -32,6 +39,7 @@ export default function AccountModal({
     alamat: '',
     divisi: 'Admin Lapangan',
   });
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData && mode === 'edit') {
@@ -59,17 +67,51 @@ export default function AccountModal({
 
   if (!isOpen) return null;
 
+  const updateForm = (patch: Partial<AccountFormData>) => {
+    setFormData((prev) => ({ ...prev, ...patch }));
+    if (formError) setFormError(null);
+  };
+
+  const handleClose = () => {
+    setFormError(null);
+    onClose();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !formData.id_account ||
-      !formData.name_account ||
-      !formData.nama_user ||
-      !formData.password
-    ) {
+
+    const payload: AccountFormData = {
+      ...formData,
+      id_account: formData.id_account.trim(),
+      name_account: formData.name_account.trim(),
+      nama_user: formData.nama_user.trim(),
+      password: formData.password,
+      email: formData.email.trim(),
+      alamat: formData.alamat.trim(),
+    };
+
+    const validationError = firstError(
+      required(payload.id_account, 'ID Account'),
+      maxLength(payload.id_account, 'ID Account', 50),
+      required(payload.name_account, 'Username'),
+      maxLength(payload.name_account, 'Username', 50),
+      required(payload.nama_user, 'Nama lengkap'),
+      maxLength(payload.nama_user, 'Nama lengkap', 100),
+      required(payload.password, 'Password'),
+      payload.password.length < 8 ? 'Password minimal 8 karakter.' : null,
+      email(payload.email),
+      maxLength(payload.email, 'Email', 100),
+      required(payload.alamat, 'Alamat'),
+      maxLength(payload.alamat, 'Alamat', 200)
+    );
+
+    if (validationError) {
+      setFormError(validationError);
       return;
     }
-    onSubmit(formData);
+
+    setFormError(null);
+    onSubmit(payload);
     onClose();
   };
 
@@ -82,7 +124,7 @@ export default function AccountModal({
           </h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1 text-stone-500 hover:text-stone-900 rounded transition-colors"
           >
             <X className="w-5 h-5" />
@@ -99,10 +141,9 @@ export default function AccountModal({
             <input
               type="text"
               required
+              maxLength={50}
               value={formData.id_account}
-              onChange={(e) =>
-                setFormData({ ...formData, id_account: e.target.value })
-              }
+              onChange={(e) => updateForm({ id_account: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-800 rounded font-mono text-green-700 focus:outline-none focus:border-green-700"
             />
           </div>
@@ -113,11 +154,10 @@ export default function AccountModal({
             <input
               type="text"
               required
+              maxLength={50}
               placeholder="Contoh: danu.warisman"
               value={formData.name_account}
-              onChange={(e) =>
-                setFormData({ ...formData, name_account: e.target.value })
-              }
+              onChange={(e) => updateForm({ name_account: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-300 rounded text-stone-900 font-mono focus:outline-none focus:border-green-700"
             />
           </div>
@@ -128,11 +168,10 @@ export default function AccountModal({
             <input
               type="text"
               required
+              maxLength={100}
               placeholder="Contoh: Danu Warisman"
               value={formData.nama_user}
-              onChange={(e) =>
-                setFormData({ ...formData, nama_user: e.target.value })
-              }
+              onChange={(e) => updateForm({ nama_user: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-300 rounded text-stone-900 focus:outline-none focus:border-green-700"
             />
           </div>
@@ -143,12 +182,12 @@ export default function AccountModal({
             <input
               type="password"
               required
+              minLength={8}
+              maxLength={100}
               autoComplete="new-password"
               placeholder="Masukkan password akun"
               value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
+              onChange={(e) => updateForm({ password: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-300 rounded text-stone-900 font-mono focus:outline-none focus:border-green-700"
             />
           </div>
@@ -159,11 +198,10 @@ export default function AccountModal({
             <input
               type="email"
               required
+              maxLength={100}
               placeholder="user@perusahaan.com"
               value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
+              onChange={(e) => updateForm({ email: e.target.value })}
               className="w-full h-10 px-3 bg-white border border-stone-300 rounded text-stone-900 focus:outline-none focus:border-green-700"
             />
           </div>
@@ -174,11 +212,10 @@ export default function AccountModal({
             <textarea
               rows={2}
               required
+              maxLength={200}
               placeholder="Alamat domisili staf"
               value={formData.alamat}
-              onChange={(e) =>
-                setFormData({ ...formData, alamat: e.target.value })
-              }
+              onChange={(e) => updateForm({ alamat: e.target.value })}
               className="w-full px-3 py-2 bg-white border border-stone-300 rounded text-stone-900 focus:outline-none focus:border-green-700 resize-none"
             />
           </div>
@@ -190,10 +227,7 @@ export default function AccountModal({
               <select
                 value={formData.divisi}
                 onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    divisi: e.target.value as AccountDivision,
-                  })
+                  updateForm({ divisi: e.target.value as AccountDivision })
                 }
                 className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded text-green-700 font-semibold appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
               >
@@ -204,6 +238,8 @@ export default function AccountModal({
               <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
             </div>
           </div>
+
+          <FormError message={formError} />
 
           {/* Tombol Aksi */}
           <div className="flex justify-end pt-2">
