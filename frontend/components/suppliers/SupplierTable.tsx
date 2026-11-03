@@ -8,6 +8,8 @@ interface SupplierTableProps {
   items: SupplierItem[];
   totalCount: number;
   isManager?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
   isLoading?: boolean;
   selectedIds: string[];
   onToggleSelect: (id: string) => void;
@@ -19,6 +21,8 @@ export default function SupplierTable({
   items,
   totalCount,
   isManager = false,
+  canEdit = false,
+  canDelete = false,
   isLoading = false,
   selectedIds,
   onToggleSelect,
@@ -34,7 +38,7 @@ export default function SupplierTable({
         <table className="w-full text-xs text-left">
           <thead>
             <tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider">
-              {!isManager && (
+              {canDelete && (
                 <th className="py-3 px-3 text-center w-10">
                   <input
                     type="checkbox"
@@ -48,7 +52,7 @@ export default function SupplierTable({
               <th className="py-3 px-3 text-center">Company Name</th>
               <th className="py-3 px-3 text-center">Address</th>
               <th className="py-3 px-3 text-center">Phone Number</th>
-              {!isManager && (
+              {canEdit && (
                 <th className="py-3 px-3 text-center w-12">Action</th>
               )}
             </tr>
@@ -57,7 +61,7 @@ export default function SupplierTable({
             {items.length === 0 ? (
               <tr>
                 <td
-                  colSpan={isManager ? 4 : 6}
+                  colSpan={4 + (canDelete ? 1 : 0) + (canEdit ? 1 : 0)}
                   className="py-14 text-center"
                 >
                   {isLoading ? (
@@ -79,7 +83,9 @@ export default function SupplierTable({
                       <p className="text-xs text-stone-400">
                         {isManager
                           ? 'Belum ada data pemasok kayu yang dimasukkan ke sistem.'
-                          : 'Klik tombol "Add Supplier" untuk meregistrasikan mitra pemasok kayu baru.'}
+                          : canEdit
+                          ? 'Klik tombol "Add Supplier" untuk meregistrasikan mitra pemasok kayu baru.'
+                          : 'Belum ada data supplier yang dapat ditampilkan.'}
                       </p>
                     </div>
                   )}
@@ -96,7 +102,7 @@ export default function SupplierTable({
                       isSelected ? 'bg-green-50/50' : ''
                     }`}
                   >
-                    {!isManager && (
+                    {canDelete && (
                       <td className="py-3 px-3 text-center">
                         <input
                           type="checkbox"
@@ -118,7 +124,7 @@ export default function SupplierTable({
                     <td className="py-3 px-3 text-center font-mono font-medium">
                       {item.kontak_supplier}
                     </td>
-                    {!isManager && (
+                    {canEdit && (
                       <td className="py-3 px-3 text-center">
                         <button
                           type="button"

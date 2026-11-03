@@ -7,11 +7,15 @@ import SupplierTable from '@/components/suppliers/SupplierTable';
 import SupplierModal from '@/components/suppliers/SupplierModal';
 import { getApiErrorMessage, supplierApi } from '@/lib/api';
 import useSessionUser from '@/lib/useSessionUser';
+import { can } from '@/lib/permissions';
 
 export default function SuppliersPage() {
-  // Role asli dari sesi login: manager read-only; selain itu bisa Add/Remove Supplier.
+  // Supplier dikelola Admin Kantor; role lain hanya melihat.
   const user = useSessionUser();
   const isManager = user?.role === 'manager';
+  const canCreate = can(user?.role, 'supplier:create');
+  const canUpdate = can(user?.role, 'supplier:update');
+  const canDelete = can(user?.role, 'supplier:delete');
 
   // State data utama dari backend
   const [suppliers, setSuppliers] = useState<SupplierItem[]>([]);
@@ -67,6 +71,7 @@ export default function SuppliersPage() {
   };
 
   const handleOpenInput = () => {
+    if (!canCreate) return;
     setModalMode('input');
     setSelectedSupplier(null);
     setModalError(null);
@@ -74,6 +79,7 @@ export default function SuppliersPage() {
   };
 
   const handleOpenEdit = (item: SupplierItem) => {
+    if (!canUpdate) return;
     setModalMode('edit');
     setSelectedSupplier(item);
     setModalError(null);
@@ -126,12 +132,14 @@ export default function SuppliersPage() {
 
   // Toggle Seleksi Baris
   const handleToggleSelect = (id: string) => {
+    if (!canDelete) return;
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
   const handleToggleSelectAll = () => {
+    if (!canDelete) return;
     if (selectedIds.length === filteredSuppliers.length) {
       setSelectedIds([]);
     } else {
@@ -141,7 +149,7 @@ export default function SuppliersPage() {
 
   // Hapus supplier terpilih lewat DELETE /supplier/:id.
   const handleRemoveSelected = async () => {
-    if (selectedIds.length === 0 || isDeleting) return;
+    if (!canDelete || selectedIds.length === 0 || isDeleting) return;
 
     const targets = suppliers.filter((item) =>
       selectedIds.includes(item.id_supplier)
@@ -223,40 +231,40 @@ export default function SuppliersPage() {
           </div>
         </div>
 
-        {/* Tombol Aksi Eksklusif Admin */}
-        {!isManager && (
-          <div className="flex items-center gap-2.5">
+        {/* Tombol Aksi sesuai izin role */}
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            title="Muat ulang data dari server"
+            className="p-2 text-green-700 border border-green-700 hover:bg-green-50 rounded text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`}
+            />
+          </button>
+          {canDelete && selectedIds.length > 0 && (
             <button
               type="button"
-              onClick={handleRefresh}
-              disabled={isLoading}
-              title="Muat ulang data dari server"
-              className="p-2 text-green-700 border border-green-700 hover:bg-green-50 rounded text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleRemoveSelected}
+              disabled={isDeleting}
+              className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <RefreshCw
-                className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`}
-              />
+              {isDeleting ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" />
+              )}
+              <span>
+                {isDeleting
+                  ? 'Removing...'
+                  : `Remove Supplier (${selectedIds.length})`}
+              </span>
             </button>
-            {selectedIds.length > 0 && (
-              <button
-                type="button"
-                onClick={handleRemoveSelected}
-                disabled={isDeleting}
-                className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isDeleting ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Trash2 className="w-3.5 h-3.5" />
-                )}
-                <span>
-                  {isDeleting
-                    ? 'Removing...'
-                    : `Remove Supplier (${selectedIds.length})`}
-                </span>
-              </button>
-            )}
+          )}
 
+          {canCreate && (
             <button
               type="button"
               onClick={handleOpenInput}
@@ -265,8 +273,8 @@ export default function SuppliersPage() {
               <Plus className="w-3.5 h-3.5" />
               <span>Add Supplier</span>
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </section>
 
       {/* Banner Error */}
@@ -295,6 +303,8 @@ export default function SuppliersPage() {
         items={filteredSuppliers}
         totalCount={suppliers.length}
         isManager={isManager}
+        canEdit={canUpdate}
+        canDelete={canDelete}
         isLoading={isLoading}
         selectedIds={selectedIds}
         onToggleSelect={handleToggleSelect}

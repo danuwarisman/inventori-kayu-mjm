@@ -21,7 +21,6 @@ import {
   Smartphone,
   ChevronRight,
   RefreshCw,
-  FileText,
 } from 'lucide-react';
 import {
   UserProfile,
@@ -30,9 +29,13 @@ import {
   ManagementHistoryItem,
 } from '@/types/settings';
 import { clearSession } from '@/lib/session';
+import useSessionUser from '@/lib/useSessionUser';
+import { can } from '@/lib/permissions';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const user = useSessionUser();
+  const canManageData = can(user?.role, 'settings:manage-data');
 
   // State Profil Pengguna
   const [profile, setProfile] = useState<UserProfile>({
@@ -355,6 +358,7 @@ export default function SettingsPage() {
       </section>
 
       {/* Section Data Management (Backup, Export, History) */}
+      {canManageData && (
       <section className="flex flex-col gap-5 pt-2">
         <div>
           <h2 className="text-xl font-bold text-stone-900">Data Management</h2>
@@ -446,6 +450,7 @@ export default function SettingsPage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Modal 1: Edit Profile */}
       {isEditProfileOpen && (

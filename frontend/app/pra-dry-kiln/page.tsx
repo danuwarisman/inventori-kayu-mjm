@@ -7,11 +7,14 @@ import PlankTable from '@/components/pra-dry-kiln/PlankTable';
 import BatchModal from '@/components/pra-dry-kiln/BatchModal';
 import { toISODate } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
+import { can } from '@/lib/permissions';
 
 export default function PraDryKilnPage() {
-  // Role asli dari sesi login (Manager read-only, selain itu Admin)
+  // Role asli dari sesi login (Manager & Admin Kantor read-only)
   const user = useSessionUser();
   const isManager = user?.role === 'manager';
+  const canCreate = can(user?.role, 'pra-dry-kiln:create');
+  const canUpdate = can(user?.role, 'pra-dry-kiln:update');
 
   // State Data Awal (Zero Dummy Data)
   const [items, setItems] = useState<PraDryKilnItem[]>([]);
@@ -125,7 +128,7 @@ export default function PraDryKilnPage() {
             <span>Export PDF</span>
           </button>
 
-          {!isManager && (
+          {canCreate && (
             <button
               type="button"
               onClick={handleOpenInput}
@@ -143,6 +146,7 @@ export default function PraDryKilnPage() {
         items={filteredItems}
         totalCount={items.length}
         isManager={isManager}
+        canEdit={canUpdate}
         onEdit={handleOpenEdit}
       />
 

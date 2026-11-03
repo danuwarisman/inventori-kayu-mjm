@@ -10,10 +10,10 @@ import {
   ChevronRight,
   Check,
   Inbox,
-  Package,
 } from 'lucide-react';
 import { toISODate } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
+import { can } from '@/lib/permissions';
 import {
   StockReportItem,
   StockReportFormData,
@@ -21,9 +21,10 @@ import {
 } from '@/types/stock-report';
 
 export default function StockReportsPage() {
-  // Role asli dari sesi login (manager read-only; admin punya tombol Add Stock)
+  // Input stok dilakukan Admin Lapangan; role lain read-only.
   const user = useSessionUser();
   const isManager = user?.role === 'manager';
+  const canCreate = can(user?.role, 'stock:create');
   const currentYear = new Date().getFullYear();
 
   // State data inventori (Zero Dummy Data)
@@ -55,6 +56,7 @@ export default function StockReportsPage() {
   };
 
   const handleOpenModal = () => {
+    if (!canCreate) return;
     setFormData({
       id_log: `L-${currentYear}-3-A-${stocks.length + 1}`,
       sortimen: 'Sortimen A',
@@ -69,6 +71,7 @@ export default function StockReportsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canCreate) return;
     if (
       !formData.id_log ||
       formData.thickness === '' ||
@@ -191,7 +194,7 @@ export default function StockReportsPage() {
             <span>Export PDF</span>
           </button>
 
-          {!isManager && (
+          {canCreate && (
             <button
               type="button"
               onClick={handleOpenModal}
@@ -229,7 +232,9 @@ export default function StockReportsPage() {
                       <p className="text-xs text-stone-400">
                         {isManager
                           ? 'Belum ada data stok kayu yang diregistrasikan oleh tim logistik.'
-                          : 'Klik tombol "+ Add Stock" untuk menambahkan inventaris kayu pertama.'}
+                          : canCreate
+                          ? 'Klik tombol "+ Add Stock" untuk menambahkan inventaris kayu pertama.'
+                          : 'Belum ada laporan stok yang dapat ditampilkan.'}
                       </p>
                     </div>
                   </td>

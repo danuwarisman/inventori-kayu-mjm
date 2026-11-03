@@ -8,6 +8,7 @@ interface CustomerTableProps {
   items: CustomerItem[];
   totalCount: number;
   isManager?: boolean;
+  canEdit?: boolean;
   onEdit: (item: CustomerItem) => void;
 }
 
@@ -15,6 +16,7 @@ export default function CustomerTable({
   items,
   totalCount,
   isManager = false,
+  canEdit = false,
   onEdit,
 }: CustomerTableProps) {
   return (
@@ -28,7 +30,7 @@ export default function CustomerTable({
               <th className="py-3 px-3 text-center min-w-[280px]">Alamat</th>
               <th className="py-3 px-3 text-center">No HP</th>
               <th className="py-3 px-3 text-center">Email</th>
-              {!isManager && (
+              {canEdit && (
                 <th className="py-3 px-3 text-center w-12">Action</th>
               )}
             </tr>
@@ -36,7 +38,7 @@ export default function CustomerTable({
           <tbody className="divide-y divide-stone-100">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={isManager ? 5 : 6} className="py-14 text-center">
+                <td colSpan={5 + (canEdit ? 1 : 0)} className="py-14 text-center">
                   <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
                     <UsersRound className="w-8 h-8 stroke-[1.5]" />
                     <p className="text-sm font-semibold text-stone-600">
@@ -45,7 +47,9 @@ export default function CustomerTable({
                     <p className="text-xs text-stone-400">
                       {isManager
                         ? 'Belum ada data mitra pelanggan yang dimasukkan ke sistem.'
-                        : 'Klik tombol "+ New Customer" untuk meregistrasikan mitra pembeli baru.'}
+                        : canEdit
+                        ? 'Klik tombol "+ New Customer" untuk meregistrasikan mitra pembeli baru.'
+                        : 'Belum ada data customer yang dapat ditampilkan.'}
                     </p>
                   </div>
                 </td>
@@ -71,7 +75,7 @@ export default function CustomerTable({
                   <td className="py-3 px-3 text-center font-normal lowercase">
                     {item.email}
                   </td>
-                  {!isManager && (
+                  {canEdit && (
                     <td className="py-3 px-3 text-center">
                       <button
                         type="button"

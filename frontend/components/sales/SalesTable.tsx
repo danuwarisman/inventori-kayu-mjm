@@ -8,7 +8,8 @@ import { formatDateID } from '@/lib/dates';
 interface SalesTableProps {
   items: SalesItem[];
   totalCount: number;
-  isManager?: boolean;
+  canCreate?: boolean;
+  canApprove?: boolean;
   onApprove?: (id: string) => void;
   onReject?: (id: string) => void;
 }
@@ -16,7 +17,8 @@ interface SalesTableProps {
 export default function SalesTable({
   items,
   totalCount,
-  isManager = false,
+  canCreate = false,
+  canApprove = false,
   onApprove,
   onReject,
 }: SalesTableProps) {
@@ -43,7 +45,7 @@ export default function SalesTable({
               <th className="py-3 px-3 text-center">Quantity</th>
               <th className="py-3 px-3 text-center">Total Amount</th>
               <th className="py-3 px-3 text-center">Status</th>
-              {isManager && (
+              {canApprove && (
                 <th className="py-3 px-3 text-center w-28">Approval Action</th>
               )}
             </tr>
@@ -51,16 +53,18 @@ export default function SalesTable({
           <tbody className="divide-y divide-stone-100">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={isManager ? 7 : 6} className="py-14 text-center">
+                <td colSpan={6 + (canApprove ? 1 : 0)} className="py-14 text-center">
                   <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
                     <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
                     <p className="text-sm font-semibold text-stone-600">
                       Belum ada transaksi penjualan
                     </p>
                     <p className="text-xs text-stone-400">
-                      {isManager
+                      {canApprove
                         ? 'Tidak ada pesanan penjualan yang perlu diverifikasi atau ditinjau.'
-                        : 'Klik tombol "Add Sales" untuk mencatat transaksi pemesanan baru.'}
+                        : canCreate
+                        ? 'Klik tombol "Add Sales" untuk mencatat transaksi pemesanan baru.'
+                        : 'Belum ada transaksi penjualan yang dapat ditampilkan.'}
                     </p>
                   </div>
                 </td>
@@ -97,7 +101,7 @@ export default function SalesTable({
                   </td>
 
                   {/* Fitur Approval Aksi Eksklusif Manager */}
-                  {isManager && (
+                  {canApprove && (
                     <td className="py-3 px-3 text-center">
                       {item.status === 'Pending' ? (
                         <div className="flex items-center justify-center gap-1.5">

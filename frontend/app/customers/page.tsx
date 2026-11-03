@@ -7,11 +7,14 @@ import CustomerAnalytics from '@/components/customers/CustomerAnalytics';
 import CustomerTable from '@/components/customers/CustomerTable';
 import CustomerModal from '@/components/customers/CustomerModal';
 import useSessionUser from '@/lib/useSessionUser';
+import { can } from '@/lib/permissions';
 
 export default function CustomersPage() {
-  // Role asli dari sesi login ('manager' untuk Manajer, selain itu Office Admin)
+  // Customer dikelola Admin Lapangan; role lain hanya melihat.
   const user = useSessionUser();
   const isManager = user?.role === 'manager';
+  const canCreate = can(user?.role, 'customer:create');
+  const canUpdate = can(user?.role, 'customer:update');
 
   // State data utama tanpa dummy
   const [customers, setCustomers] = useState<CustomerItem[]>([]);
@@ -23,12 +26,14 @@ export default function CustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerItem | null>(null);
 
   const handleOpenInput = () => {
+    if (!canCreate) return;
     setModalMode('input');
     setSelectedCustomer(null);
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (item: CustomerItem) => {
+    if (!canUpdate) return;
     setModalMode('edit');
     setSelectedCustomer(item);
     setIsModalOpen(true);
@@ -76,8 +81,8 @@ export default function CustomersPage() {
           </div>
         </div>
 
-        {/* Tombol aksi eksklusif Admin */}
-        {!isManager && (
+        {/* Tombol aksi sesuai izin role */}
+        {canCreate && (
           <button
             type="button"
             onClick={handleOpenInput}
@@ -94,6 +99,7 @@ export default function CustomersPage() {
         items={filteredCustomers}
         totalCount={customers.length}
         isManager={isManager}
+        canEdit={canUpdate}
         onEdit={handleOpenEdit}
       />
 

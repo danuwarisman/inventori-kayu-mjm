@@ -17,6 +17,7 @@ import {
 import { toISODate, formatDateID } from '@/lib/dates';
 import { sawmillApi } from '@/lib/api';
 import useSessionUser from '@/lib/useSessionUser';
+import { can } from '@/lib/permissions';
 import { PlankItem, SawmillItem } from '@/types/sawmill';
 
 export { type PlankItem, type SawmillItem };
@@ -24,6 +25,11 @@ export { type PlankItem, type SawmillItem };
 export default function DataSawmillPage() {
   const user = useSessionUser();
   const isManager = user?.role === 'manager';
+  const canCreate = can(user?.role, 'sawmill:create');
+  const canUpdate = can(user?.role, 'sawmill:update');
+  const canCreatePlank = can(user?.role, 'plank:create');
+  const canUpdatePlank = can(user?.role, 'plank:update');
+  const canManagePlanks = canCreatePlank || canUpdatePlank;
 
   // State data utama
   const [sawmillItems, setSawmillItems] = useState<SawmillItem[]>([]);
@@ -348,7 +354,7 @@ export default function DataSawmillPage() {
             <span>Export PDF</span>
           </button>
 
-          {!isManager && (
+          {canCreate && (
             <button
               type="button"
               onClick={handleOpenInputSawmill}
@@ -385,8 +391,8 @@ export default function DataSawmillPage() {
                 {/* Kolom Rincian Potongan */}
                 <th className="py-3 px-3 text-center w-12">Detail</th>
 
-                {/* Kolom Aksi Edit Khusus Admin */}
-                {!isManager && (
+                {/* Kolom Aksi Edit sesuai izin role */}
+                {canUpdate && (
                   <th className="py-3 px-3 text-center w-12">Action</th>
                 )}
               </tr>
@@ -395,7 +401,7 @@ export default function DataSawmillPage() {
               {filteredItems.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={isManager ? 9 : 8}
+                    colSpan={7 + (isManager ? 2 : 0) + (canUpdate ? 1 : 0)}
                     className="py-14 text-center"
                   >
                     <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
@@ -406,7 +412,9 @@ export default function DataSawmillPage() {
                       <p className="text-xs text-stone-400">
                         {isManager
                           ? 'Belum ada data pemrosesan gergaji yang dicatat oleh staf lapangan.'
-                          : 'Gunakan tombol "+ New Batch" untuk meregistrasikan pemotongan kayu log baru.'}
+                          : canCreate
+                          ? 'Gunakan tombol "+ New Batch" untuk meregistrasikan pemotongan kayu log baru.'
+                          : 'Belum ada data Sawmill yang dapat ditampilkan.'}
                       </p>
                     </div>
                   </td>
@@ -472,7 +480,7 @@ export default function DataSawmillPage() {
                       </button>
                     </td>
 
-                    {!isManager && (
+                    {canUpdate && (
                       <td className="py-3 px-3 text-center">
                         <button
                           type="button"
@@ -646,7 +654,7 @@ export default function DataSawmillPage() {
           <div className="relative w-full max-w-[640px] p-5 bg-orange-50 rounded-[10px] border border-stone-300 shadow-xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-2 border-b border-stone-300/60">
               <h2 className="text-stone-800 text-xl font-bold font-sans">
-                {isManager ? 'Detail Hasil Sawmill' : 'Edit Detail Hasil Sawmill'}
+                {canManagePlanks ? 'Edit Detail Hasil Sawmill' : 'Detail Hasil Sawmill'}
               </h2>
               <button
                 type="button"
@@ -677,7 +685,7 @@ export default function DataSawmillPage() {
                       </th>
                       <th className="py-2.5 px-2 text-center">Total Volume</th>
                       <th className="py-2.5 px-2 text-center">Grade</th>
-                      {!isManager && (
+                      {canManagePlanks && (
                         <th className="py-2.5 px-2 text-center w-12">Action</th>
                       )}
                     </tr>
@@ -686,7 +694,7 @@ export default function DataSawmillPage() {
                     {selectedSawmill.planks.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={isManager ? 5 : 6}
+                          colSpan={5 + (canManagePlanks ? 1 : 0)}
                           className="py-8 text-center text-stone-400"
                         >
                           <div className="flex flex-col items-center justify-center gap-1">
@@ -711,16 +719,20 @@ export default function DataSawmillPage() {
                           <td className="py-2 px-2 text-center font-semibold">
                             {plank.grade}
                           </td>
-                          {!isManager && (
+                          {canManagePlanks && (
                             <td className="py-2 px-2 text-center">
-                              <button
-                                type="button"
-                                onClick={() => handleOpenEditHasil(plank, pIdx)}
-                                className="p-1 hover:bg-green-100 rounded text-green-700 cursor-pointer"
-                                title="Edit Plank"
-                              >
-                                <Pencil className="w-3.5 h-3.5" />
-                              </button>
+                              {canUpdatePlank ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditHasil(plank, pIdx)}
+                                  className="p-1 hover:bg-green-100 rounded text-green-700 cursor-pointer"
+                                  title="Edit Plank"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                              ) : (
+                                <span className="text-stone-300">-</span>
+                              )}
                             </td>
                           )}
                         </tr>
@@ -730,7 +742,7 @@ export default function DataSawmillPage() {
                 </table>
               </div>
 
-              {!isManager && (
+              {canCreatePlank && (
                 <div className="flex justify-end pt-2">
                   <button
                     type="button"

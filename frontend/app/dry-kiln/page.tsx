@@ -7,14 +7,17 @@ import DryKilnTable from '@/components/dry-kiln/DryKilnTable';
 import DryKilnModal from '@/components/dry-kiln/DryKilnModal';
 import { toISODate } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
+import { can } from '@/lib/permissions';
 import { dryKilnApi } from '@/lib/api';
 
 export default function DryKilnPage() {
   const user = useSessionUser();
   const isManager = user?.role === 'manager';
+  const canCreate = can(user?.role, 'dry-kiln:create');
+  const canUpdate = can(user?.role, 'dry-kiln:update');
 
   const [items, setItems] = useState<DryKilnItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
 
@@ -154,7 +157,7 @@ export default function DryKilnPage() {
             <span>Export PDF</span>
           </button>
 
-          {!isManager && (
+          {canCreate && (
             <button
               type="button"
               onClick={handleOpenInput}
@@ -171,6 +174,7 @@ export default function DryKilnPage() {
         items={filteredItems}
         totalCount={items.length}
         isManager={isManager}
+        canEdit={canUpdate}
         onEdit={handleOpenEdit}
       />
 

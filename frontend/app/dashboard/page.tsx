@@ -14,6 +14,8 @@ import {
   DollarSign,
 } from 'lucide-react';
 import { logApi, sawmillApi, dryKilnApi } from '@/lib/api';
+import useSessionUser from '@/lib/useSessionUser';
+import { can } from '@/lib/permissions';
 
 interface ActivityItem {
   id: string;
@@ -24,6 +26,9 @@ interface ActivityItem {
 }
 
 export default function OperationalDashboardPage() {
+  const user = useSessionUser();
+  const canCreate = can(user?.role, 'log:create');
+
   // State data operasional awal
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [logCount, setLogCount] = useState<number>(0);
@@ -75,7 +80,7 @@ export default function OperationalDashboardPage() {
 
   const handleQuickRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!diameter || !panjang) return;
+    if (!canCreate || !diameter || !panjang) return;
 
     const p = Number(panjang);
     const d = Number(diameter);
@@ -268,69 +273,85 @@ export default function OperationalDashboardPage() {
           <div className="bg-white rounded-lg border border-stone-300 shadow-xs p-5 flex flex-col gap-4">
             <h3 className="text-lg font-bold text-stone-900">Quick Entry</h3>
 
-            <form onSubmit={handleQuickRegister} className="flex flex-col gap-3 text-xs">
-              <div className="flex flex-col gap-1">
-                <label className="font-semibold text-stone-700">
-                  Log Diameter (cm)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  required
-                  placeholder="0.0"
-                  value={diameter}
-                  onChange={(e) => setDiameter(e.target.value)}
-                  className="w-full h-10 px-3 border border-stone-300 rounded text-stone-900 focus:border-green-700 focus:outline-none"
-                />
-              </div>
+            {canCreate ? (
+              <form onSubmit={handleQuickRegister} className="flex flex-col gap-3 text-xs">
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-stone-700">
+                    Log Diameter (cm)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    required
+                    placeholder="0.0"
+                    value={diameter}
+                    onChange={(e) => setDiameter(e.target.value)}
+                    className="w-full h-10 px-3 border border-stone-300 rounded text-stone-900 focus:border-green-700 focus:outline-none"
+                  />
+                </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="font-semibold text-stone-700 uppercase">
-                  Panjang (cm)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  required
-                  placeholder="0.0"
-                  value={panjang}
-                  onChange={(e) => setPanjang(e.target.value)}
-                  className="w-full h-10 px-3 border border-stone-300 rounded text-stone-900 focus:border-green-700 focus:outline-none"
-                />
-              </div>
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-stone-700 uppercase">
+                    Panjang (cm)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    required
+                    placeholder="0.0"
+                    value={panjang}
+                    onChange={(e) => setPanjang(e.target.value)}
+                    className="w-full h-10 px-3 border border-stone-300 rounded text-stone-900 focus:border-green-700 focus:outline-none"
+                  />
+                </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="font-semibold text-stone-700">Sortimen</label>
-                <select
-                  value={sortimen}
-                  onChange={(e) => setSortimen(e.target.value)}
-                  className="w-full h-10 px-3 bg-white border border-stone-300 rounded text-stone-800 focus:border-green-700 focus:outline-none"
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-stone-700">Sortimen</label>
+                  <select
+                    value={sortimen}
+                    onChange={(e) => setSortimen(e.target.value)}
+                    className="w-full h-10 px-3 bg-white border border-stone-300 rounded text-stone-800 focus:border-green-700 focus:outline-none"
+                  >
+                    <option value="Sortimen A">Sortimen A</option>
+                    <option value="Sortimen B">Sortimen B</option>
+                    <option value="Sortimen C">Sortimen C</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-stone-700">Suplier</label>
+                  <input
+                    type="text"
+                    placeholder="Nama PT / CV Supplier"
+                    value={suplier}
+                    onChange={(e) => setSuplier(e.target.value)}
+                    className="w-full h-10 px-3 border border-stone-300 rounded text-stone-900 focus:border-green-700 focus:outline-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="mt-2 w-full h-10 bg-green-700 hover:bg-green-800 text-white rounded font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
                 >
-                  <option value="Sortimen A">Sortimen A</option>
-                  <option value="Sortimen B">Sortimen B</option>
-                  <option value="Sortimen C">Sortimen C</option>
-                </select>
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Register New Log</span>
+                </button>
+              </form>
+            ) : (
+              <div className="flex flex-col gap-2 text-xs text-stone-500">
+                <p>
+                  Quick Entry hanya tersedia untuk Admin Lapangan. Anda tetap
+                  dapat melihat data operasional di dashboard ini.
+                </p>
+                <Link
+                  href="/master-data"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-green-700 hover:underline"
+                >
+                  <span>Lihat Data Log</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="font-semibold text-stone-700">Suplier</label>
-                <input
-                  type="text"
-                  placeholder="Nama PT / CV Supplier"
-                  value={suplier}
-                  onChange={(e) => setSuplier(e.target.value)}
-                  className="w-full h-10 px-3 border border-stone-300 rounded text-stone-900 focus:border-green-700 focus:outline-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="mt-2 w-full h-10 bg-green-700 hover:bg-green-800 text-white rounded font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>Register New Log</span>
-              </button>
-            </form>
+            )}
           </div>
 
           {/* Stock Health */}

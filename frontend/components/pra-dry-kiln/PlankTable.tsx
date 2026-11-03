@@ -9,6 +9,7 @@ interface PlankTableProps {
   items: PraDryKilnItem[];
   totalCount: number;
   isManager?: boolean;
+  canEdit?: boolean;
   onEdit: (item: PraDryKilnItem) => void;
 }
 
@@ -16,6 +17,7 @@ export default function PlankTable({
   items,
   totalCount,
   isManager = false,
+  canEdit = false,
   onEdit,
 }: PlankTableProps) {
   return (
@@ -32,13 +34,13 @@ export default function PlankTable({
               <th className="py-3 px-3 text-center">Grade</th>
               <th className="py-3 px-3 text-center">Stage</th>
               <th className="py-3 px-3 text-center">Date</th>
-              {!isManager && <th className="py-3 px-3 text-center w-12">Action</th>}
+              {canEdit && <th className="py-3 px-3 text-center w-12">Action</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={isManager ? 8 : 9} className="py-14 text-center">
+                <td colSpan={8 + (canEdit ? 1 : 0)} className="py-14 text-center">
                   <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
                     <Inbox className="w-8 h-8 stroke-[1.5]" />
                     <p className="text-sm font-semibold text-stone-600">
@@ -47,7 +49,9 @@ export default function PlankTable({
                     <p className="text-xs text-stone-400">
                       {isManager
                         ? 'Staf lapangan belum meregistrasikan papan ke tahapan sticking / pra oven.'
-                        : 'Klik tombol "+ New Batch" untuk meregistrasikan penataan papan kayu.'}
+                        : canEdit
+                        ? 'Klik tombol "+ New Batch" untuk meregistrasikan penataan papan kayu.'
+                        : 'Belum ada data papan pada tahap Pra Dry-Kiln.'}
                     </p>
                   </div>
                 </td>
@@ -90,7 +94,7 @@ export default function PlankTable({
                   <td className="py-3 px-3 text-center font-normal text-stone-600">
                     {formatDateID(item.date)}
                   </td>
-                  {!isManager && (
+                  {canEdit && (
                     <td className="py-3 px-3 text-center">
                       <button
                         type="button"

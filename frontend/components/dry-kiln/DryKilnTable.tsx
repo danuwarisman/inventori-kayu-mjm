@@ -9,6 +9,7 @@ interface DryKilnTableProps {
   items: DryKilnItem[];
   totalCount: number;
   isManager?: boolean;
+  canEdit?: boolean;
   onEdit: (item: DryKilnItem) => void;
 }
 
@@ -16,6 +17,7 @@ export default function DryKilnTable({
   items,
   totalCount,
   isManager = false,
+  canEdit = false,
   onEdit,
 }: DryKilnTableProps) {
   return (
@@ -32,13 +34,13 @@ export default function DryKilnTable({
               <th className="py-3 px-3 text-center">Grade</th>
               <th className="py-3 px-3 text-center">Stage</th>
               <th className="py-3 px-3 text-center">Date</th>
-              {!isManager && <th className="py-3 px-3 text-center w-12">Action</th>}
+              {canEdit && <th className="py-3 px-3 text-center w-12">Action</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={isManager ? 8 : 9} className="py-14 text-center">
+                <td colSpan={8 + (canEdit ? 1 : 0)} className="py-14 text-center">
                   <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
                     <Inbox className="w-8 h-8 stroke-[1.5]" />
                     <p className="text-sm font-semibold text-stone-600">
@@ -47,7 +49,9 @@ export default function DryKilnTable({
                     <p className="text-xs text-stone-400">
                       {isManager
                         ? 'Staf lapangan belum memasukkan papan ke proses oven pengering.'
-                        : 'Klik tombol "+ New Batch" untuk memasukkan papan olahan ke oven pengering.'}
+                        : canEdit
+                        ? 'Klik tombol "+ New Batch" untuk memasukkan papan olahan ke oven pengering.'
+                        : 'Belum ada data papan pada proses Dry-Kiln.'}
                     </p>
                   </div>
                 </td>
@@ -92,7 +96,7 @@ export default function DryKilnTable({
                   <td className="py-3 px-3 text-center font-normal text-stone-600">
                     {formatDateID(item.date)}
                   </td>
-                  {!isManager && (
+                  {canEdit && (
                     <td className="py-3 px-3 text-center">
                       <button
                         type="button"

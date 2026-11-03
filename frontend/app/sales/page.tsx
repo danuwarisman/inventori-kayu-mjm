@@ -7,11 +7,13 @@ import SalesStatCards from '@/components/sales/SalesStatCards';
 import SalesTable from '@/components/sales/SalesTable';
 import SalesModal from '@/components/sales/SalesModal';
 import useSessionUser from '@/lib/useSessionUser';
+import { can } from '@/lib/permissions';
 
 export default function SalesPage() {
-  // Role asli dari sesi login (manager = approval saja; admin input pesanan)
+  // Admin Lapangan membuat pesanan; Manager menyetujui/menolak.
   const user = useSessionUser();
-  const isManager = user?.role === 'manager';
+  const canCreate = can(user?.role, 'sales:create');
+  const canApprove = can(user?.role, 'sales:approve');
 
   // State data transaksi (Zero Dummy Data)
   const [sales, setSales] = useState<SalesItem[]>([]);
@@ -23,10 +25,12 @@ export default function SalesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleOpenModal = () => {
+    if (!canCreate) return;
     setIsModalOpen(true);
   };
 
   const handleModalSubmit = (data: Omit<SalesItem, 'total_harga'>) => {
+    if (!canCreate) return;
     const total = data.kuantitas * data.harga_satuan;
     const newItem: SalesItem = {
       ...data,
@@ -37,6 +41,7 @@ export default function SalesPage() {
 
   // Handler Approval Manager (FR-013 & UC-08)
   const handleApprove = (id: string) => {
+    if (!canApprove) return;
     setSales((prev) =>
       prev.map((item) =>
         item.id_transaksi === id ? { ...item, status: 'Approved' } : item
@@ -45,6 +50,7 @@ export default function SalesPage() {
   };
 
   const handleReject = (id: string) => {
+    if (!canApprove) return;
     const reason = window.prompt('Masukkan alasan penolakan pesanan penjualan:');
     if (reason !== null) {
       setSales((prev) =>
@@ -117,8 +123,8 @@ export default function SalesPage() {
           </div>
         </div>
 
-        {/* Action Button: Add Sales (Admin Only) */}
-        {!isManager && (
+        {/* Action Button: Add Sales (Admin Lapangan) */}
+        {canCreate && (
           <button
             type="button"
             onClick={handleOpenModal}
@@ -134,7 +140,8 @@ export default function SalesPage() {
       <SalesTable
         items={filteredSales}
         totalCount={sales.length}
-        isManager={isManager}
+        canCreate={canCreate}
+        canApprove={canApprove}
         onApprove={handleApprove}
         onReject={handleReject}
       />

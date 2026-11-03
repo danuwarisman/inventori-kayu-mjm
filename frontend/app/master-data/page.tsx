@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { toISODate, formatDateID } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
+import { can } from '@/lib/permissions';
 import { logApi } from '@/lib/api';
 import { LogItem } from '@/types/log';
 
@@ -65,6 +66,10 @@ export default function DataLogPage() {
 
   const user = useSessionUser();
   const isManager = user?.role === 'manager';
+  const canCreate = can(user?.role, 'log:create');
+  const canUpdate = can(user?.role, 'log:update');
+  const canDelete = can(user?.role, 'log:delete');
+  const canAct = canUpdate || canDelete;
 
   // Hitung volume otomatis: V = (pi/4) * (d^2) * L atau rumus kubikasi standar
   const calculateVolume = (panjangCm: number, diameterCm: number): number => {
@@ -223,7 +228,7 @@ export default function DataLogPage() {
             <span>Export PDF</span>
           </button>
 
-          {!isManager && (
+          {canCreate && (
             <button
               type="button"
               onClick={handleOpenInput}
@@ -257,8 +262,8 @@ export default function DataLogPage() {
                   </>
                 )}
 
-                {/* Kolom Aksi Khusus Admin */}
-                {!isManager && (
+                {/* Kolom Aksi sesuai izin role */}
+                {canAct && (
                   <th className="py-3 px-3 text-center w-12">Action</th>
                 )}
               </tr>
@@ -267,7 +272,7 @@ export default function DataLogPage() {
               {filteredLogs.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={isManager ? 8 : 7}
+                    colSpan={6 + (isManager ? 2 : 0) + (canAct ? 1 : 0)}
                     className="py-14 text-center"
                   >
                     <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
@@ -278,7 +283,9 @@ export default function DataLogPage() {
                       <p className="text-xs text-stone-400">
                         {isManager
                           ? 'Belum ada data stok kayu log yang dimasukkan oleh staf lapangan.'
-                          : 'Gunakan tombol "+ New Batch" untuk meregistrasikan kayu gelondongan pertama.'}
+                          : canCreate
+                          ? 'Gunakan tombol "+ New Batch" untuk meregistrasikan kayu gelondongan pertama.'
+                          : 'Belum ada data log yang dapat ditampilkan.'}
                       </p>
                     </div>
                   </td>
@@ -321,25 +328,29 @@ export default function DataLogPage() {
                       </>
                     )}
 
-                    {!isManager && (
+                    {canAct && (
                       <td className="py-3 px-3 text-center">
                         <div className="inline-flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEdit(item)}
-                            className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
-                            title="Edit Log"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteLog(item)}
-                            className="p-1 text-red-600 hover:bg-red-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
-                            title="Hapus Log"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          {canUpdate && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit(item)}
+                              className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                              title="Edit Log"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteLog(item)}
+                              className="p-1 text-red-600 hover:bg-red-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                              title="Hapus Log"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     )}

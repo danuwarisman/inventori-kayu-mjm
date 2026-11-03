@@ -4,8 +4,9 @@ Dokumentasi ini menjelaskan kondisi **frontend** aplikasi inventori kayu PT. Mar
 
 - **Scope:** hanya folder `frontend/`
 - **Backend:** NestJS di folder `backend/` (tidak diubah oleh dokumentasi ini)
-- **Terakhir diperbarui:** 2 November 2026
-- **Commit frontend terakhir yang didokumentasikan:** `0b62d93` — `fix(frontend): sinkronkan modul supplier dengan API backend`
+- **Terakhir diperbarui:** 3 November 2026
+- **Commit frontend terakhir yang didokumentasikan:** `26d6dcf` — `fix(frontend): sinkronkan payload log/sawmill dan RBAC manager`
+- **RBAC per aksi:** diterapkan di `lib/permissions.ts` dan dipakai halaman operasional (lihat §7.9)
 
 > Istilah **“live”** di dokumen ini berarti data dibaca/ditulis ke backend NestJS + PostgreSQL. **“Lokal”** berarti data hanya hidup di state React dan hilang saat halaman di-refresh.
 
@@ -185,7 +186,8 @@ frontend/
 ├─ lib/
 │  ├─ api.ts                     # API client + semua endpoint
 │  ├─ dates.ts                   # Helper tanggal ISO & format id-ID
-│  ├─ session.ts                 # Sesi, role, RBAC, storage
+│  ├─ permissions.ts             # Matriks izin aksi per role
+│  ├─ session.ts                 # Sesi, role, RBAC route, storage
 │  ├─ useInactivityLogout.ts     # Auto-logout inactivity
 │  └─ useSessionUser.ts          # Hook sesi reaktif
 │
@@ -409,6 +411,35 @@ Tidak ada tombol logout di Header/Sidebar.
 - Backend **belum memasang global JWT guard** (tidak ada `APP_GUARD` di `app.module.ts`). Artinya route guard frontend belum menjadi otorisasi server yang sebenarnya.
 - Idealnya nanti: backend mengeset cookie `HttpOnly` + `Secure` + `SameSite`, frontend tidak menyimpan token di localStorage, dan semua endpoint dilindungi guard role.
 - `mjm_redirect` menerima path yang diawali `/`, tetapi nilai seperti `//domain-lain` juga lolos pengecekan `startsWith('/')`. Ini berpotensi open redirect dan perlu diperbaiki.
+
+### 7.9 Matriks izin aksi (UI)
+
+Sumber tunggal: `lib/permissions.ts` (`can(role, permission)`). Ini **hanya guard UI**; backend tetap harus memvalidasi otorisasi.
+
+| Modul / aksi | Manager | Admin Kantor | Admin Lapangan |
+|---|---:|---:|---:|
+| Log: create | — | — | ✅ |
+| Log: update | — | ✅ | ✅ |
+| Log: delete | — | ✅ | — |
+| Sawmill: create/update/delete | — | — | ✅ |
+| Plank: create/update/delete | — | — | ✅ |
+| Dry Kiln: create/update | — | — | ✅ |
+| Pra Dry Kiln: create/update | — | — | ✅ |
+| Supplier: create/update/delete | — | ✅ | — |
+| Customer: create/update | — | — | ✅ |
+| Sales: create | — | — | ✅ |
+| Sales: approve/reject | ✅ | — | — |
+| Stock: create | — | — | ✅ |
+| Account Management | ✅ | — | — |
+| Settings: Data Management (backup/export) | ✅ | ✅ | — |
+| Dashboard Quick Entry (log) | — | — | ✅ |
+
+Catatan:
+- Admin Kantor tetap dapat **melihat** Sawmill, Dry Kiln, Pra Dry Kiln, Sales, Customer, dan Stock Reports, tetapi tanpa aksi tulis.
+- Manager tetap read-only untuk data operasional; aksinya hanya approval Sales, Account Management, dan Data Management.
+- `Log delete` dibatasi ke Admin Kantor sebagai aksi administratif/destruktif.
+- SDD memiliki konflik pada pembuat Sales (use case menyebut Admin Lapangan; AC-10 menyebut Admin Kantor). Implementasi UI mengikuti use case + alur approval: Admin Lapangan membuat, Manager menyetujui/menolak.
+- Aksi verifikasi Sales oleh Admin Kantor (UC-08) belum tersedia di UI; saat ini Admin Kantor hanya read-only pada Sales.
 
 ---
 
@@ -670,6 +701,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
   - `dryKilnApi.list()` → jumlah item dry kiln.
 - `totalCustomers` dan `totalSales` masih hardcoded `0`.
 - Quick Entry (diameter, panjang, sortimen, supplier):
+  - Hanya tampil untuk `admin_lapangan` (`log:create`); role lain melihat keterangan read-only.
   - Menambahkan aktivitas ke state lokal agar UI langsung responsif.
   - Mengirim `POST /log` melalui mapper `logApi.create()`: `sortimen` → `asalSortimen`, kode → `kodeLog`, dan hanya field DTO yang dikirim.
   - Jika backend gagal, aktivitas tetap tampil sementara di state lokal (tidak ada rollback/notifikasi error).
@@ -690,7 +722,10 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
   - Field: ID Log, Sortimen, Panjang, Diameter, Supplier.
   - Volume dihitung otomatis: `π/4 * (d/200)² * (p/100)`.
 - Hapus memakai `DELETE /log/:id` (live) dan menghapus proses sawmill/plank terkait di backend.
-- Role `manager` bersifat read-only (tombol tambah/edit/hapus disembunyikan).
+- Aksi per role:
+  - `admin_lapangan`: create + update.
+  - `admin_kantor`: update + delete.
+  - `manager`: read-only (tombol tambah/edit/hapus disembunyikan).
 - Payload create/update sudah dipetakan ke DTO backend (`asalSortimen`, `volumeLog`, `tanggalMasuk`, `kodeLog`), sehingga data tersimpan ke PostgreSQL.
 - Fallback lokal tetap ada sebagai jaring pengaman bila backend/PostgreSQL mati; data fallback akan hilang setelah refresh.
 
@@ -706,7 +741,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
   - Tambah/edit/hapus plank.
 - Volume log: `π/4 * (d/200)² * (p/100)`.
 - Volume plank: `t * w * l / 1.000.000` (cm³ → m³).
-- RBAC manager memakai `useSessionUser()` seperti halaman lain: manager tidak melihat tombol New Batch, edit batch, tambah/edit/hapus plank, tetapi tetap melihat kolom supplier/harga.
+- RBAC: hanya `admin_lapangan` yang melihat tombol New Batch, edit batch, serta tambah/edit plank. `manager` dan `admin_kantor` read-only; manager tetap melihat kolom supplier/harga.
 - Payload tulis sudah dipetakan ke DTO backend:
   - `POST /sawmill`: `id_sawmill` → `kodeSawmill`; tidak ada field di luar `CreateSawmillDto`.
   - `POST /sawmill/:id/plank`: `id_plank` → `kodePlank`, `grade` → `gradePapan`, `volume` → `volumePlank`.
@@ -723,7 +758,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Filter tanggal dan sortimen.
 - Modal batch untuk tambah/edit item plank.
 - Volume: `t * w * l / 1.000.000`.
-- Role manager read-only secara UI.
+- Hanya `admin_lapangan` yang dapat tambah/edit; manager dan admin_kantor read-only.
 - “Export PDF” belum berfungsi.
 
 ### 9.8 `/dry-kiln` — Dry Kiln
@@ -733,6 +768,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Tambah/edit item dry kiln.
 - Volume: `t * w * l / 1.000.000`.
 - Payload create/update saat ini cocok dengan DTO backend, sehingga data tersimpan.
+- Hanya `admin_lapangan` yang dapat tambah/edit; manager dan admin_kantor read-only.
 - Belum ada tombol hapus di UI, walaupun `DELETE /dry-kiln/:id` tersedia di API client.
 - “Export PDF” belum berfungsi.
 
@@ -743,7 +779,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Modal tambah stok.
 - Status badge: `Available`, `Low Stock`, `Out of Stock`.
 - Volume: `t * w * l / 1.000.000.000` (mm³ → m³).
-- Role manager read-only.
+- Hanya `admin_lapangan` yang dapat Add Stock; manager dan admin_kantor read-only.
 - “Export PDF” dan pagination belum berfungsi.
 
 ### 9.10 `/suppliers` — Supplier
@@ -762,7 +798,8 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
   - Error backend ditampilkan di dalam modal.
   - Modal baru ditutup setelah request sukses.
   - State form di-reset lewat `key` dari parent (tanpa `useEffect` + setState).
-- Role manager read-only: tombol Add/Remove/Edit disembunyikan.
+- Hanya `admin_kantor` yang dapat Add/Remove/Edit; manager dan admin_lapangan read-only.
+- Tombol refresh tetap tersedia untuk semua role yang boleh melihat halaman.
 - Catatan: delete bisa gagal jika supplier sudah direferensikan transaksi pembelian/pengajuan (foreign key).
 
 ### 9.11 `/sales` — Sales
@@ -770,17 +807,18 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Hanya state lokal.
 - Stat card dihitung dari state (`SalesStatCards`).
 - Filter search, status, tanggal.
-- Tambah transaksi; total = kuantitas × harga satuan.
+- Tambah transaksi hanya untuk `admin_lapangan`; total = kuantitas × harga satuan.
 - Manager dapat Approve/Reject; alasan reject lewat `window.prompt`.
+- `admin_kantor` dan role lain read-only pada Sales.
 - Tidak ada API penjualan di frontend.
 
 ### 9.12 `/customers` — Customer
 
 - Hanya state lokal.
 - Manager melihat widget analitik (`CustomerAnalytics`) dari data state.
-- Tambah/edit customer lewat modal.
+- Tambah/edit customer lewat modal hanya untuk `admin_lapangan`.
 - Backend memiliki modul customer, tetapi frontend belum memakai endpoint-nya.
-- Role manager read-only untuk aksi data.
+- Manager dan admin_kantor read-only untuk aksi data.
 
 ### 9.13 `/accounts` — Account Management
 
@@ -798,6 +836,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Riwayat login dan riwayat manajemen berisi data contoh.
 - Export database disimulasikan (`setTimeout`), tidak menghasilkan file.
 - Backup database hanya memunculkan modal sukses.
+- Section Data Management (backup/export/history) hanya tampil untuk `manager` dan `admin_kantor`; `admin_lapangan` tidak melihat aksi sensitif ini.
 - **Logout nyata:** `clearSession()` + redirect `/login`.
 - Tidak ada API settings/profil.
 
@@ -1102,7 +1141,8 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 
 | Tanggal | Commit | Perubahan |
 |---|---|---|
-| 2026-11-02 | *(working tree)* | Perbaikan payload Log (master-data + dashboard quick entry), payload create batch/plank Sawmill, normalisasi respons plank, dan RBAC manager Sawmill via `useSessionUser()` |
+| 2026-11-03 | *(working tree)* | RBAC per aksi terpusat di `lib/permissions.ts`: create/update/delete Log, Sawmill/Plank, Dry Kiln, Pra Dry Kiln, Supplier, Customer, Sales, Stock, Quick Entry, dan Data Management dibatasi sesuai role |
+| 2026-11-02 | `26d6dcf` | Perbaikan payload Log (master-data + dashboard quick entry), payload create batch/plank Sawmill, normalisasi respons plank, dan RBAC manager Sawmill via `useSessionUser()` |
 | 2026-10-25 | `0b62d93` | Sinkronisasi modul Supplier dengan API backend: mapper `idSupplier/namaSupplier/alamatSupplier/kontakSupplier`, create/update/delete, form dan tabel disesuaikan |
 | 2026-10-25 | `849cb6b` | Login memakai `POST /auth/login`, simpan JWT, kirim Bearer token, normalisasi role |
 | 2026-10-20 | `c4a5c19` | Sinkronisasi form dan tabel Log, Sawmill, Dry Kiln ke backend |
@@ -1124,6 +1164,7 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 | File | Kenapa penting |
 |---|---|
 | `lib/api.ts` | Semua endpoint, timeout, auth header, error handling, mapper Supplier/Log/Sawmill/Plank |
+| `lib/permissions.ts` | Matriks izin aksi per role dan helper `can()` |
 | `lib/session.ts` | `AppRole`, `ROLE_LABELS`, `ROLE_ACCESS`, normalisasi role, storage sesi |
 | `middleware.ts` | Guard route berdasarkan cookie role |
 | `components/AppShell.tsx` | Shell, guard client, inactivity logout |
@@ -1156,7 +1197,7 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 2. Tambahkan path ke `ROLE_ACCESS` di `lib/session.ts` (atau `null` untuk semua role login).
 3. Tambahkan judul di `routeTitleMap` (`components/Header.tsx`).
 4. Tambahkan menu di `navConfig` (`components/Sidebar.tsx`), gunakan `managerOnly` bila perlu.
-5. Gunakan `useSessionUser()` untuk conditional UI per role.
+5. Gunakan `useSessionUser()` + `can(role, permission)` dari `lib/permissions.ts` untuk conditional UI per aksi. Tambahkan permission baru ke matriks bila perlu.
 6. Tambahkan komponen domain di `components/<domain>/` bila form/tabel cukup besar.
 
 ### Menambah endpoint API
