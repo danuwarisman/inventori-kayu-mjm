@@ -9,6 +9,9 @@ import { DryKilnModule } from './dry-kiln/dry-kiln.module';
 import { AuthModule } from './auth/auth.module';
 import { CustomerModule } from './customer/customer.module';
 
+// TODO(auth): daftarkan APP_GUARD AuthGuard('jwt') di providers agar seluruh
+// endpoint terlindungi, lalu pakai @Public() untuk route publik seperti login.
+// Lihat catatan lengkap di src/auth/auth.module.ts.
 @Module({
   imports: [
     PrismaModule,
