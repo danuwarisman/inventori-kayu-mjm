@@ -5,10 +5,11 @@ import { FileDown, Plus, ChevronDown } from 'lucide-react';
 import { DryKilnItem } from '@/types/dry-kiln';
 import DryKilnTable from '@/components/dry-kiln/DryKilnTable';
 import DryKilnModal from '@/components/dry-kiln/DryKilnModal';
-import { toISODate } from '@/lib/dates';
+import { toISODate, formatDateID } from '@/lib/dates';
+import { exportToPdf } from '@/lib/export';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
-import { dryKilnApi, getApiErrorMessage } from '@/lib/api';
+import { dryKilnApi, logApi, getApiErrorMessage } from '@/lib/api';
 import ErrorBanner from '@/components/ErrorBanner';
 
 export default function DryKilnPage() {
@@ -18,6 +19,7 @@ export default function DryKilnPage() {
   const canUpdate = can(user?.role, 'dry-kiln:update');
 
   const [items, setItems] = useState<DryKilnItem[]>([]);
+  const [logPrices, setLogPrices] = useState<Record<string, number>>({});
   const [, setLoading] = useState(false);
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
@@ -47,12 +49,46 @@ export default function DryKilnPage() {
     fetchDryKiln();
   }, [sortimenFilter, dateFilter]);
 
+  // Harga Dry Kiln mengikuti harga log asal papan (read-only) karena
+  // backend belum menyimpan field harga pada entitas DryKiln.
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchLogPrices = async () => {
+      try {
+        const logs = await logApi.list();
+        if (cancelled) return;
+
+        const prices: Record<string, number> = {};
+        logs.forEach((log) => {
+          if (log.id_log && log.harga && log.harga > 0) {
+            prices[log.id_log] = log.harga;
+          }
+        });
+        setLogPrices(prices);
+      } catch {
+        // Harga hanya informasi tambahan; kolom tetap menampilkan "-".
+      }
+    };
+
+    fetchLogPrices();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'input' | 'edit'>('input');
   const [selectedItem, setSelectedItem] = useState<DryKilnItem | null>(null);
 
   const calculateVolume = (t: number, w: number, l: number): number => {
     return Number(((t * w * l) / 1000000).toFixed(3));
+  };
+
+  const formatHarga = (item: DryKilnItem): string => {
+    const harga = logPrices[item.id_log];
+    return harga && harga > 0 ? `Rp ${harga.toLocaleString('id-ID')}` : '-';
   };
 
   const handleOpenInput = () => {
@@ -85,12 +121,12 @@ export default function DryKilnPage() {
         setItems((prev) => [saved, ...prev]);
       } catch (err) {
         setPageError(
-          `Batch dry kiln ${data.id_plank} ditampilkan sementara karena gagal disimpan ke server. ${getApiErrorMessage(
+          `Gagal menyimpan batch dry kiln ${data.id_plank} ke server. Data tidak ditambahkan. ${getApiErrorMessage(
             err,
             'Silakan coba lagi.'
           )}`
         );
-        setItems((prev) => [newItemPayload, ...prev]);
+        return;
       }
     } else if (modalMode === 'edit' && selectedItem) {
       const updatedPayload = {
@@ -98,29 +134,34 @@ export default function DryKilnPage() {
         volume: vol,
       };
 
+      if (!selectedItem.idOven) {
+        setPageError(
+          'Data dry kiln ini belum tersimpan di server sehingga tidak dapat diperbarui.'
+        );
+        return;
+      }
+
       try {
-        if (selectedItem.idOven) {
-          await dryKilnApi.update(selectedItem.idOven, updatedPayload);
-        }
+        const saved = await dryKilnApi.update(
+          selectedItem.idOven,
+          updatedPayload
+        );
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id_plank === selectedItem.id_plank
+              ? { ...item, ...saved }
+              : item
+          )
+        );
       } catch (err) {
         setPageError(
-          `Perubahan dry kiln ${data.id_plank} hanya tersimpan sementara karena gagal dikirim ke server. ${getApiErrorMessage(
+          `Gagal memperbarui batch dry kiln ${data.id_plank} di server. Perubahan tidak disimpan. ${getApiErrorMessage(
             err,
             'Silakan coba lagi.'
           )}`
         );
+        return;
       }
-
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id_plank === selectedItem.id_plank
-            ? {
-                ...item,
-                ...updatedPayload,
-              }
-            : item
-        )
-      );
     }
   };
 
@@ -130,6 +171,46 @@ export default function DryKilnPage() {
     const matchesDate = !dateFilter || item.date === dateFilter;
     return matchesSortimen && matchesDate;
   });
+
+  const handleExportPdf = () => {
+    const rows = filteredItems.map((item) => [
+      item.id_log,
+      item.id_plank,
+      item.sortimen,
+      `${item.tinggi}cm x ${item.lebar}cm x ${item.panjang}cm`,
+      item.volume.toFixed(3),
+      item.grade,
+      formatHarga(item),
+      item.stage,
+      formatDateID(item.date),
+    ]);
+
+    exportToPdf({
+      title: 'Laporan Data Dry Kiln',
+      subtitle: `Tanggal: ${
+        dateFilter ? formatDateID(dateFilter) : 'Semua'
+      } | Sortimen: ${
+        sortimenFilter === 'All Sortimen' ? 'Semua' : sortimenFilter
+      }`,
+      sections: [
+        {
+          title: 'Data Dry Kiln',
+          columns: [
+            'ID Log',
+            'ID Plank',
+            'Sortimen',
+            'Dimensi (T x W x L)',
+            'Volume (m³)',
+            'Grade',
+            'Harga Dry Kiln (Rp)',
+            'Stage',
+            'Tanggal',
+          ],
+          rows,
+        },
+      ],
+    });
+  };
 
   return (
     <div className="flex flex-col gap-5 p-6 max-w-[1440px] mx-auto font-sans">
@@ -170,6 +251,7 @@ export default function DryKilnPage() {
         <div className="flex items-center gap-2.5">
           <button
             type="button"
+            onClick={handleExportPdf}
             className="px-4 py-2 bg-red-50 hover:bg-red-100/70 border border-stone-300 rounded text-xs font-semibold text-green-700 flex items-center gap-2 transition-colors cursor-pointer"
           >
             <FileDown className="w-3.5 h-3.5 text-green-700" />
@@ -203,6 +285,7 @@ export default function DryKilnPage() {
         totalCount={items.length}
         isManager={isManager}
         canEdit={canUpdate}
+        logPrices={logPrices}
         onEdit={handleOpenEdit}
       />
 

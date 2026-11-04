@@ -1,16 +1,24 @@
 'use client';
 
-import React from 'react';
-import { Pencil, Inbox, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Pencil, Inbox } from 'lucide-react';
 import { DryKilnItem } from '@/types/dry-kiln';
 import { formatDateID } from '@/lib/dates';
+import Pagination from '@/components/Pagination';
 
 interface DryKilnTableProps {
   items: DryKilnItem[];
   totalCount: number;
   isManager?: boolean;
   canEdit?: boolean;
+  /** Peta kode log asal -> harga log (Rp). Dipakai untuk kolom Harga Dry Kiln. */
+  logPrices?: Record<string, number>;
   onEdit: (item: DryKilnItem) => void;
+}
+
+function formatHarga(harga?: number): string {
+  if (!harga || harga <= 0) return '-';
+  return `Rp ${harga.toLocaleString('id-ID')}`;
 }
 
 export default function DryKilnTable({
@@ -18,8 +26,18 @@ export default function DryKilnTable({
   totalCount,
   isManager = false,
   canEdit = false,
+  logPrices = {},
   onEdit,
 }: DryKilnTableProps) {
+  const pageSize = 10;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedItems = items.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
   return (
     <section className="p-4 bg-white rounded-[10px] border border-stone-200 shadow-2xs flex flex-col gap-3 font-sans">
       <div className="overflow-x-auto">
@@ -32,6 +50,12 @@ export default function DryKilnTable({
               <th className="py-3 px-3 text-center">DIMENSIONS (T X W X L)</th>
               <th className="py-3 px-3 text-center">Total Volume</th>
               <th className="py-3 px-3 text-center">Grade</th>
+              <th
+                className="py-3 px-3 text-center"
+                title="Harga log asal yang menjadi sumber papan dry kiln"
+              >
+                Harga Dry Kiln
+              </th>
               <th className="py-3 px-3 text-center">Stage</th>
               <th className="py-3 px-3 text-center">Date</th>
               {canEdit && <th className="py-3 px-3 text-center w-12">Action</th>}
@@ -40,7 +64,7 @@ export default function DryKilnTable({
           <tbody className="divide-y divide-stone-100">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={8 + (canEdit ? 1 : 0)} className="py-14 text-center">
+                <td colSpan={9 + (canEdit ? 1 : 0)} className="py-14 text-center">
                   <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
                     <Inbox className="w-8 h-8 stroke-[1.5]" />
                     <p className="text-sm font-semibold text-stone-600">
@@ -57,7 +81,7 @@ export default function DryKilnTable({
                 </td>
               </tr>
             ) : (
-              items.map((item) => (
+              paginatedItems.map((item) => (
                 <tr
                   key={item.id_plank}
                   className="text-green-700 hover:bg-stone-50 transition-colors"
@@ -79,6 +103,9 @@ export default function DryKilnTable({
                     <span className="inline-block px-2 py-0.5 border border-green-700 rounded-xs text-[11px] font-semibold">
                       {item.grade}
                     </span>
+                  </td>
+                  <td className="py-3 px-3 text-center font-medium whitespace-nowrap">
+                    {formatHarga(logPrices[item.id_log])}
                   </td>
                   <td className="py-3 px-3 text-center">
                     <span
@@ -115,31 +142,13 @@ export default function DryKilnTable({
         </table>
       </div>
 
-      <div className="pt-3 border-t border-stone-200 flex flex-wrap items-center justify-between gap-4 text-xs">
-        <span className="text-green-700/80 font-medium">
-          Showing {items.length} of {totalCount}
-        </span>
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            className="w-7 h-7 rounded text-green-700 font-extrabold bg-green-100/80"
-          >
-            1
-          </button>
-          <button
-            type="button"
-            className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+      <Pagination
+        page={currentPage}
+        pageSize={pageSize}
+        totalItems={items.length}
+        totalCount={totalCount}
+        onPageChange={setPage}
+      />
     </section>
   );
 }

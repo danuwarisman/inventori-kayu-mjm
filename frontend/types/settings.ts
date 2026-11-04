@@ -15,7 +15,7 @@ export interface LoginHistoryItem {
   status: 'Success' | 'Failed';
 }
 
-export type ExportFormat = 'xlsx' | 'csv' | 'pdf';
+export type ExportFormat = 'xls' | 'csv' | 'pdf';
 
 export interface ManagementHistoryItem {
   id: string;

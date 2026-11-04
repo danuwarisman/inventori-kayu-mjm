@@ -31,6 +31,18 @@ import {
 import { clearSession } from '@/lib/session';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
+import {
+  dryKilnApi,
+  getApiErrorMessage,
+  logApi,
+  sawmillApi,
+  supplierApi,
+} from '@/lib/api';
+import { toISODate } from '@/lib/dates';
+import {
+  downloadExportFile,
+  type ExportDocumentSection,
+} from '@/lib/export';
 import FormError from '@/components/FormError';
 import {
   email,
@@ -63,7 +75,9 @@ export default function SettingsPage() {
   const [isLoginHistoryOpen, setIsLoginHistoryOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportStep, setExportStep] = useState<'select' | 'progress' | 'success'>('select');
-  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('xlsx');
+  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('xls');
+  const [exportProgress, setExportProgress] = useState(0);
+  const [exportError, setExportError] = useState('');
   const [isBackupSuccessOpen, setIsBackupSuccessOpen] = useState(false);
 
   // Form States (Edit Profile)
@@ -112,7 +126,7 @@ export default function SettingsPage() {
     },
     {
       id: 'MH-02',
-      title: 'Database Export (XLSX)',
+      title: 'Database Export (XLS)',
       performedBy: 'Automatic Monthly Report',
       timestamp: '01 Jun 2026, 00:00 AM',
     },
@@ -174,11 +188,174 @@ export default function SettingsPage() {
     setIsChangePasswordOpen(false);
   };
 
-  const handleStartExport = () => {
+  const handleStartExport = async () => {
     setExportStep('progress');
-    setTimeout(() => {
+    setExportProgress(5);
+    setExportError('');
+
+    try {
+      const results = await Promise.allSettled([
+        logApi.list(),
+        sawmillApi.list(),
+        dryKilnApi.list(),
+        supplierApi.list(),
+      ]);
+      setExportProgress(40);
+
+      const [logResult, sawmillResult, dryKilnResult, supplierResult] =
+        results;
+      const sections: ExportDocumentSection[] = [];
+
+      // Harga Dry Kiln mengikuti harga log asal (belum ada field harga
+      // pada entitas DryKiln di backend).
+      const logPrices = new Map<string, number>();
+      if (logResult.status === 'fulfilled') {
+        logResult.value.forEach((item) => {
+          if (item.id_log && item.harga && item.harga > 0) {
+            logPrices.set(item.id_log, item.harga);
+          }
+        });
+      }
+
+      if (logResult.status === 'fulfilled') {
+        sections.push({
+          title: 'Data Log',
+          columns: [
+            'ID Log',
+            'Sortimen',
+            'Panjang',
+            'Diameter',
+            'Volume (m³)',
+            'Stage',
+            'Tanggal Masuk',
+            'Supplier',
+            'Harga',
+          ],
+          rows: logResult.value.map((item) => [
+            item.id_log,
+            item.sortimen,
+            `${item.panjang} cm`,
+            `${item.diameter} cm`,
+            item.volume.toFixed(3),
+            item.stage,
+            item.tanggal_masuk,
+            item.suplier,
+            `Rp ${(item.harga || 0).toLocaleString('id-ID')}`,
+          ]),
+        });
+      }
+
+      if (sawmillResult.status === 'fulfilled') {
+        sections.push({
+          title: 'Data Sawmill',
+          columns: [
+            'ID Sawmill',
+            'ID Log Asal',
+            'Sortimen',
+            'Panjang',
+            'Diameter',
+            'Volume Total (m³)',
+            'Stage',
+            'Tanggal',
+            'Supplier',
+            'Jumlah Plank',
+          ],
+          rows: sawmillResult.value.map((item) => [
+            item.id_sawmill,
+            item.id_log_asal,
+            item.sortimen,
+            `${item.panjang} mm`,
+            `${item.diameter} mm`,
+            item.volume_total.toFixed(3),
+            item.stage,
+            item.tanggal,
+            item.suplier,
+            String(item.planks.length),
+          ]),
+        });
+      }
+
+      if (dryKilnResult.status === 'fulfilled') {
+        sections.push({
+          title: 'Data Dry Kiln',
+          columns: [
+            'ID Plank',
+            'ID Log',
+            'Sortimen',
+            'Dimensi',
+            'Volume (m³)',
+            'Grade',
+            'Harga Dry Kiln (Rp)',
+            'Stage',
+            'Tanggal',
+          ],
+          rows: dryKilnResult.value.map((item) => {
+            const harga = logPrices.get(item.id_log);
+            return [
+              item.id_plank,
+              item.id_log,
+              item.sortimen,
+              `${item.tinggi}cm x ${item.lebar}cm x ${item.panjang}cm`,
+              item.volume.toFixed(3),
+              item.grade,
+              harga ? `Rp ${harga.toLocaleString('id-ID')}` : '-',
+              item.stage,
+              item.date,
+            ];
+          }),
+        });
+      }
+
+      if (supplierResult.status === 'fulfilled') {
+        sections.push({
+          title: 'Data Supplier',
+          columns: ['ID Supplier', 'Nama', 'Alamat', 'Kontak'],
+          rows: supplierResult.value.map((item) => [
+            item.id_supplier,
+            item.nama_supplier,
+            item.alamat_supplier,
+            item.kontak_supplier,
+          ]),
+        });
+      }
+
+      if (sections.length === 0) {
+        const failed = results.find(
+          (result): result is PromiseRejectedResult =>
+            result.status === 'rejected'
+        );
+        setExportProgress(0);
+        setExportError(
+          `Tidak ada data yang dapat diekspor. ${getApiErrorMessage(
+            failed?.reason,
+            'Periksa koneksi backend lalu coba lagi.'
+          )}`
+        );
+        setExportStep('select');
+        return;
+      }
+
+      setExportProgress(75);
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      downloadExportFile(selectedFormat, `mjm-database-${toISODate()}`, {
+        title: 'Export Database MJM',
+        subtitle: `Dibuat pada ${new Date().toLocaleString('id-ID')}`,
+        sections,
+      });
+
+      setExportProgress(100);
       setExportStep('success');
-    }, 1500);
+    } catch (err) {
+      setExportProgress(0);
+      setExportError(
+        getApiErrorMessage(
+          err,
+          'Gagal mengekspor data. Silakan coba lagi.'
+        )
+      );
+      setExportStep('select');
+    }
   };
 
   const handleTriggerBackup = () => {
@@ -447,6 +624,8 @@ export default function SettingsPage() {
               type="button"
               onClick={() => {
                 setExportStep('select');
+                setExportProgress(0);
+                setExportError('');
                 setIsExportModalOpen(true);
               }}
               className="w-full py-2.5 px-4 bg-white border border-stone-800 hover:bg-stone-50 text-stone-900 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
@@ -802,12 +981,14 @@ export default function SettingsPage() {
                   </button>
                 </div>
 
+                {exportError && <FormError message={exportError} />}
+
                 <span className="text-xs font-semibold text-stone-700">Choose export format:</span>
 
                 <div className="flex flex-col gap-2.5">
                   <label
                     className={`p-3 rounded-lg border flex items-center justify-between cursor-pointer transition-colors ${
-                      selectedFormat === 'xlsx'
+                      selectedFormat === 'xls'
                         ? 'border-green-700 bg-green-50/50'
                         : 'border-stone-200 hover:bg-stone-50'
                     }`}
@@ -816,11 +997,11 @@ export default function SettingsPage() {
                       <input
                         type="radio"
                         name="exportFormat"
-                        checked={selectedFormat === 'xlsx'}
-                        onChange={() => setSelectedFormat('xlsx')}
+                        checked={selectedFormat === 'xls'}
+                        onChange={() => setSelectedFormat('xls')}
                         className="accent-green-700"
                       />
-                      <span className="text-xs font-semibold text-stone-900">Excel (.xlsx)</span>
+                      <span className="text-xs font-semibold text-stone-900">Excel (.xls)</span>
                     </div>
                     <span className="text-[10px] bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded-full">
                       Recommended
@@ -890,10 +1071,15 @@ export default function SettingsPage() {
                 <div className="w-12 h-12 border-4 border-green-700 border-t-transparent rounded-full animate-spin" />
                 <div>
                   <h4 className="text-sm font-bold text-stone-900">Exporting Database...</h4>
-                  <p className="text-xs text-stone-400 mt-1">Please wait while we prepare your file.</p>
+                  <p className="text-xs text-stone-400 mt-1">
+                    Mengambil data dari server dan menyiapkan file ({exportProgress}%).
+                  </p>
                 </div>
                 <div className="w-full bg-stone-100 h-2 rounded-full overflow-hidden mt-2">
-                  <div className="bg-green-700 h-full w-3/4 animate-pulse rounded-full" />
+                  <div
+                    className="bg-green-700 h-full rounded-full transition-all duration-300"
+                    style={{ width: `${exportProgress}%` }}
+                  />
                 </div>
               </div>
             )}

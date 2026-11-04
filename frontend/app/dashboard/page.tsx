@@ -127,27 +127,11 @@ export default function OperationalDashboardPage() {
     const d = Number(diameter);
     const code = `L-2026-3-A-${activities.length + 1}`;
 
-    const newActivity: ActivityItem = {
-      id: code,
-      sortimen,
-      grade: 'Grade A',
-      stage: 'Log Masuk',
-      time: new Date().toLocaleTimeString('id-ID', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    };
-
     setQuickError(null);
-    setActivities((prev) => [newActivity, ...prev]);
-    setLogCount((prev) => prev + 1);
-    setDiameter('');
-    setPanjang('');
-    setSuplier('');
 
     // Simpan permanen ke database PostgreSQL via backend
     try {
-      await logApi.create({
+      const saved = await logApi.create({
         kodeLog: code,
         sortimen,
         panjang: p,
@@ -155,10 +139,27 @@ export default function OperationalDashboardPage() {
         suplier: supplier,
         stage: 'Log',
       });
+
+      const newActivity: ActivityItem = {
+        id: saved.id_log || code,
+        sortimen: saved.sortimen || sortimen,
+        grade: 'Grade A',
+        stage: saved.stage || 'Log',
+        time: new Date().toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      };
+
+      setActivities((prev) => [newActivity, ...prev]);
+      setLogCount((prev) => prev + 1);
+      setDiameter('');
+      setPanjang('');
+      setSuplier('');
       setLoadError(null);
     } catch (err) {
       setQuickError(
-        `Log ${code} tampil sementara karena gagal disimpan ke server. ${getApiErrorMessage(
+        `Gagal menyimpan log ${code} ke server. Data tidak ditambahkan. ${getApiErrorMessage(
           err,
           'Silakan coba lagi.'
         )}`

@@ -133,7 +133,10 @@ export default function LoginPage() {
                   autoCapitalize="none"
                   spellCheck={false}
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    if (error) setError('');
+                  }}
                   placeholder="Enter your username"
                   className="w-full pl-9 pr-3 py-2.5 bg-transparent border-b border-stone-300 text-stone-900 text-sm focus:border-green-800 focus:outline-none transition-colors placeholder:text-stone-400"
                 />
@@ -142,17 +145,9 @@ export default function LoginPage() {
 
             {/* Password Input */}
             <div className="flex flex-col gap-1.5">
-              <div className="flex justify-between items-center">
-                <label className="text-xs font-semibold text-stone-700 tracking-wide uppercase">
-                  Password
-                </label>
-                <a
-                  href="#forgot"
-                  className="text-xs font-medium text-amber-800 hover:text-amber-900 hover:underline transition-colors"
-                >
-                  Forgot?
-                </a>
-              </div>
+              <label className="text-xs font-semibold text-stone-700 tracking-wide uppercase">
+                Password
+              </label>
               <div className="relative flex items-center">
                 <Lock className="absolute left-3 w-4 h-4 text-stone-400" />
                 <input
@@ -161,14 +156,19 @@ export default function LoginPage() {
                   maxLength={100}
                   autoComplete="current-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError('');
+                  }}
                   placeholder="••••••••"
                   className="w-full pl-9 pr-9 py-2.5 bg-transparent border-b border-stone-300 text-stone-900 text-sm focus:border-green-800 focus:outline-none transition-colors placeholder:text-stone-400 tracking-wider"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 text-stone-400 hover:text-stone-600 p-1"
+                  aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                  aria-pressed={showPassword}
+                  className="absolute right-2 text-stone-400 hover:text-stone-600 p-1 cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -199,23 +199,16 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Footer Meta Status */}
-        <div className="w-full px-2 flex justify-between items-center text-xs text-stone-600">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
-            </span>
-            <span className="font-medium text-stone-700">Server: Online</span>
-          </div>
+        {/* Footer: info statis, tanpa indikator status server palsu */}
+        <div className="w-full px-2 flex flex-wrap justify-between items-center gap-2 text-xs text-stone-500">
+          <span>
+            &copy; {new Date().getFullYear()} MargiJatiMakmur
+          </span>
 
-          <a
-            href="#support"
-            className="flex items-center gap-1.5 text-stone-500 hover:text-stone-700 transition-colors"
-          >
+          <span className="flex items-center gap-1.5">
             <LifeBuoy className="w-3.5 h-3.5" />
-            <span>Technical Support</span>
-          </a>
+            <span>Butuh bantuan? Hubungi administrator</span>
+          </span>
         </div>
       </div>
     </main>

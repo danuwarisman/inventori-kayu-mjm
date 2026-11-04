@@ -8,19 +8,19 @@ import {
   Eye,
   X,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Check,
   Inbox,
   Layers,
 } from 'lucide-react';
 import { toISODate, formatDateID } from '@/lib/dates';
 import { getApiErrorMessage, sawmillApi } from '@/lib/api';
+import { exportToPdf } from '@/lib/export';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 import { PlankItem, SawmillItem } from '@/types/sawmill';
 import FormError from '@/components/FormError';
 import ErrorBanner from '@/components/ErrorBanner';
+import Pagination from '@/components/Pagination';
 import {
   firstError,
   maxLength,
@@ -29,6 +29,8 @@ import {
 } from '@/lib/validation';
 
 export { type PlankItem, type SawmillItem };
+
+const PAGE_SIZE = 10;
 
 export default function DataSawmillPage() {
   const user = useSessionUser();
@@ -45,6 +47,7 @@ export default function DataSawmillPage() {
   // State Filter
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
+  const [page, setPage] = useState(1);
   const [pageError, setPageError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -182,14 +185,15 @@ export default function DataSawmillPage() {
       try {
         const saved = await sawmillApi.create(newItemPayload);
         setSawmillItems((prev) => [saved, ...prev]);
+        setPage(1);
       } catch (err) {
-        setPageError(
-          `Batch sawmill ${idLog} ditampilkan sementara karena gagal disimpan ke server. ${getApiErrorMessage(
+        setFormError(
+          `Gagal menyimpan batch sawmill ${idLog} ke server. Data tidak ditambahkan. ${getApiErrorMessage(
             err,
             'Silakan coba lagi.'
           )}`
         );
-        setSawmillItems((prev) => [newItemPayload as SawmillItem, ...prev]);
+        return;
       }
     } else if (modalType === 'edit-sawmill' && selectedSawmill) {
       const updatedPayload: Partial<SawmillItem> = {
@@ -201,29 +205,34 @@ export default function DataSawmillPage() {
         suplier,
       };
 
+      if (!selectedSawmill.idSawmill) {
+        setFormError(
+          'Data sawmill ini belum tersimpan di server sehingga tidak dapat diperbarui.'
+        );
+        return;
+      }
+
       try {
-        if (selectedSawmill.idSawmill) {
-          await sawmillApi.update(selectedSawmill.idSawmill, updatedPayload);
-        }
+        const saved = await sawmillApi.update(
+          selectedSawmill.idSawmill,
+          updatedPayload
+        );
+        setSawmillItems((prev) =>
+          prev.map((item) =>
+            item.id_sawmill === selectedSawmill.id_sawmill
+              ? { ...item, ...saved }
+              : item
+          )
+        );
       } catch (err) {
-        setPageError(
-          `Perubahan sawmill ${idLog} hanya tersimpan sementara karena gagal dikirim ke server. ${getApiErrorMessage(
+        setFormError(
+          `Gagal memperbarui batch sawmill ${idLog} di server. Perubahan tidak disimpan. ${getApiErrorMessage(
             err,
             'Silakan coba lagi.'
           )}`
         );
+        return;
       }
-
-      setSawmillItems((prev) =>
-        prev.map((item) =>
-          item.id_sawmill === selectedSawmill.id_sawmill
-            ? {
-                ...item,
-                ...updatedPayload,
-              }
-            : item
-        )
-      );
     }
     setModalType(null);
   };
@@ -346,42 +355,59 @@ export default function DataSawmillPage() {
       grade: formGrade,
     };
 
-    if (modalType === 'input-hasil' && selectedSawmill.idSawmill) {
+    let savedPlank: PlankItem | null = null;
+    let updatedPlanks: PlankItem[] = [];
+
+    if (modalType === 'input-hasil') {
+      if (!selectedSawmill.idSawmill) {
+        setFormError(
+          'Batch sawmill ini belum tersimpan di server sehingga plank tidak dapat ditambahkan.'
+        );
+        return;
+      }
+
       try {
-        const createdPlank = await sawmillApi.addPlank(selectedSawmill.idSawmill, plankData);
-        plankData.idPlank = createdPlank.idPlank;
-        plankData.id_plank = createdPlank.id_plank;
+        savedPlank = await sawmillApi.addPlank(
+          selectedSawmill.idSawmill,
+          plankData
+        );
+        updatedPlanks = [...selectedSawmill.planks, savedPlank];
       } catch (err) {
-        setPageError(
-          `Plank ${idPlank} ditampilkan sementara karena gagal disimpan ke server. ${getApiErrorMessage(
+        setFormError(
+          `Gagal menyimpan plank ${idPlank} ke server. Data tidak ditambahkan. ${getApiErrorMessage(
             err,
             'Silakan coba lagi.'
           )}`
         );
+        return;
       }
     } else if (modalType === 'edit-hasil' && selectedPlankIndex !== null) {
       const existingPlank = selectedSawmill.planks[selectedPlankIndex];
-      if (existingPlank?.idPlank) {
-        try {
-          await sawmillApi.updatePlank(existingPlank.idPlank, plankData);
-        } catch (err) {
-          setPageError(
-            `Perubahan plank ${idPlank} hanya tersimpan sementara karena gagal dikirim ke server. ${getApiErrorMessage(
-              err,
-              'Silakan coba lagi.'
-            )}`
-          );
-        }
-      }
-    }
 
-    let updatedPlanks: PlankItem[] = [];
-    if (modalType === 'input-hasil') {
-      updatedPlanks = [...selectedSawmill.planks, plankData];
-    } else if (modalType === 'edit-hasil' && selectedPlankIndex !== null) {
-      updatedPlanks = selectedSawmill.planks.map((p, idx) =>
-        idx === selectedPlankIndex ? plankData : p
-      );
+      if (!existingPlank?.idPlank) {
+        setFormError(
+          'Plank ini belum tersimpan di server sehingga tidak dapat diperbarui.'
+        );
+        return;
+      }
+
+      try {
+        savedPlank = await sawmillApi.updatePlank(
+          existingPlank.idPlank,
+          plankData
+        );
+        updatedPlanks = selectedSawmill.planks.map((plank, index) =>
+          index === selectedPlankIndex ? savedPlank! : plank
+        );
+      } catch (err) {
+        setFormError(
+          `Gagal memperbarui plank ${idPlank} di server. Perubahan tidak disimpan. ${getApiErrorMessage(
+            err,
+            'Silakan coba lagi.'
+          )}`
+        );
+        return;
+      }
     }
 
     const updatedItem: SawmillItem = {
@@ -406,6 +432,68 @@ export default function DataSawmillPage() {
     return matchesSortimen && matchesDate;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedItems = filteredItems.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  const handleExportPdf = () => {
+    const columns = [
+      'ID Log Asal',
+      'Sortimen',
+      'Panjang (mm)',
+      'Diameter (mm)',
+      'Volume Total (m³)',
+      'Stage',
+      'Tanggal',
+      'Jumlah Plank',
+    ];
+
+    if (isManager) {
+      columns.push('Supplier', 'Harga');
+    }
+
+    const rows = filteredItems.map((item) => {
+      const row = [
+        item.id_log_asal,
+        item.sortimen,
+        String(item.panjang),
+        String(item.diameter),
+        item.volume_total.toFixed(3),
+        item.stage,
+        formatDateID(item.tanggal),
+        String(item.planks.length),
+      ];
+
+      if (isManager) {
+        row.push(
+          item.suplier,
+          `Rp ${(item.harga || 0).toLocaleString('id-ID')}`
+        );
+      }
+
+      return row;
+    });
+
+    exportToPdf({
+      title: 'Laporan Data Sawmill',
+      subtitle: `Tanggal: ${
+        dateFilter ? formatDateID(dateFilter) : 'Semua'
+      } | Sortimen: ${
+        sortimenFilter === 'All Sortimen' ? 'Semua' : sortimenFilter
+      }`,
+      sections: [
+        {
+          title: 'Data Sawmill',
+          columns,
+          rows,
+        },
+      ],
+    });
+  };
+
   return (
     <div className="flex flex-col gap-5 p-6 max-w-[1440px] mx-auto font-sans">
       {/* 1. Filter Bar & Aksi */}
@@ -418,7 +506,10 @@ export default function DataSawmillPage() {
             <input
               type="date"
               value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setPage(1);
+              }}
               className="px-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700"
             />
           </div>
@@ -430,7 +521,10 @@ export default function DataSawmillPage() {
             <div className="relative">
               <select
                 value={sortimenFilter}
-                onChange={(e) => setSortimenFilter(e.target.value)}
+                onChange={(e) => {
+                  setSortimenFilter(e.target.value);
+                  setPage(1);
+                }}
                 className="appearance-none pr-8 pl-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700 cursor-pointer"
               >
                 <option value="All Sortimen">All Sortimen</option>
@@ -446,6 +540,7 @@ export default function DataSawmillPage() {
         <div className="flex items-center gap-2.5">
           <button
             type="button"
+            onClick={handleExportPdf}
             className="px-4 py-2 bg-red-50 hover:bg-red-100/70 border border-stone-300 rounded text-xs font-semibold text-green-700 flex items-center gap-2 transition-colors cursor-pointer"
           >
             <FileDown className="w-3.5 h-3.5 text-green-700" />
@@ -527,7 +622,7 @@ export default function DataSawmillPage() {
                   </td>
                 </tr>
               ) : (
-                filteredItems.map((item) => (
+                paginatedItems.map((item) => (
                   <tr
                     key={item.id_sawmill}
                     className="text-green-700 hover:bg-stone-50 transition-colors"
@@ -606,32 +701,13 @@ export default function DataSawmillPage() {
           </table>
         </div>
 
-        {/* Pagination Bar */}
-        <div className="pt-3 border-t border-stone-200 flex flex-wrap items-center justify-between gap-4 text-xs">
-          <span className="text-green-700/80 font-medium">
-            Showing {filteredItems.length} of {sawmillItems.length}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              className="w-7 h-7 rounded text-green-700 font-extrabold bg-green-100/80"
-            >
-              1
-            </button>
-            <button
-              type="button"
-              className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        <Pagination
+          page={currentPage}
+          pageSize={PAGE_SIZE}
+          totalItems={filteredItems.length}
+          totalCount={sawmillItems.length}
+          onPageChange={setPage}
+        />
       </section>
 
       {/* 3. Modal Layer */}

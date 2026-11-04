@@ -6,14 +6,14 @@ import {
   Plus,
   X,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Check,
   Inbox,
 } from 'lucide-react';
-import { toISODate } from '@/lib/dates';
+import { toISODate, formatDateID } from '@/lib/dates';
+import { exportToPdf } from '@/lib/export';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
+import Pagination from '@/components/Pagination';
 import {
   StockReportItem,
   StockReportFormData,
@@ -26,6 +26,8 @@ import {
   positiveNumber,
   required,
 } from '@/lib/validation';
+
+const PAGE_SIZE = 10;
 
 export default function StockReportsPage() {
   // Input stok dilakukan Admin Lapangan; role lain read-only.
@@ -41,6 +43,7 @@ export default function StockReportsPage() {
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
   const [gradeFilter, setGradeFilter] = useState('All Grade');
   const [dateFilter, setDateFilter] = useState('');
+  const [page, setPage] = useState(1);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -118,6 +121,7 @@ export default function StockReportsPage() {
     };
 
     setStocks((prev) => [newItem, ...prev]);
+    setPage(1);
     setFormError(null);
     setIsModalOpen(false);
   };
@@ -130,6 +134,49 @@ export default function StockReportsPage() {
     const matchesDate = !dateFilter || item.date === dateFilter;
     return matchesSortimen && matchesGrade && matchesDate;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredStocks.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedStocks = filteredStocks.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  const handleExportPdf = () => {
+    const rows = filteredStocks.map((item) => [
+      item.id_log,
+      item.sortimen,
+      item.grade,
+      item.dimensions,
+      item.volume.toFixed(3),
+      item.status,
+      formatDateID(item.date),
+    ]);
+
+    exportToPdf({
+      title: 'Laporan Stok Kayu',
+      subtitle: `Tanggal: ${
+        dateFilter ? formatDateID(dateFilter) : 'Semua'
+      } | Sortimen: ${
+        sortimenFilter === 'All Sortimen' ? 'Semua' : sortimenFilter
+      } | Grade: ${gradeFilter === 'All Grade' ? 'Semua' : gradeFilter}`,
+      sections: [
+        {
+          title: 'Data Stok Kayu',
+          columns: [
+            'ID Log',
+            'Sortimen',
+            'Grade',
+            'Dimensi',
+            'Volume (m³)',
+            'Status',
+            'Tanggal',
+          ],
+          rows,
+        },
+      ],
+    });
+  };
 
   // Styling badge status stok sesuai indikator warna SDD
   const getStatusBadge = (status: StockStatus) => {
@@ -158,7 +205,10 @@ export default function StockReportsPage() {
             <div className="relative">
               <select
                 value={sortimenFilter}
-                onChange={(e) => setSortimenFilter(e.target.value)}
+                onChange={(e) => {
+                  setSortimenFilter(e.target.value);
+                  setPage(1);
+                }}
                 className="appearance-none pr-8 pl-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700 cursor-pointer"
               >
                 <option value="All Sortimen">All Sortimen</option>
@@ -178,7 +228,10 @@ export default function StockReportsPage() {
             <div className="relative">
               <select
                 value={gradeFilter}
-                onChange={(e) => setGradeFilter(e.target.value)}
+                onChange={(e) => {
+                  setGradeFilter(e.target.value);
+                  setPage(1);
+                }}
                 className="appearance-none pr-8 pl-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700 cursor-pointer"
               >
                 <option value="All Grade">All Grade</option>
@@ -198,7 +251,10 @@ export default function StockReportsPage() {
             <input
               type="date"
               value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setPage(1);
+              }}
               className="px-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700"
             />
           </div>
@@ -207,6 +263,7 @@ export default function StockReportsPage() {
         <div className="flex items-center gap-2.5">
           <button
             type="button"
+            onClick={handleExportPdf}
             className="px-4 py-2 bg-red-50 hover:bg-red-100/70 border border-stone-300 rounded text-xs font-semibold text-green-700 flex items-center gap-2 transition-colors cursor-pointer"
           >
             <FileDown className="w-3.5 h-3.5 text-green-700" />
@@ -259,7 +316,7 @@ export default function StockReportsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredStocks.map((item) => (
+                paginatedStocks.map((item) => (
                   <tr
                     key={item.id_log}
                     className="text-green-700 hover:bg-stone-50 transition-colors"
@@ -292,32 +349,13 @@ export default function StockReportsPage() {
           </table>
         </div>
 
-        {/* Pagination Bar */}
-        <div className="pt-3 border-t border-stone-200 flex flex-wrap items-center justify-between gap-4 text-xs">
-          <span className="text-green-700/80 font-medium">
-            Showing {filteredStocks.length} of {stocks.length}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50 cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              className="w-7 h-7 rounded text-green-700 font-extrabold bg-green-100/80"
-            >
-              1
-            </button>
-            <button
-              type="button"
-              className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50 cursor-pointer"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        <Pagination
+          page={currentPage}
+          pageSize={PAGE_SIZE}
+          totalItems={filteredStocks.length}
+          totalCount={stocks.length}
+          onPageChange={setPage}
+        />
       </section>
 
       {/* 3. Modal: Add New Stock */}

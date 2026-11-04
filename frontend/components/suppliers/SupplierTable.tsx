@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
-import { Truck, ChevronLeft, ChevronRight, Pencil, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Truck, Pencil, Loader2 } from 'lucide-react';
 import { SupplierItem } from '@/types/supplier';
+import Pagination from '@/components/Pagination';
 
 interface SupplierTableProps {
   items: SupplierItem[];
@@ -29,6 +30,14 @@ export default function SupplierTable({
   onToggleSelectAll,
   onEdit,
 }: SupplierTableProps) {
+  const pageSize = 10;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedItems = items.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
   const isAllSelected =
     items.length > 0 && selectedIds.length === items.length;
 
@@ -92,7 +101,7 @@ export default function SupplierTable({
                 </td>
               </tr>
             ) : (
-              items.map((item) => {
+              paginatedItems.map((item) => {
                 const isSelected = selectedIds.includes(item.id_supplier);
 
                 return (
@@ -144,32 +153,13 @@ export default function SupplierTable({
         </table>
       </div>
 
-      {/* Pagination Bar */}
-      <div className="pt-3 border-t border-stone-200 flex flex-wrap items-center justify-between gap-4 text-xs">
-        <span className="text-green-700/80 font-medium">
-          Showing {items.length} of {totalCount}
-        </span>
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            className="w-7 h-7 rounded text-green-700 font-extrabold bg-green-100/80"
-          >
-            1
-          </button>
-          <button
-            type="button"
-            className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+      <Pagination
+        page={currentPage}
+        pageSize={pageSize}
+        totalItems={items.length}
+        totalCount={totalCount}
+        onPageChange={setPage}
+      />
     </section>
   );
 }

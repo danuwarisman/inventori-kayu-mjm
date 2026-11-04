@@ -4,8 +4,8 @@ Dokumentasi ini menjelaskan kondisi **frontend** aplikasi inventori kayu PT. Mar
 
 - **Scope:** hanya folder `frontend/`
 - **Backend:** NestJS di folder `backend/` (tidak diubah oleh dokumentasi ini)
-- **Terakhir diperbarui:** 3 November 2026
-- **Commit frontend terakhir yang didokumentasikan:** `751ae80` — `feat(frontend): perketat izin aksi per role`
+- **Terakhir diperbarui:** 4 November 2026
+- **Commit frontend terakhir yang didokumentasikan:** `58bdbe9` — `feat(frontend): perbaiki validasi dan pesan error form`
 - **RBAC per aksi:** diterapkan di `lib/permissions.ts` dan dipakai halaman operasional (lihat §7.9)
 - **Validasi & pesan error:** helper di `lib/validation.ts`, komponen `FormError` dan `ErrorBanner` (lihat §12.6)
 
@@ -83,7 +83,7 @@ Jika backend/PostgreSQL mati:
 
 - Halaman login akan menampilkan pesan tidak bisa menghubungi backend.
 - Halaman yang membaca API akan menampilkan error atau state kosong.
-- Halaman dengan fallback lokal masih bisa “terlihat menyimpan” data, tetapi data tidak masuk database.
+- Operasi tulis (create/update/delete) tidak lagi memakai fallback lokal: jika backend gagal, data tidak ditambahkan ke UI dan pesan error ditampilkan.
 
 ---
 
@@ -179,6 +179,7 @@ frontend/
 │  ├─ ConfirmModal.tsx           # Modal konfirmasi generik
 │  ├─ FormError.tsx              # Banner error inline di form/modal
 │  ├─ ErrorBanner.tsx            # Banner error halaman + aksi muat ulang
+│  ├─ Pagination.tsx             # Kontrol pagination reusable
 │  ├─ accounts/                  # AccountCard, AccountModal
 │  ├─ customers/                 # CustomerAnalytics, CustomerModal, CustomerTable
 │  ├─ dry-kiln/                  # DryKilnModal, DryKilnTable
@@ -189,6 +190,7 @@ frontend/
 ├─ lib/
 │  ├─ api.ts                     # API client + semua endpoint
 │  ├─ dates.ts                   # Helper tanggal ISO & format id-ID
+│  ├─ export.ts                  # Export PDF (print), CSV, dan Excel-compatible
 │  ├─ permissions.ts             # Matriks izin aksi per role
 │  ├─ session.ts                 # Sesi, role, RBAC route, storage
 │  ├─ validation.ts              # Helper validasi form (required, angka, email, telepon)
@@ -661,6 +663,8 @@ Catatan implementasi backend:
 
 Respons `GET /dry-kiln` mengembalikan `idOven`, `id_log`, `id_plank`, `kodeOven`, `sortimen`, `panjang`, `lebar`, `tinggi`, `volume`, `grade`, `stage`, `date`, dan `tanggalMasuk`.
 
+**Harga Dry Kiln (read-only).** Model `DryKiln` di backend **tidak memiliki field harga**. Karena itu halaman `/dry-kiln` menampilkan harga dari **log asal** papan: `id_log` pada item Dry Kiln dicocokkan dengan `id_log` dari `GET /log`, lalu `LogItem.harga` ditampilkan sebagai `Rp ...`. Bila log tidak punya harga (`0`/kosong) atau request log gagal, kolom menampilkan `-`. Nilai ini tidak dapat diedit dan tidak dikirim ke `POST/PATCH /dry-kiln`.
+
 ### 8.8 Customer (backend ada, frontend belum memakai)
 
 Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `customerApi`, dan halaman `/customers` masih lokal. Kontrak backend perlu dicek terpisah jika nanti diintegrasikan.
@@ -677,7 +681,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 | `/login` | Login | **Live penuh** | Auth ke backend, simpan JWT + sesi |
 | `/dashboard` | Dashboard Admin | **Sebagian** | Statistik live; quick entry Log live dengan payload sesuai DTO |
 | `/manager-dashboard` | Dashboard Manager | **UI lokal** | Semua metrik 0/placeholder |
-| `/master-data` | Data Log | **Live** | Baca, create, update, delete live; fallback lokal hanya saat backend error |
+| `/master-data` | Data Log | **Live** | Baca, create, update, delete live; export PDF, pagination, dan progress bar stage aktif |
 | `/sawmill` | Data Sawmill | **Sebagian** | Baca, create batch, tulis/edit plank, dan delete live; edit batch terbatas pada field yang didukung backend |
 | `/pra-dry-kiln` | Pra Dry Kiln | **UI lokal** | Tidak ada API |
 | `/dry-kiln` | Dry Kiln | **Live** | Baca, create, update live; belum ada tombol delete |
@@ -694,8 +698,11 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Memanggil `POST /auth/login`.
 - Menampilkan error backend (401, backend mati, role tidak dikenal).
 - Menyimpan JWT + sesi, lalu redirect.
-- Link `Forgot?` (`#forgot`) dan `Technical Support` (`#support`) masih dead link.
-- Indikator “Server: Online” bersifat statis, bukan health check.
+- Password bisa ditampilkan/disembunyikan lewat tombol dengan `aria-label` dan `aria-pressed`.
+- Pesan error dibersihkan otomatis saat user mulai mengetik ulang username/password.
+- Link mati `Forgot?` (`#forgot`) dan `Technical Support` (`#support`) sudah dihapus.
+- Indikator palsu “Server: Online” sudah dihapus. Footer kini menampilkan copyright dan ajakan menghubungi administrator (bukan link).
+- Status backend yang sebenarnya tetap terlihat dari pesan error saat login gagal (mis. “Tidak bisa menghubungi backend …”).
 
 ### 9.3 `/dashboard` — Dashboard Admin
 
@@ -706,9 +713,8 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - `totalCustomers` dan `totalSales` masih hardcoded `0`.
 - Quick Entry (diameter, panjang, sortimen, supplier):
   - Hanya tampil untuk `admin_lapangan` (`log:create`); role lain melihat keterangan read-only.
-  - Menambahkan aktivitas ke state lokal agar UI langsung responsif.
   - Mengirim `POST /log` melalui mapper `logApi.create()`: `sortimen` → `asalSortimen`, kode → `kodeLog`, dan hanya field DTO yang dikirim.
-  - Jika backend gagal, aktivitas tetap tampil sementara di state lokal (tidak ada rollback/notifikasi error).
+  - Aktivitas dan counter baru ditambahkan ke UI setelah request sukses; jika gagal, form tetap berisi data dan error ditampilkan tanpa menambah aktivitas palsu.
 
 ### 9.4 `/manager-dashboard` — Dashboard Manager
 
@@ -731,7 +737,10 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
   - `admin_kantor`: update + delete.
   - `manager`: read-only (tombol tambah/edit/hapus disembunyikan).
 - Payload create/update sudah dipetakan ke DTO backend (`asalSortimen`, `volumeLog`, `tanggalMasuk`, `kodeLog`), sehingga data tersimpan ke PostgreSQL.
-- Fallback lokal tetap ada sebagai jaring pengaman bila backend/PostgreSQL mati; data fallback akan hilang setelah refresh.
+- Tidak ada fallback lokal: create/update hanya mengubah state setelah respons backend sukses. Jika gagal, modal tetap terbuka dan error API ditampilkan.
+- Tombol **Export PDF** membuka dialog print browser (pilih “Save as PDF”) untuk seluruh baris hasil filter.
+- Pagination memotong data 10 baris per halaman.
+- Kartu kapasitas Sawmill/Pra Dry-Kiln/Dry-Kiln/Ready To Sale menghitung jumlah `logs[].stage` secara nyata.
 
 ### 9.6 `/sawmill` — Data Sawmill
 
@@ -753,8 +762,9 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
   - Respons plank mentah dari backend dinormalisasi kembali ke `PlankItem` agar ID dan hasil tulis langsung tampil benar.
 - `PATCH /sawmill/:id` hanya mengirim `stage`/`kodeSawmill`; service backend belum menyimpan perubahan dimensi/supplier, jadi edit batch masih bersifat lokal untuk field tersebut.
 - `DELETE` batch/plank live.
-- Tombol “Export PDF” belum berfungsi.
-- Pagination di tabel belum benar-benar memotong data.
+- Create batch/plank dan edit batch/plank hanya memperbarui UI setelah respons backend sukses; tidak ada fallback lokal.
+- Tombol **Export PDF** mencetak seluruh baris hasil filter (pilih “Save as PDF” di dialog browser).
+- Pagination memotong data 10 baris per halaman.
 
 ### 9.7 `/pra-dry-kiln` — Pra Dry Kiln
 
@@ -763,7 +773,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Modal batch untuk tambah/edit item plank.
 - Volume: `t * w * l / 1.000.000`.
 - Hanya `admin_lapangan` yang dapat tambah/edit; manager dan admin_kantor read-only.
-- “Export PDF” belum berfungsi.
+- **Export PDF** mencetak seluruh baris hasil filter; tabel memakai pagination 10 baris per halaman.
 
 ### 9.8 `/dry-kiln` — Dry Kiln
 
@@ -774,7 +784,10 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Payload create/update saat ini cocok dengan DTO backend, sehingga data tersimpan.
 - Hanya `admin_lapangan` yang dapat tambah/edit; manager dan admin_kantor read-only.
 - Belum ada tombol hapus di UI, walaupun `DELETE /dry-kiln/:id` tersedia di API client.
-- “Export PDF” belum berfungsi.
+- Create/update hanya mengubah UI setelah backend sukses; tidak ada fallback lokal.
+- **Kolom Harga Dry Kiln** menampilkan harga log asal (read-only): `id_log` item dicocokkan dengan `GET /log`, lalu `harga` log ditampilkan sebagai `Rp ...`. Nilai `-` muncul bila log tidak punya harga atau request log gagal. Lihat §8.7.
+- **Export PDF** menyertakan kolom Harga Dry Kiln dan mencetak seluruh baris hasil filter; tabel memakai pagination 10 baris per halaman.
+- Keterbatasan: harga tidak dapat diubah dari halaman ini karena `DryKiln` backend belum punya field harga.
 
 ### 9.9 `/stock-reports` — Stock Reports
 
@@ -784,7 +797,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Status badge: `Available`, `Low Stock`, `Out of Stock`.
 - Volume: `t * w * l / 1.000.000.000` (mm³ → m³).
 - Hanya `admin_lapangan` yang dapat Add Stock; manager dan admin_kantor read-only.
-- “Export PDF” dan pagination belum berfungsi.
+- **Export PDF** mencetak seluruh baris hasil filter; pagination memotong data 10 baris per halaman (masih state lokal).
 
 ### 9.10 `/suppliers` — Supplier
 
@@ -838,8 +851,10 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Ganti password hanya validasi lokal (password lama tidak dicek ke backend).
 - Toggle notifikasi hanya state.
 - Riwayat login dan riwayat manajemen berisi data contoh.
-- Export database disimulasikan (`setTimeout`), tidak menghasilkan file.
-- Backup database hanya memunculkan modal sukses.
+- Export database mengambil data live dari `logApi`, `sawmillApi`, `dryKilnApi`, dan `supplierApi`, lalu menghasilkan file PDF/CSV/Excel-compatible (`.xls`). Progress bar mengikuti tahapan request yang sebenarnya.
+- Section **Data Dry Kiln** pada export ikut menyertakan kolom **Harga Dry Kiln (Rp)** yang diambil dari harga log asal; tampil `-` bila tidak tersedia.
+- Jika semua request gagal atau tidak ada data, modal menampilkan error dan tidak mengklaim export berhasil.
+- Backup database masih hanya memunculkan modal sukses.
 - Section Data Management (backup/export/history) hanya tampil untuk `manager` dan `admin_kantor`; `admin_lapangan` tidak melihat aksi sensitif ini.
 - **Logout nyata:** `clearSession()` + redirect `/login`.
 - Tidak ada API settings/profil.
@@ -859,13 +874,15 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 | `ConfirmModal` | `components/ConfirmModal.tsx` | Modal konfirmasi generik (belum dipakai halaman mana pun) |
 | `FormError` | `components/FormError.tsx` | Banner error inline untuk validasi form dan error API di dalam modal |
 | `ErrorBanner` | `components/ErrorBanner.tsx` | Banner error halaman dengan tombol muat ulang opsional |
+| `Pagination` | `components/Pagination.tsx` | Kontrol pagination reusable: rentang data, previous/next, dan nomor halaman |
+| Export helper | `lib/export.ts` | Print-to-PDF, download CSV, dan file Excel-compatible (`.xls`) |
 
 ### 10.2 Domain
 
 | Domain | Komponen | Fungsi |
 |---|---|---|
 | Supplier | `SupplierTable`, `SupplierModal` | Tabel, form tambah/edit, validasi |
-| Dry Kiln | `DryKilnTable`, `DryKilnModal` | Tabel dan form dry kiln |
+| Dry Kiln | `DryKilnTable`, `DryKilnModal` | Tabel (termasuk kolom Harga Dry Kiln dari log asal) dan form dry kiln |
 | Pra Dry Kiln | `PlankTable`, `BatchModal` | Tabel plank dan form batch |
 | Sales | `SalesTable`, `SalesModal`, `SalesStatCards` | Tabel, form, dan kartu statistik sales |
 | Customer | `CustomerTable`, `CustomerModal`, `CustomerAnalytics` | Tabel, form, analitik manager |
@@ -1015,8 +1032,8 @@ Konvensi: tanggal disimpan sebagai ISO `yyyy-mm-dd` agar cocok dengan `<input ty
 - Gunakan helper di `lib/validation.ts` (`required`, `maxLength`, `positiveNumber`, `positiveInteger`, `email`, `phone`, `firstError`) agar pesan konsisten.
 - Validasi form dilakukan sebelum memanggil `onSubmit`/API. Tampilkan pesan pertama yang gagal lewat `FormError` di dalam modal/form.
 - Error API yang memengaruhi halaman ditampilkan lewat `ErrorBanner`, bukan hanya `console.warn`. Sertakan aksi **Muat Ulang** bila error berasal dari proses baca data.
-- Untuk fallback lokal (master-data, sawmill, dry-kiln), data tetap ditampilkan agar UI tidak kosong, tetapi banner wajib menjelaskan bahwa data mungkin hanya sementara/tidak tersimpan di server.
-- Hapus data lokal hanya setelah request delete berhasil; bila gagal, pertahankan data dan tampilkan pesan error.
+- Jangan menampilkan data palsu/optimistis untuk create/update/delete API. Ubah state hanya setelah request sukses; bila gagal, pertahankan data lama dan tampilkan error.
+- Export PDF memakai dialog print browser (tanpa dependency baru). Export CSV/Excel dibuat di client dari data yang sudah dimuat.
 
 ### 12.7 Path alias
 
@@ -1070,26 +1087,26 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 ### Prioritas menengah
 
 3. **Halaman masih mock/lokal:** `/pra-dry-kiln`, `/stock-reports`, `/customers`, `/sales`, `/accounts`, `/manager-dashboard`, dan sebagian `/settings`.
-4. **`/settings` memakai data hardcoded** dan export/backup simulasi.
-5. **Tombol mati:** `Forgot?`, `Technical Support`, search & notifikasi Header, “Export PDF” di beberapa halaman, pagination tabel.
-6. **`mjm_redirect` open redirect:** nilai `//domain-lain` lolos `startsWith('/')`. Validasi harus memastikan path diawali satu `/` dan bukan `//`.
-7. **Reason redirect tidak ditampilkan:** `/login?reason=expired` dan `?reason=timeout` belum memberi pesan khusus.
-8. **Tidak ada endpoint `/auth/me`:** profil hanya dari respons login; perubahan role/nama di database baru terlihat setelah login ulang.
-9. **Supplier delete bisa gagal FK** jika supplier dipakai transaksi pembelian/pengajuan. Tangani error 409/500 dengan pesan khusus atau soft delete.
-10. **Edit batch Sawmill belum persisten.** Backend hanya menyimpan `stage`/`statusSawmill`/`kodeSawmill` pada `PATCH /sawmill/:id`; perubahan dimensi/supplier masih lokal. Perlu penyesuaian service backend bila edit penuh diinginkan.
-11. **Cookie sesi belum `Secure`** dan belum `HttpOnly`; hanya role, tetapi tetap perlu diperkuat untuk production.
-12. **`middleware.ts` deprecated di Next 16.** Migrasi ke `proxy.ts` dengan export `proxy` (perilaku sama):
+4. **`/settings` memakai data profil/riwayat hardcoded** dan backup masih simulasi. Export database sudah memakai data live.
+5. **Tombol mati:** search & notifikasi Header. (Link mati `Forgot?`/`Technical Support` di login sudah dihapus.)
+6. **Harga Dry Kiln belum persisten.** Kolom harga hanya membaca harga log asal (read-only). Untuk harga khusus dry kiln, backend perlu menambah field `harga` pada model `DryKiln`, DTO, dan service.
+7. **`mjm_redirect` open redirect:** nilai `//domain-lain` lolos `startsWith('/')`. Validasi harus memastikan path diawali satu `/` dan bukan `//`.
+8. **Reason redirect tidak ditampilkan:** `/login?reason=expired` dan `?reason=timeout` belum memberi pesan khusus.
+9. **Tidak ada endpoint `/auth/me`:** profil hanya dari respons login; perubahan role/nama di database baru terlihat setelah login ulang.
+10. **Supplier delete bisa gagal FK** jika supplier dipakai transaksi pembelian/pengajuan. Tangani error 409/500 dengan pesan khusus atau soft delete.
+11. **Edit batch Sawmill belum persisten.** Backend hanya menyimpan `stage`/`statusSawmill`/`kodeSawmill` pada `PATCH /sawmill/:id`; perubahan dimensi/supplier masih lokal. Perlu penyesuaian service backend bila edit penuh diinginkan.
+12. **Cookie sesi belum `Secure`** dan belum `HttpOnly`; hanya role, tetapi tetap perlu diperkuat untuk production.
+13. **`middleware.ts` deprecated di Next 16.** Migrasi ke `proxy.ts` dengan export `proxy` (perilaku sama):
     ```bash
     npx @next/codemod@canary middleware-to-proxy .
     ```
-13. **Dua sumber aturan role/navigasi:** `ROLE_ACCESS` di `lib/session.ts`, `routeTitleMap` di Header, dan `navConfig` di Sidebar harus diperbarui bersamaan saat menambah halaman.
-14. **`StatCard` dan `ConfirmModal` belum dipakai**; bisa dihapus atau diadopsi agar konsisten.
+14. **Dua sumber aturan role/navigasi:** `ROLE_ACCESS` di `lib/session.ts`, `routeTitleMap` di Header, dan `navConfig` di Sidebar harus diperbarui bersamaan saat menambah halaman.
+15. **`StatCard` dan `ConfirmModal` belum dipakai**; bisa dihapus atau diadopsi agar konsisten.
 
 ### Prioritas rendah
 
-15. Duplikasi tipe `PlankGrade` dan role.
-16. `types/inventory.ts` sudah legacy dan berpotensi membingungkan.
-17. Tabel merender semua data; pagination belum memotong array.
+16. Duplikasi tipe `PlankGrade` dan role.
+17. `types/inventory.ts` sudah legacy dan berpotensi membingungkan.
 18. Tidak ada unit/E2E test.
 
 ---
@@ -1155,7 +1172,8 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 
 | Tanggal | Commit | Perubahan |
 |---|---|---|
-| 2026-11-03 | *(working tree)* | Validasi form terpusat di `lib/validation.ts`, komponen `FormError`/`ErrorBanner`, pesan error API yang terlihat di dashboard/master-data/sawmill/dry-kiln/settings/stock-reports, dan validasi modal Account/Customer/Sales/Dry Kiln/Batch/Supplier |
+| 2026-11-04 | *(working tree)* | Export PDF aktif di master-data/sawmill/pra-dry-kiln/dry-kiln/stock-reports, pagination reusable, progress bar stage master-data, export database live (PDF/CSV/XLS), penghapusan fallback lokal pada operasi tulis, kolom Harga Dry Kiln read-only dari harga log asal (tabel + export), dan perapian halaman login (hapus dead link & indikator server palsu) |
+| 2026-11-03 | `58bdbe9` | Validasi form terpusat di `lib/validation.ts`, komponen `FormError`/`ErrorBanner`, pesan error API yang terlihat di dashboard/master-data/sawmill/dry-kiln/settings/stock-reports, dan validasi modal Account/Customer/Sales/Dry Kiln/Batch/Supplier |
 | 2026-11-03 | `751ae80` | RBAC per aksi terpusat di `lib/permissions.ts`: create/update/delete Log, Sawmill/Plank, Dry Kiln, Pra Dry Kiln, Supplier, Customer, Sales, Stock, Quick Entry, dan Data Management dibatasi sesuai role |
 | 2026-11-02 | `26d6dcf` | Perbaikan payload Log (master-data + dashboard quick entry), payload create batch/plank Sawmill, normalisasi respons plank, dan RBAC manager Sawmill via `useSessionUser()` |
 | 2026-10-25 | `0b62d93` | Sinkronisasi modul Supplier dengan API backend: mapper `idSupplier/namaSupplier/alamatSupplier/kontakSupplier`, create/update/delete, form dan tabel disesuaikan |
@@ -1182,6 +1200,8 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 | `lib/validation.ts` | Helper validasi form yang dipakai lintas modal/halaman |
 | `components/FormError.tsx` | Banner error inline di dalam form/modal |
 | `components/ErrorBanner.tsx` | Banner error halaman dengan aksi muat ulang |
+| `components/Pagination.tsx` | Pagination reusable untuk tabel dan halaman |
+| `lib/export.ts` | Export PDF/CSV/Excel-compatible dari data frontend |
 | `lib/permissions.ts` | Matriks izin aksi per role dan helper `can()` |
 | `lib/session.ts` | `AppRole`, `ROLE_LABELS`, `ROLE_ACCESS`, normalisasi role, storage sesi |
 | `middleware.ts` | Guard route berdasarkan cookie role |

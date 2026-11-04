@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
-import { Pencil, Inbox, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Pencil, Inbox } from 'lucide-react';
 import { PraDryKilnItem } from '@/types/pra-dry-kiln';
 import { formatDateID } from '@/lib/dates';
+import Pagination from '@/components/Pagination';
 
 interface PlankTableProps {
   items: PraDryKilnItem[];
@@ -20,6 +21,15 @@ export default function PlankTable({
   canEdit = false,
   onEdit,
 }: PlankTableProps) {
+  const pageSize = 10;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedItems = items.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
   return (
     <section className="p-4 bg-white rounded-[10px] border border-stone-200 shadow-2xs flex flex-col gap-3 font-sans">
       <div className="overflow-x-auto">
@@ -57,7 +67,7 @@ export default function PlankTable({
                 </td>
               </tr>
             ) : (
-              items.map((item) => (
+              paginatedItems.map((item) => (
                 <tr
                   key={item.id_plank}
                   className="text-green-700 hover:bg-stone-50 transition-colors"
@@ -113,32 +123,13 @@ export default function PlankTable({
         </table>
       </div>
 
-      {/* Pagination Bar */}
-      <div className="pt-3 border-t border-stone-200 flex flex-wrap items-center justify-between gap-4 text-xs">
-        <span className="text-green-700/80 font-medium">
-          Showing {items.length} of {totalCount}
-        </span>
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            className="w-7 h-7 rounded text-green-700 font-extrabold bg-green-100/80"
-          >
-            1
-          </button>
-          <button
-            type="button"
-            className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+      <Pagination
+        page={currentPage}
+        pageSize={pageSize}
+        totalItems={items.length}
+        totalCount={totalCount}
+        onPageChange={setPage}
+      />
     </section>
   );
 }

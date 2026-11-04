@@ -5,7 +5,8 @@ import { FileDown, Plus, ChevronDown } from 'lucide-react';
 import { PraDryKilnItem } from '@/types/pra-dry-kiln';
 import PlankTable from '@/components/pra-dry-kiln/PlankTable';
 import BatchModal from '@/components/pra-dry-kiln/BatchModal';
-import { toISODate } from '@/lib/dates';
+import { toISODate, formatDateID } from '@/lib/dates';
+import { exportToPdf } from '@/lib/export';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 
@@ -79,6 +80,44 @@ export default function PraDryKilnPage() {
     return matchesSortimen && matchesDate;
   });
 
+  const handleExportPdf = () => {
+    const rows = filteredItems.map((item) => [
+      item.id_plank,
+      item.id_log,
+      item.sortimen,
+      `${item.tinggi}cm x ${item.lebar}cm x ${item.panjang}cm`,
+      item.volume.toFixed(3),
+      item.grade,
+      item.stage,
+      formatDateID(item.date),
+    ]);
+
+    exportToPdf({
+      title: 'Laporan Data Pra Dry-Kiln',
+      subtitle: `Tanggal: ${
+        dateFilter ? formatDateID(dateFilter) : 'Semua'
+      } | Sortimen: ${
+        sortimenFilter === 'All Sortimen' ? 'Semua' : sortimenFilter
+      }`,
+      sections: [
+        {
+          title: 'Data Pra Dry-Kiln',
+          columns: [
+            'ID Plank',
+            'ID Log',
+            'Sortimen',
+            'Dimensi (T x W x L)',
+            'Volume (m³)',
+            'Grade',
+            'Stage',
+            'Tanggal',
+          ],
+          rows,
+        },
+      ],
+    });
+  };
+
   return (
     <div className="flex flex-col gap-5 p-6 max-w-[1440px] mx-auto font-sans">
       {/* Filter & Action Toolbar */}
@@ -122,6 +161,7 @@ export default function PraDryKilnPage() {
         <div className="flex items-center gap-2.5">
           <button
             type="button"
+            onClick={handleExportPdf}
             className="px-4 py-2 bg-red-50 hover:bg-red-100/70 border border-stone-300 rounded text-xs font-semibold text-green-700 flex items-center gap-2 transition-colors cursor-pointer"
           >
             <FileDown className="w-3.5 h-3.5 text-green-700" />

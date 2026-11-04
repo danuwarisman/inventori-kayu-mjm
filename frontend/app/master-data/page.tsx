@@ -8,8 +8,6 @@ import {
   Trash2,
   X,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Check,
   Inbox,
   Factory,
@@ -20,9 +18,11 @@ import { toISODate, formatDateID } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 import { getApiErrorMessage, logApi } from '@/lib/api';
+import { exportToPdf } from '@/lib/export';
 import { LogItem } from '@/types/log';
 import FormError from '@/components/FormError';
 import ErrorBanner from '@/components/ErrorBanner';
+import Pagination from '@/components/Pagination';
 import {
   firstError,
   maxLength,
@@ -32,12 +32,15 @@ import {
 
 export { type LogItem };
 
+const PAGE_SIZE = 10;
+
 export default function DataLogPage() {
   const [logs, setLogs] = useState<LogItem[]>([]);
 
   // State Filter & Pencarian
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
+  const [page, setPage] = useState(1);
   const [pageError, setPageError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -166,14 +169,15 @@ export default function DataLogPage() {
       try {
         const saved = await logApi.create(newLogPayload);
         setLogs((prev) => [saved, ...prev]);
+        setPage(1);
       } catch (err) {
-        setPageError(
-          `Log ${idLog} ditampilkan sementara karena gagal disimpan ke server. ${getApiErrorMessage(
+        setFormError(
+          `Gagal menyimpan log ${idLog} ke server. Data tidak ditambahkan. ${getApiErrorMessage(
             err,
             'Silakan coba lagi.'
           )}`
         );
-        setLogs((prev) => [newLogPayload as LogItem, ...prev]);
+        return;
       }
     } else if (modalMode === 'edit' && selectedLogId) {
       const current = logs.find((l) => l.id_log === selectedLogId);
@@ -186,29 +190,29 @@ export default function DataLogPage() {
         suplier,
       };
 
+      if (!current?.idLog) {
+        setFormError(
+          'Data log ini belum tersimpan di server sehingga tidak dapat diperbarui.'
+        );
+        return;
+      }
+
       try {
-        if (current?.idLog) {
-          await logApi.update(current.idLog, updatePayload);
-        }
+        const saved = await logApi.update(current.idLog, updatePayload);
+        setLogs((prev) =>
+          prev.map((item) =>
+            item.id_log === selectedLogId ? { ...item, ...saved } : item
+          )
+        );
       } catch (err) {
-        setPageError(
-          `Perubahan log ${idLog} hanya tersimpan sementara karena gagal dikirim ke server. ${getApiErrorMessage(
+        setFormError(
+          `Gagal memperbarui log ${idLog} di server. Perubahan tidak disimpan. ${getApiErrorMessage(
             err,
             'Silakan coba lagi.'
           )}`
         );
+        return;
       }
-
-      setLogs((prev) =>
-        prev.map((item) =>
-          item.id_log === selectedLogId
-            ? {
-                ...item,
-                ...updatePayload,
-              }
-            : item
-        )
-      );
     }
 
     setIsModalOpen(false);
@@ -240,6 +244,95 @@ export default function DataLogPage() {
     return matchesSortimen && matchesDate;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedLogs = filteredLogs.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  const capacityStats = [
+    { title: 'Sawmill', stage: 'Sawmill' as const, icon: Factory, capacity: 15 },
+    {
+      title: 'Pra Dry-Kiln',
+      stage: 'Pra Dry Kiln' as const,
+      icon: Flame,
+      capacity: 15,
+    },
+    {
+      title: 'Dry-KILN Process',
+      stage: 'Dry Kiln' as const,
+      icon: Flame,
+      capacity: 15,
+    },
+    {
+      title: 'Ready To Sale',
+      stage: 'Ready To Sale' as const,
+      icon: PackageCheck,
+      capacity: 15,
+    },
+  ].map((stat) => {
+    const count = logs.filter((log) => log.stage === stat.stage).length;
+    return {
+      ...stat,
+      ratio: `${count}/${stat.capacity}`,
+      pct: Math.min(100, Math.round((count / stat.capacity) * 100)),
+    };
+  });
+
+  const handleExportPdf = () => {
+    const columns = [
+      'ID Log',
+      'Sortimen',
+      'Panjang (cm)',
+      'Diameter (cm)',
+      'Volume (m³)',
+      'Stage',
+      'Tanggal Masuk',
+    ];
+
+    if (isManager) {
+      columns.push('Supplier', 'Harga');
+    }
+
+    const rows = filteredLogs.map((item) => {
+      const row = [
+        item.id_log,
+        item.sortimen,
+        String(item.panjang),
+        String(item.diameter),
+        item.volume.toFixed(3),
+        item.stage,
+        formatDateID(item.tanggal_masuk),
+      ];
+
+      if (isManager) {
+        row.push(
+          item.suplier,
+          `Rp ${(item.harga || 0).toLocaleString('id-ID')}`
+        );
+      }
+
+      return row;
+    });
+
+    exportToPdf({
+      title: 'Laporan Data Log',
+      subtitle: `Tanggal: ${
+        dateFilter ? formatDateID(dateFilter) : 'Semua'
+      } | Sortimen: ${
+        sortimenFilter === 'All Sortimen' ? 'Semua' : sortimenFilter
+      }`,
+      sections: [
+        {
+          title: 'Data Log',
+          columns,
+          rows,
+        },
+      ],
+    });
+  };
+
   return (
     <div className="flex flex-col gap-5 p-6 max-w-[1440px] mx-auto font-sans">
       {/* 1. Filter Header Bar */}
@@ -252,7 +345,10 @@ export default function DataLogPage() {
             <input
               type="date"
               value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setPage(1);
+              }}
               className="px-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700"
             />
           </div>
@@ -264,7 +360,10 @@ export default function DataLogPage() {
             <div className="relative">
               <select
                 value={sortimenFilter}
-                onChange={(e) => setSortimenFilter(e.target.value)}
+                onChange={(e) => {
+                  setSortimenFilter(e.target.value);
+                  setPage(1);
+                }}
                 className="appearance-none pr-8 pl-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700 cursor-pointer"
               >
                 <option value="All Sortimen">All Sortimen</option>
@@ -280,6 +379,7 @@ export default function DataLogPage() {
         <div className="flex items-center gap-2.5">
           <button
             type="button"
+            onClick={handleExportPdf}
             className="px-4 py-2 bg-red-50 hover:bg-red-100/70 border border-stone-300 rounded text-xs font-semibold text-green-700 flex items-center gap-2 transition-colors cursor-pointer"
           >
             <FileDown className="w-3.5 h-3.5 text-green-700" />
@@ -358,7 +458,7 @@ export default function DataLogPage() {
                   </td>
                 </tr>
               ) : (
-                filteredLogs.map((item) => (
+                paginatedLogs.map((item) => (
                   <tr
                     key={item.id_log}
                     className="text-green-700 hover:bg-stone-50 transition-colors"
@@ -428,46 +528,22 @@ export default function DataLogPage() {
           </table>
         </div>
 
-        {/* Pagination Bar */}
-        <div className="pt-3 border-t border-stone-200 flex flex-wrap items-center justify-between gap-4 text-xs">
-          <span className="text-green-700/80 font-medium">
-            Showing {filteredLogs.length} of {logs.length}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              className="w-7 h-7 rounded text-green-700 font-extrabold bg-green-100/80"
-            >
-              1
-            </button>
-            <button
-              type="button"
-              className="p-1 rounded border border-green-700 text-green-700 hover:bg-green-50"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        <Pagination
+          page={currentPage}
+          pageSize={PAGE_SIZE}
+          totalItems={filteredLogs.length}
+          totalCount={logs.length}
+          onPageChange={setPage}
+        />
       </section>
 
       {/* 3. Bottom Capacity Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { title: 'Sawmill', icon: Factory, ratio: '0/15', pct: 0 },
-          { title: 'Pra Dry-Kiln', icon: Flame, ratio: '0/15', pct: 0 },
-          { title: 'Dry-KLIN Process', icon: Flame, ratio: '0/15', pct: 0 },
-          { title: 'Ready To Sale', icon: PackageCheck, ratio: '0/15', pct: 0 },
-        ].map((stat, i) => {
+        {capacityStats.map((stat) => {
           const Icon = stat.icon;
           return (
             <div
-              key={i}
+              key={stat.title}
               className="p-3 bg-white rounded border border-stone-200 shadow-2xs flex flex-col gap-2"
             >
               <div className="flex justify-between items-center">
