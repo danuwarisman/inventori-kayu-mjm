@@ -665,9 +665,46 @@ Respons `GET /dry-kiln` mengembalikan `idOven`, `id_log`, `id_plank`, `kodeOven`
 
 **Harga Dry Kiln (read-only).** Model `DryKiln` di backend **tidak memiliki field harga**. Karena itu halaman `/dry-kiln` menampilkan harga dari **log asal** papan: `id_log` pada item Dry Kiln dicocokkan dengan `id_log` dari `GET /log`, lalu `LogItem.harga` ditampilkan sebagai `Rp ...`. Bila log tidak punya harga (`0`/kosong) atau request log gagal, kolom menampilkan `-`. Nilai ini tidak dapat diedit dan tidak dikirim ke `POST/PATCH /dry-kiln`.
 
-### 8.8 Customer (backend ada, frontend belum memakai)
+### 8.8 Customer
 
-Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `customerApi`, dan halaman `/customers` masih lokal. Kontrak backend perlu dicek terpisah jika nanti diintegrasikan.
+`lib/api.ts` sudah memiliki `customerApi` dengan kontrak model `Customer` (camelCase):
+
+| Method | Endpoint | Body | Respons |
+|---|---|---|---|
+| `GET` | `/customer` | — | `BackendCustomer[]` |
+| `GET` | `/customer/:id` | — | `BackendCustomer` |
+| `POST` | `/customer` | `CustomerPayload` | `BackendCustomer` |
+| `PATCH` | `/customer/:id` | `CustomerPayload` | `BackendCustomer` |
+| `DELETE` | `/customer/:id` | — | — |
+
+`CustomerPayload` hanya berisi `namaCustomer`, `alamatCustomer`, dan `kontakCustomer`. Model `Customer` belum punya field email, sehingga `CustomerItem.email` selalu diisi string kosong oleh `mapBackendCustomer()` dan tidak dikirim ke backend.
+
+**Status backend:** `CustomerController`/`CustomerService` masih kosong. Endpoint di atas baru berupa kontrak yang direncanakan; pemanggilan akan menghasilkan 404 sampai modul backend diimplementasikan. Halaman `/customers` masih memakai state lokal.
+
+### 8.9 Endpoint modul lanjutan (client siap, backend belum ada)
+
+`lib/api.ts` sudah menyiapkan client untuk modul yang direncanakan pada roadmap backend B5–B16. Semua mapping payload/response, normalisasi `Decimal` → `number`, dan perhitungan total dilakukan terpusat di file ini.
+
+| Client | Endpoint yang dituju | Tipe terkait |
+|---|---|---|
+| `accountApi` | `GET/POST /accounts`, `GET/PATCH/DELETE /accounts/:id` | `AccountUser`, `AccountCreatePayload`, `AccountUpdatePayload` |
+| `salesApi` | `GET/POST /sales`, `GET/PATCH/DELETE /sales/:id`, `POST /sales/:id/verify`, `/approve`, `/reject` | `SalesOrder`, `SalesCreatePayload`, `SalesDecisionPayload`, `SalesRejectPayload` |
+| `purchaseApi` | `GET/POST /purchase`, `GET/PATCH/DELETE /purchase/:id`, `POST /purchase/:id/verify`, `/approve`, `/reject`, `/receive` | `PurchaseOrder`, `PurchaseCreatePayload`, `PurchaseReceivePayload` |
+| `stockApi` | `GET /stock`, `GET /stock/summary`, `GET /stock/movements`, `POST /stock/adjustments` | `StockItem`, `StockSummary`, `StockMovement`, `StockAdjustmentPayload` |
+| `praDryKilnApi` | CRUD `/pra-dry-kiln`, `POST/DELETE /pra-dry-kiln/:id/planks` | `PraDryKilnBatch`, `PraDryKilnCreatePayload` |
+| `hasilDryKilnApi` | `GET/POST /dry-kiln/:idOven/hasil`, `PATCH/DELETE /dry-kiln/:idOven/hasil/:idHasil` | `HasilDryKilnItem`, `HasilDryKilnPayload` |
+| `dashboardApi` | `GET /dashboard` | `DashboardSummary` |
+| `reportApi` | `GET /report/:type?startDate=&endDate=` | `ReportResponse`, `ReportType`, `ReportPeriod` |
+| `healthApi` | `GET /health` | `HealthResponse` |
+
+Catatan:
+
+- **Belum ada implementasi backend** untuk endpoint di atas (kecuali `/dry-kiln` yang sudah live). Pemanggilan akan gagal 404/`ECONNREFUSED`; pesan error tetap berasal dari `request()` dan **tidak ada fallback data palsu**.
+- `salesApi`/`purchaseApi` memisahkan `verify`, `approve`, `reject`, dan `receive` (pembelian) agar alur approval backend tidak disatukan dalam satu method.
+- `purchaseApi.receive()` diharapkan membuat `StokLog` di backend dari detail pembelian.
+- `healthApi.check()` memakai `skipAuthRedirect: true` agar health check tidak memicu logout saat sesi kosong/kedaluwarsa.
+- `reportApi` dan `stockApi` memakai helper `buildQuery()`; nilai `undefined`/`null`/string kosong tidak ikut dikirim.
+- `dashboardApi.get()` mengisi field yang tidak dikirim backend dengan nilai 0/kosong, bukan data contoh.
 
 ---
 
@@ -680,16 +717,16 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 | `/` | Root | — | Redirect ke `/login` |
 | `/login` | Login | **Live penuh** | Auth ke backend, simpan JWT + sesi |
 | `/dashboard` | Dashboard Admin | **Sebagian** | Statistik live; quick entry Log live dengan payload sesuai DTO |
-| `/manager-dashboard` | Dashboard Manager | **UI lokal** | Semua metrik 0/placeholder |
+| `/manager-dashboard` | Dashboard Manager | **UI lokal** | Semua metrik 0/placeholder; client `dashboardApi` sudah siap |
 | `/master-data` | Data Log | **Live** | Baca, create, update, delete live; export PDF, pagination, dan progress bar stage aktif |
 | `/sawmill` | Data Sawmill | **Sebagian** | Baca, create batch, tulis/edit plank, dan delete live; edit batch terbatas pada field yang didukung backend |
-| `/pra-dry-kiln` | Pra Dry Kiln | **UI lokal** | Tidak ada API |
+| `/pra-dry-kiln` | Pra Dry Kiln | **UI lokal** | Client `praDryKilnApi` siap, endpoint backend belum ada |
 | `/dry-kiln` | Dry Kiln | **Live** | Baca, create, update live; belum ada tombol delete |
-| `/stock-reports` | Stock Reports | **UI lokal** | Tidak ada API |
+| `/stock-reports` | Stock Reports | **UI lokal** | Client `stockApi` siap, endpoint backend belum ada |
 | `/suppliers` | Supplier | **Live penuh** | CRUD lengkap ke backend |
-| `/sales` | Sales | **UI lokal** | Tidak ada API |
-| `/customers` | Customer | **UI lokal** | Backend customer belum dipakai |
-| `/accounts` | Account Management | **UI lokal** | Manajer-only, data di state |
+| `/sales` | Sales | **UI lokal** | Client `salesApi` siap, endpoint backend belum ada |
+| `/customers` | Customer | **UI lokal** | Client `customerApi` siap, controller backend masih kosong |
+| `/accounts` | Account Management | **UI lokal** | Client `accountApi` siap, endpoint backend belum ada; manajer-only, data di state |
 | `/settings` | Settings | **UI lokal + logout live** | Profil/password/export simulasi; logout nyata |
 
 ### 9.2 `/login`
@@ -710,7 +747,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
   - `logApi.list()` → jumlah log + 5 aktivitas terbaru.
   - `sawmillApi.listPlanks()` → jumlah plank.
   - `dryKilnApi.list()` → jumlah item dry kiln.
-- `totalCustomers` dan `totalSales` masih hardcoded `0`.
+- `totalCustomers` dan `totalSales` masih hardcoded `0`; `customerApi` dan `salesApi` sudah tersedia, tetapi endpoint backend-nya belum ada.
 - Quick Entry (diameter, panjang, sortimen, supplier):
   - Hanya tampil untuk `admin_lapangan` (`log:create`); role lain melihat keterangan read-only.
   - Mengirim `POST /log` melalui mapper `logApi.create()`: `sortimen` → `asalSortimen`, kode → `kodeLog`, dan hanya field DTO yang dikirim.
@@ -722,7 +759,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Semua angka metrik (`totalRevenue`, `netProfit`, `totalExpenses`, `transactions`, `stockAlerts`, `pendingInvoices`, `accountsReceivable`) diinisialisasi `0`/kosong.
 - Grafik hanya placeholder dengan pesan “Belum ada data transaksi...”.
 - Tombol “Generate Financial Report” belum berfungsi.
-- Belum ada integrasi API.
+- `dashboardApi.get()` sudah tersedia di `lib/api.ts`, tetapi endpoint `GET /dashboard` belum diimplementasikan di backend. Halaman ini belum memanggilnya dan masih memakai nilai 0/placeholder.
 
 ### 9.5 `/master-data` — Data Log
 
@@ -768,7 +805,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 
 ### 9.7 `/pra-dry-kiln` — Pra Dry Kiln
 
-- Hanya state lokal; tidak ada API.
+- Hanya state lokal; client `praDryKilnApi` sudah tersedia, tetapi endpoint `/pra-dry-kiln` belum ada di backend.
 - Filter tanggal dan sortimen.
 - Modal batch untuk tambah/edit item plank.
 - Volume: `t * w * l / 1.000.000`.
@@ -788,10 +825,11 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - **Kolom Harga Dry Kiln** menampilkan harga log asal (read-only): `id_log` item dicocokkan dengan `GET /log`, lalu `harga` log ditampilkan sebagai `Rp ...`. Nilai `-` muncul bila log tidak punya harga atau request log gagal. Lihat §8.7.
 - **Export PDF** menyertakan kolom Harga Dry Kiln dan mencetak seluruh baris hasil filter; tabel memakai pagination 10 baris per halaman.
 - Keterbatasan: harga tidak dapat diubah dari halaman ini karena `DryKiln` backend belum punya field harga.
+- `hasilDryKilnApi` sudah disiapkan untuk `GET/POST /dry-kiln/:idOven/hasil`, tetapi endpoint hasil oven belum diimplementasikan di backend dan belum dipakai halaman ini.
 
 ### 9.9 `/stock-reports` — Stock Reports
 
-- Hanya state lokal; tidak ada API.
+- Hanya state lokal; client `stockApi` (`GET /stock`, `/stock/summary`, `/stock/movements`, `POST /stock/adjustments`) sudah tersedia, tetapi endpoint backend belum ada.
 - Filter sortimen, grade, dan tanggal.
 - Modal tambah stok.
 - Status badge: `Available`, `Low Stock`, `Out of Stock`.
@@ -827,14 +865,14 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Tambah transaksi hanya untuk `admin_lapangan`; total = kuantitas × harga satuan.
 - Manager dapat Approve/Reject; alasan reject lewat `window.prompt`.
 - `admin_kantor` dan role lain read-only pada Sales.
-- Tidak ada API penjualan di frontend.
+- Client `salesApi` sudah tersedia (`list/get/create/update/remove/verify/approve/reject`), tetapi endpoint `/sales` belum ada di backend. Halaman masih memakai state lokal.
 
 ### 9.12 `/customers` — Customer
 
 - Hanya state lokal.
 - Manager melihat widget analitik (`CustomerAnalytics`) dari data state.
 - Tambah/edit customer lewat modal hanya untuk `admin_lapangan`.
-- Backend memiliki modul customer, tetapi frontend belum memakai endpoint-nya.
+- Client `customerApi` sudah tersedia dan memetakan `BackendCustomer` → `CustomerItem`, tetapi `CustomerController`/`CustomerService` backend masih kosong. Halaman masih memakai state lokal.
 - Manager dan admin_kantor read-only untuk aksi data.
 
 ### 9.13 `/accounts` — Account Management
@@ -843,7 +881,7 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 - Daftar akun, search, tambah/edit lewat `AccountModal`.
 - Hanya bisa dibuka role `manager` (dijaga middleware + `ROLE_ACCESS`).
 - Model `AccountItem` menyimpan `password` di state client; ini hanya demo UI, bukan autentikasi nyata.
-- Tidak ada API akun.
+- Client `accountApi` sudah tersedia untuk `GET/POST /accounts` dan `GET/PATCH/DELETE /accounts/:id`, tetapi endpoint backend belum ada. Halaman masih memakai state lokal.
 
 ### 9.14 `/settings` — Settings
 
@@ -898,15 +936,21 @@ Backend memiliki `CustomerModule`, tetapi `lib/api.ts` **belum** memiliki `custo
 |---|---|---|
 | `types/log.ts` | `LogItem`, `LogStage` | Dashboard, Master Data, API |
 | `types/sawmill.ts` | `SawmillItem`, `PlankItem` | Sawmill, API |
-| `types/dry-kiln.ts` | `DryKilnItem`, `DryKilnFormData` | Dry Kiln, API |
-| `types/pra-dry-kiln.ts` | `PraDryKilnItem`, `PraDryKilnFormData` | Pra Dry Kiln |
+| `types/dry-kiln.ts` | `DryKilnItem`, `DryKilnFormData`, `HasilDryKilnItem`, `HasilDryKilnPayload`, `StatusKelayakanKayu` | Dry Kiln, API |
+| `types/pra-dry-kiln.ts` | `PraDryKilnItem`, `PraDryKilnFormData`, `PraDryKilnBatch`, `PraDryKilnCreatePayload` | Pra Dry Kiln, API |
 | `types/stock-report.ts` | `StockReportItem`, `StockStatus` | Stock Reports |
+| `types/stock.ts` | `StockItem`, `StockSummary`, `StockMovement`, `StockAdjustmentPayload` | API stok (backend belum ada) |
 | `types/supplier.ts` | `SupplierItem`, `SupplierFormData` | Supplier, API |
-| `types/sales.ts` | `SalesItem`, `SalesFormData` | Sales |
-| `types/customer.ts` | `CustomerItem`, `CustomerFormData`, `SmartAlertItem` | Customer |
-| `types/account.ts` | `AccountItem`, `AccountFormData` | Accounts |
+| `types/sales.ts` | `SalesItem`, `SalesFormData`, `SalesOrder`, `SalesDetail`, payload create/decision/reject | Sales, API |
+| `types/purchase.ts` | `PurchaseOrder`, `PurchaseDetail`, payload create/decision/reject/receive | API pembelian (backend belum ada) |
+| `types/customer.ts` | `CustomerItem`, `CustomerFormData`, `SmartAlertItem`, `BackendCustomer`, `CustomerPayload` | Customer, API |
+| `types/account.ts` | `AccountItem`, `AccountFormData`, `AccountUser`, payload create/update | Accounts, API |
+| `types/dashboard.ts` | `DashboardSummary`, ringkasan produksi/keuangan, aktivitas, alert | API dashboard (backend belum ada) |
+| `types/report.ts` | `ReportResponse`, `ReportType`, `ReportPeriod`, `ReportColumn` | API laporan (backend belum ada) |
 | `types/settings.ts` | Profil, riwayat login, export, riwayat manajemen | Settings |
 | `types/inventory.ts` | Tipe lama dari SDD (`UserAccount`, `Supplier`, `Customer`, `StokLog`, `Plank`, `TransaksiPenjualan`) | Sebagian tidak dipakai halaman aktif |
+
+Tipe UI lama (`CustomerItem`, `SalesItem`, `AccountItem`, `StockReportItem`) sengaja tetap memakai snake_case agar halaman yang sudah ada tidak berubah. Tipe kontrak backend ditambahkan terpisah dengan nama model/DTO backend dan field **camelCase** (`BackendCustomer`, `SalesOrder`, `PurchaseOrder`, `AccountUser`, `StockItem`, `PraDryKilnBatch`, `HasilDryKilnItem`, dst).
 
 ### 11.2 Dual ID: ID tampilan vs ID backend
 
@@ -941,6 +985,19 @@ Aturan:
 }
 ```
 
+**Customer** (`lib/api.ts`):
+
+```ts
+{
+  id_backend: b.idCustomer,
+  id_customer: `CUS-${String(b.idCustomer).padStart(3, '0')}`,
+  nama: b.namaCustomer,
+  alamat: b.alamatCustomer,
+  no_hp: b.kontakCustomer,
+  email: '', // model Customer backend belum punya email
+}
+```
+
 **Log** (dilakukan backend):
 
 - `asalSortimen` → `sortimen`
@@ -972,6 +1029,7 @@ Aturan:
 - Tipe `Supplier`/`Customer`/`StokLog` di `types/inventory.ts` memakai snake_case lama dan tidak selalu sama dengan tipe yang dipakai halaman aktif.
 - `PlankGrade` didefinisikan ulang di `types/sawmill.ts`, `types/dry-kiln.ts`, dan `types/pra-dry-kiln.ts`.
 - `SawmillItem.stage` dibatasi `'Sawmill' | 'finish Sawmill'`, sedangkan backend menyimpan status sebagai string bebas.
+- Tipe UI snake_case dan tipe kontrak backend camelCase hidup berdampingan secara sengaja (mis. `CustomerItem` vs `BackendCustomer`, `SalesItem` vs `SalesOrder`). Jangan menyamakan keduanya tanpa memigrasikan halaman terkait.
 
 Rekomendasi: jadikan `lib/session.ts` satu-satunya sumber `AppRole`, dan pertimbangkan memindahkan `PlankGrade` ke satu file shared.
 
@@ -1102,12 +1160,13 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
     ```
 14. **Dua sumber aturan role/navigasi:** `ROLE_ACCESS` di `lib/session.ts`, `routeTitleMap` di Header, dan `navConfig` di Sidebar harus diperbarui bersamaan saat menambah halaman.
 15. **`StatCard` dan `ConfirmModal` belum dipakai**; bisa dihapus atau diadopsi agar konsisten.
+16. **API client siap, modul backend belum ada.** `customerApi`, `accountApi`, `salesApi`, `purchaseApi`, `stockApi`, `praDryKilnApi`, `hasilDryKilnApi`, `dashboardApi`, `reportApi`, dan `healthApi` sudah tersedia di `lib/api.ts`, tetapi endpoint-nya (kecuali `/dry-kiln`) belum diimplementasikan. Halaman terkait masih memakai state lokal, dan pemanggilan akan gagal 404 sampai roadmap backend B5–B16 selesai. Kontrak tipe sudah disiapkan di `types/purchase.ts`, `types/stock.ts`, `types/report.ts`, dan `types/dashboard.ts`.
 
 ### Prioritas rendah
 
-16. Duplikasi tipe `PlankGrade` dan role.
-17. `types/inventory.ts` sudah legacy dan berpotensi membingungkan.
-18. Tidak ada unit/E2E test.
+17. Duplikasi tipe `PlankGrade` dan role.
+18. `types/inventory.ts` sudah legacy dan berpotensi membingungkan.
+19. Tidak ada unit/E2E test.
 
 ---
 
@@ -1172,6 +1231,7 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 
 | Tanggal | Commit | Perubahan |
 |---|---|---|
+| 2026-11-04 | *(working tree)* | Scaffolding API/tipe modul lanjutan: `customerApi`, `accountApi`, `salesApi`, `purchaseApi`, `stockApi`, `praDryKilnApi`, `hasilDryKilnApi`, `dashboardApi`, `reportApi`, `healthApi`; tambah `types/purchase.ts`, `types/stock.ts`, `types/report.ts`, `types/dashboard.ts`, serta kontrak backend camelCase di tipe yang sudah ada. Endpoint backend terkait belum tersedia. |
 | 2026-11-04 | *(working tree)* | Export PDF aktif di master-data/sawmill/pra-dry-kiln/dry-kiln/stock-reports, pagination reusable, progress bar stage master-data, export database live (PDF/CSV/XLS), penghapusan fallback lokal pada operasi tulis, kolom Harga Dry Kiln read-only dari harga log asal (tabel + export), dan perapian halaman login (hapus dead link & indikator server palsu) |
 | 2026-11-03 | `58bdbe9` | Validasi form terpusat di `lib/validation.ts`, komponen `FormError`/`ErrorBanner`, pesan error API yang terlihat di dashboard/master-data/sawmill/dry-kiln/settings/stock-reports, dan validasi modal Account/Customer/Sales/Dry Kiln/Batch/Supplier |
 | 2026-11-03 | `751ae80` | RBAC per aksi terpusat di `lib/permissions.ts`: create/update/delete Log, Sawmill/Plank, Dry Kiln, Pra Dry Kiln, Supplier, Customer, Sales, Stock, Quick Entry, dan Data Management dibatasi sesuai role |
@@ -1196,7 +1256,7 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 
 | File | Kenapa penting |
 |---|---|
-| `lib/api.ts` | Semua endpoint, timeout, auth header, error handling, mapper Supplier/Log/Sawmill/Plank |
+| `lib/api.ts` | Semua endpoint, timeout, auth header, error handling, mapper Supplier/Log/Sawmill/Plank/Customer, serta client modul lanjutan (account, sales, purchase, stock, pra dry kiln, hasil dry kiln, dashboard, report, health) |
 | `lib/validation.ts` | Helper validasi form yang dipakai lintas modal/halaman |
 | `components/FormError.tsx` | Banner error inline di dalam form/modal |
 | `components/ErrorBanner.tsx` | Banner error halaman dengan aksi muat ulang |

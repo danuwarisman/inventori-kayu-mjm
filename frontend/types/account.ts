@@ -19,3 +19,41 @@ export interface AccountFormData {
   alamat: string;
   divisi: AccountDivision;
 }
+
+/* ------------------------------------------------------------------ */
+/* Kontrak backend (model `User` + `Role`, camelCase)                  */
+/* ------------------------------------------------------------------ */
+
+/** Role aplikasi dalam bentuk kode frontend. */
+export type AccountRole = 'manager' | 'admin_kantor' | 'admin_lapangan';
+
+/** Respons GET /accounts: user beserta relasi role. */
+export interface AccountUser {
+  id: number;
+  username: string;
+  nama: string;
+  roleId: number;
+  role?: {
+    id: number;
+    nama: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
+}
+
+/** Body CreateAccountDto. `roleId` mengacu ke tabel `role`. */
+export interface AccountCreatePayload {
+  username: string;
+  password: string;
+  nama: string;
+  roleId: number;
+}
+
+/** Body UpdateAccountDto; semua field opsional. */
+export interface AccountUpdatePayload {
+  username?: string;
+  password?: string;
+  nama?: string;
+  roleId?: number;
+}

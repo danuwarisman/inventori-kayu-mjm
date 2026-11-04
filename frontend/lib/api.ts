@@ -11,7 +11,50 @@
 import { SupplierItem, SupplierFormData } from '@/types/supplier';
 import { LogItem } from '@/types/log';
 import { SawmillItem, PlankItem } from '@/types/sawmill';
-import { DryKilnItem } from '@/types/dry-kiln';
+import {
+  DryKilnItem,
+  HasilDryKilnItem,
+  HasilDryKilnPayload,
+} from '@/types/dry-kiln';
+import {
+  BackendCustomer,
+  CustomerFormData,
+  CustomerItem,
+  CustomerPayload,
+} from '@/types/customer';
+import {
+  AccountCreatePayload,
+  AccountUpdatePayload,
+  AccountUser,
+} from '@/types/account';
+import {
+  SalesCreatePayload,
+  SalesDecisionPayload,
+  SalesDetail,
+  SalesOrder,
+  SalesRejectPayload,
+} from '@/types/sales';
+import {
+  PurchaseCreatePayload,
+  PurchaseDecisionPayload,
+  PurchaseDetail,
+  PurchaseOrder,
+  PurchaseReceivePayload,
+  PurchaseRejectPayload,
+} from '@/types/purchase';
+import {
+  StockAdjustmentPayload,
+  StockItem,
+  StockMovement,
+  StockSummary,
+} from '@/types/stock';
+import { ReportPeriod, ReportResponse, ReportType } from '@/types/report';
+import { DashboardSummary } from '@/types/dashboard';
+import {
+  PraDryKilnBatch,
+  PraDryKilnCreatePayload,
+  PraDryKilnUpdatePayload,
+} from '@/types/pra-dry-kiln';
 import { clearSession, getAccessToken } from '@/lib/session';
 
 /** Base URL backend, di-set via NEXT_PUBLIC_API_URL (lihat .env.local). */
@@ -576,6 +619,719 @@ export const dryKilnApi = {
   delete: async (id: number): Promise<{ success: boolean; message: string }> => {
     return request<{ success: boolean; message: string }>(`/dry-kiln/${id}`, {
       method: 'DELETE',
+    });
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Helper umum untuk endpoint baru                                     */
+/* ------------------------------------------------------------------ */
+
+/** Koersi nilai Decimal/string dari Prisma menjadi number yang aman. */
+function toNumber(value: unknown): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+/** Bangun query string dari objek filter; nilai kosong dilewati. */
+function buildQuery(
+  params: Record<string, string | number | undefined | null>
+): string {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    search.set(key, String(value));
+  });
+  const qs = search.toString();
+  return qs ? `?${qs}` : '';
+}
+
+/**
+ * Catatan kontrak:
+ * Endpoint di bawah ini mengikuti modul backend yang **direncanakan**
+ * (lihat roadmap backend B5–B16). Selama modul tersebut belum ada,
+ * pemanggilan akan menghasilkan 404 dan pesan error dari `request`.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Customer Endpoints                                                  */
+/* ------------------------------------------------------------------ */
+
+/** Petakan `BackendCustomer` ke `CustomerItem` yang dipakai UI. */
+export function mapBackendCustomer(b: BackendCustomer): CustomerItem {
+  return {
+    id_backend: b.idCustomer,
+    id_customer: `CUS-${String(b.idCustomer).padStart(3, '0')}`,
+    nama: b.namaCustomer,
+    alamat: b.alamatCustomer,
+    no_hp: b.kontakCustomer,
+    // Model Customer backend belum menyimpan email.
+    email: '',
+  };
+}
+
+/**
+ * Petakan `CustomerFormData` ke CreateCustomerDto/UpdateCustomerDto.
+ * `email` belum ada di backend, jadi tidak ikut dikirim.
+ */
+function toBackendCustomerPayload(data: CustomerFormData): CustomerPayload {
+  return {
+    namaCustomer: data.nama,
+    alamatCustomer: data.alamat,
+    kontakCustomer: data.no_hp,
+  };
+}
+
+export const customerApi = {
+  /** GET /customer -> daftar customer. */
+  list: async (): Promise<CustomerItem[]> => {
+    const data = await request<BackendCustomer[]>('/customer');
+    return (Array.isArray(data) ? data : []).map(mapBackendCustomer);
+  },
+
+  /** GET /customer/:id -> detail customer. */
+  get: async (id: number): Promise<CustomerItem> => {
+    return mapBackendCustomer(await request<BackendCustomer>(`/customer/${id}`));
+  },
+
+  /** POST /customer -> tambah customer. */
+  create: async (data: CustomerFormData): Promise<CustomerItem> => {
+    const created = await request<BackendCustomer>('/customer', {
+      method: 'POST',
+      body: JSON.stringify(toBackendCustomerPayload(data)),
+    });
+    return mapBackendCustomer(created);
+  },
+
+  /** PATCH /customer/:id -> ubah data customer. */
+  update: async (id: number, data: CustomerFormData): Promise<CustomerItem> => {
+    const updated = await request<BackendCustomer>(`/customer/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(toBackendCustomerPayload(data)),
+    });
+    return mapBackendCustomer(updated);
+  },
+
+  /** DELETE /customer/:id -> hapus customer (soft delete di backend). */
+  remove: async (id: number): Promise<void> => {
+    await request<unknown>(`/customer/${id}`, { method: 'DELETE' });
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Account Endpoints                                                   */
+/* ------------------------------------------------------------------ */
+
+export const accountApi = {
+  /** GET /accounts -> daftar user + role (manager-only). */
+  list: async (): Promise<AccountUser[]> => {
+    const data = await request<AccountUser[]>('/accounts');
+    return Array.isArray(data) ? data : [];
+  },
+
+  /** GET /accounts/:id -> detail user. */
+  get: async (id: number): Promise<AccountUser> => {
+    return request<AccountUser>(`/accounts/${id}`);
+  },
+
+  /** POST /accounts -> buat user baru. */
+  create: async (data: AccountCreatePayload): Promise<AccountUser> => {
+    return request<AccountUser>('/accounts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /** PATCH /accounts/:id -> ubah user/password/role. */
+  update: async (
+    id: number,
+    data: AccountUpdatePayload
+  ): Promise<AccountUser> => {
+    return request<AccountUser>(`/accounts/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /** DELETE /accounts/:id -> nonaktifkan/hapus user. */
+  remove: async (id: number): Promise<void> => {
+    await request<unknown>(`/accounts/${id}`, { method: 'DELETE' });
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Sales Endpoints                                                     */
+/* ------------------------------------------------------------------ */
+
+function normalizeSalesDetail(detail: SalesDetail): SalesDetail {
+  return {
+    ...detail,
+    kuantitasTerjual: toNumber(detail.kuantitasTerjual),
+    hargaSatuan: toNumber(detail.hargaSatuan),
+  };
+}
+
+/** Normalisasi Decimal + hitung total harga bila backend tidak mengirim. */
+function normalizeSalesOrder(order: SalesOrder): SalesOrder {
+  const detailPenjualan = (order.detailPenjualan ?? []).map(
+    normalizeSalesDetail
+  );
+  const totalHarga = detailPenjualan.reduce(
+    (sum, item) => sum + item.kuantitasTerjual * item.hargaSatuan,
+    0
+  );
+
+  return {
+    ...order,
+    detailPenjualan,
+    totalHarga: order.totalHarga ?? totalHarga,
+  };
+}
+
+export const salesApi = {
+  /** GET /sales -> daftar transaksi penjualan + detail/approval. */
+  list: async (filters?: {
+    status?: string;
+    verification?: string;
+    idCustomer?: number;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<SalesOrder[]> => {
+    const qs = buildQuery({
+      status: filters?.status,
+      verification: filters?.verification,
+      idCustomer: filters?.idCustomer,
+      startDate: filters?.startDate,
+      endDate: filters?.endDate,
+    });
+    const data = await request<SalesOrder[]>(`/sales${qs}`);
+    return (Array.isArray(data) ? data : []).map(normalizeSalesOrder);
+  },
+
+  /** GET /sales/:id -> detail transaksi. */
+  get: async (id: number): Promise<SalesOrder> => {
+    return normalizeSalesOrder(await request<SalesOrder>(`/sales/${id}`));
+  },
+
+  /** POST /sales -> buat draft penjualan (status MENUNGGU). */
+  create: async (data: SalesCreatePayload): Promise<SalesOrder> => {
+    return normalizeSalesOrder(
+      await request<SalesOrder>('/sales', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    );
+  },
+
+  /** PATCH /sales/:id -> ubah draft yang belum diverifikasi. */
+  update: async (
+    id: number,
+    data: Partial<SalesCreatePayload>
+  ): Promise<SalesOrder> => {
+    return normalizeSalesOrder(
+      await request<SalesOrder>(`/sales/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      })
+    );
+  },
+
+  /** DELETE /sales/:id -> batalkan/hapus draft. */
+  remove: async (id: number): Promise<void> => {
+    await request<unknown>(`/sales/${id}`, { method: 'DELETE' });
+  },
+
+  /** POST /sales/:id/verify -> verifikasi oleh Admin Kantor. */
+  verify: async (
+    id: number,
+    data?: SalesDecisionPayload
+  ): Promise<SalesOrder> => {
+    return normalizeSalesOrder(
+      await request<SalesOrder>(`/sales/${id}/verify`, {
+        method: 'POST',
+        body: JSON.stringify(data ?? {}),
+      })
+    );
+  },
+
+  /** POST /sales/:id/approve -> approval akhir oleh Manager. */
+  approve: async (
+    id: number,
+    data?: SalesDecisionPayload
+  ): Promise<SalesOrder> => {
+    return normalizeSalesOrder(
+      await request<SalesOrder>(`/sales/${id}/approve`, {
+        method: 'POST',
+        body: JSON.stringify(data ?? {}),
+      })
+    );
+  },
+
+  /** POST /sales/:id/reject -> tolak penjualan (alasan wajib). */
+  reject: async (id: number, data: SalesRejectPayload): Promise<SalesOrder> => {
+    return normalizeSalesOrder(
+      await request<SalesOrder>(`/sales/${id}/reject`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    );
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Purchase Endpoints                                                  */
+/* ------------------------------------------------------------------ */
+
+function normalizePurchaseDetail(detail: PurchaseDetail): PurchaseDetail {
+  return {
+    ...detail,
+    panjang: toNumber(detail.panjang),
+    diameter: toNumber(detail.diameter),
+    jumlahDipesan: toNumber(detail.jumlahDipesan),
+    hargaPerLog: toNumber(detail.hargaPerLog),
+  };
+}
+
+function normalizePurchaseOrder(order: PurchaseOrder): PurchaseOrder {
+  const detailPembelian = (order.detailPembelian ?? []).map(
+    normalizePurchaseDetail
+  );
+  const totalHarga = detailPembelian.reduce(
+    (sum, item) => sum + item.jumlahDipesan * item.hargaPerLog,
+    0
+  );
+
+  return {
+    ...order,
+    detailPembelian,
+    totalHarga: order.totalHarga ?? totalHarga,
+  };
+}
+
+export const purchaseApi = {
+  /** GET /purchase -> daftar transaksi pembelian. */
+  list: async (filters?: {
+    status?: string;
+    verification?: string;
+    idSupplier?: number;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<PurchaseOrder[]> => {
+    const qs = buildQuery({
+      status: filters?.status,
+      verification: filters?.verification,
+      idSupplier: filters?.idSupplier,
+      startDate: filters?.startDate,
+      endDate: filters?.endDate,
+    });
+    const data = await request<PurchaseOrder[]>(`/purchase${qs}`);
+    return (Array.isArray(data) ? data : []).map(normalizePurchaseOrder);
+  },
+
+  /** GET /purchase/:id -> detail pembelian. */
+  get: async (id: number): Promise<PurchaseOrder> => {
+    return normalizePurchaseOrder(
+      await request<PurchaseOrder>(`/purchase/${id}`)
+    );
+  },
+
+  /** POST /purchase -> buat draft pembelian. */
+  create: async (data: PurchaseCreatePayload): Promise<PurchaseOrder> => {
+    return normalizePurchaseOrder(
+      await request<PurchaseOrder>('/purchase', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    );
+  },
+
+  /** PATCH /purchase/:id -> ubah draft pembelian. */
+  update: async (
+    id: number,
+    data: Partial<PurchaseCreatePayload>
+  ): Promise<PurchaseOrder> => {
+    return normalizePurchaseOrder(
+      await request<PurchaseOrder>(`/purchase/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      })
+    );
+  },
+
+  /** DELETE /purchase/:id -> batalkan/hapus draft. */
+  remove: async (id: number): Promise<void> => {
+    await request<unknown>(`/purchase/${id}`, { method: 'DELETE' });
+  },
+
+  /** POST /purchase/:id/verify -> verifikasi oleh Admin Kantor. */
+  verify: async (
+    id: number,
+    data?: PurchaseDecisionPayload
+  ): Promise<PurchaseOrder> => {
+    return normalizePurchaseOrder(
+      await request<PurchaseOrder>(`/purchase/${id}/verify`, {
+        method: 'POST',
+        body: JSON.stringify(data ?? {}),
+      })
+    );
+  },
+
+  /** POST /purchase/:id/approve -> approval oleh Manager. */
+  approve: async (
+    id: number,
+    data?: PurchaseDecisionPayload
+  ): Promise<PurchaseOrder> => {
+    return normalizePurchaseOrder(
+      await request<PurchaseOrder>(`/purchase/${id}/approve`, {
+        method: 'POST',
+        body: JSON.stringify(data ?? {}),
+      })
+    );
+  },
+
+  /** POST /purchase/:id/reject -> tolak pembelian (alasan wajib). */
+  reject: async (
+    id: number,
+    data: PurchaseRejectPayload
+  ): Promise<PurchaseOrder> => {
+    return normalizePurchaseOrder(
+      await request<PurchaseOrder>(`/purchase/${id}/reject`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    );
+  },
+
+  /** POST /purchase/:id/receive -> terima barang & buat StokLog. */
+  receive: async (
+    id: number,
+    data?: PurchaseReceivePayload
+  ): Promise<PurchaseOrder> => {
+    return normalizePurchaseOrder(
+      await request<PurchaseOrder>(`/purchase/${id}/receive`, {
+        method: 'POST',
+        body: JSON.stringify(data ?? {}),
+      })
+    );
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Stock Endpoints                                                     */
+/* ------------------------------------------------------------------ */
+
+function normalizeStockItem(item: StockItem): StockItem {
+  return {
+    ...item,
+    panjang: toNumber(item.panjang),
+    lebar: toNumber(item.lebar),
+    tinggi: toNumber(item.tinggi),
+    volume: toNumber(item.volume),
+  };
+}
+
+function normalizeStockSummary(summary: StockSummary): StockSummary {
+  return {
+    totalPlank: toNumber(summary.totalPlank),
+    totalVolume: toNumber(summary.totalVolume),
+    totalReadyToSale: toNumber(summary.totalReadyToSale),
+    totalInDryKiln: toNumber(summary.totalInDryKiln),
+    byStage: (summary.byStage ?? []).map((group) => ({
+      ...group,
+      totalPlank: toNumber(group.totalPlank),
+      totalVolume: toNumber(group.totalVolume),
+    })),
+    byGrade: (summary.byGrade ?? []).map((group) => ({
+      ...group,
+      totalPlank: toNumber(group.totalPlank),
+      totalVolume: toNumber(group.totalVolume),
+    })),
+  };
+}
+
+export const stockApi = {
+  /** GET /stock -> daftar stok papan. */
+  list: async (filters?: {
+    stage?: string;
+    grade?: string;
+    sortimen?: string;
+  }): Promise<StockItem[]> => {
+    const qs = buildQuery({
+      stage: filters?.stage,
+      grade: filters?.grade,
+      sortimen: filters?.sortimen,
+    });
+    const data = await request<StockItem[]>(`/stock${qs}`);
+    return (Array.isArray(data) ? data : []).map(normalizeStockItem);
+  },
+
+  /** GET /stock/summary -> agregasi stok per stage/grade. */
+  summary: async (): Promise<StockSummary> => {
+    return normalizeStockSummary(
+      await request<StockSummary>('/stock/summary')
+    );
+  },
+
+  /** GET /stock/movements -> riwayat pergerakan stok. */
+  movements: async (filters?: {
+    idPlank?: number;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<StockMovement[]> => {
+    const qs = buildQuery({
+      idPlank: filters?.idPlank,
+      startDate: filters?.startDate,
+      endDate: filters?.endDate,
+    });
+    const data = await request<StockMovement[]>(`/stock/movements${qs}`);
+    return Array.isArray(data) ? data : [];
+  },
+
+  /** POST /stock/adjustments -> penyesuaian stok manual. */
+  adjust: async (data: StockAdjustmentPayload): Promise<StockItem> => {
+    return normalizeStockItem(
+      await request<StockItem>('/stock/adjustments', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    );
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Pra Dry Kiln Endpoints                                              */
+/* ------------------------------------------------------------------ */
+
+function normalizePraDryKilnBatch(batch: PraDryKilnBatch): PraDryKilnBatch {
+  return {
+    ...batch,
+    planks: (batch.planks ?? []).map((plank) => ({
+      ...plank,
+      volumePlank: toNumber(plank.volumePlank),
+    })),
+  };
+}
+
+export const praDryKilnApi = {
+  /** GET /pra-dry-kiln -> daftar palet/stacking. */
+  list: async (filters?: { status?: string }): Promise<PraDryKilnBatch[]> => {
+    const qs = buildQuery({ status: filters?.status });
+    const data = await request<PraDryKilnBatch[]>(`/pra-dry-kiln${qs}`);
+    return (Array.isArray(data) ? data : []).map(normalizePraDryKilnBatch);
+  },
+
+  /** GET /pra-dry-kiln/:id -> detail palet. */
+  get: async (id: number): Promise<PraDryKilnBatch> => {
+    return normalizePraDryKilnBatch(
+      await request<PraDryKilnBatch>(`/pra-dry-kiln/${id}`)
+    );
+  },
+
+  /** POST /pra-dry-kiln -> buat palet dan lampirkan plank. */
+  create: async (
+    data: PraDryKilnCreatePayload
+  ): Promise<PraDryKilnBatch> => {
+    return normalizePraDryKilnBatch(
+      await request<PraDryKilnBatch>('/pra-dry-kiln', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    );
+  },
+
+  /** PATCH /pra-dry-kiln/:id -> ubah tanggal/status palet. */
+  update: async (
+    id: number,
+    data: PraDryKilnUpdatePayload
+  ): Promise<PraDryKilnBatch> => {
+    return normalizePraDryKilnBatch(
+      await request<PraDryKilnBatch>(`/pra-dry-kiln/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      })
+    );
+  },
+
+  /** DELETE /pra-dry-kiln/:id -> hapus palet. */
+  remove: async (id: number): Promise<void> => {
+    await request<unknown>(`/pra-dry-kiln/${id}`, { method: 'DELETE' });
+  },
+
+  /** POST /pra-dry-kiln/:id/planks -> tambah plank ke palet. */
+  addPlank: async (
+    idPalet: number,
+    idPlank: number
+  ): Promise<PraDryKilnBatch> => {
+    return normalizePraDryKilnBatch(
+      await request<PraDryKilnBatch>(`/pra-dry-kiln/${idPalet}/planks`, {
+        method: 'POST',
+        body: JSON.stringify({ idPlank }),
+      })
+    );
+  },
+
+  /** DELETE /pra-dry-kiln/:id/planks/:idPlank -> keluarkan plank. */
+  removePlank: async (idPalet: number, idPlank: number): Promise<void> => {
+    await request<unknown>(`/pra-dry-kiln/${idPalet}/planks/${idPlank}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Hasil Dry Kiln Endpoints                                            */
+/* ------------------------------------------------------------------ */
+
+function normalizeHasilDryKiln(item: HasilDryKilnItem): HasilDryKilnItem {
+  return {
+    ...item,
+    volumeAkhir: toNumber(item.volumeAkhir),
+    kadarAirAkhir: toNumber(item.kadarAirAkhir),
+  };
+}
+
+export const hasilDryKilnApi = {
+  /** GET /dry-kiln/:idOven/hasil -> daftar hasil oven. */
+  list: async (idOven: number): Promise<HasilDryKilnItem[]> => {
+    const data = await request<HasilDryKilnItem[]>(
+      `/dry-kiln/${idOven}/hasil`
+    );
+    return (Array.isArray(data) ? data : []).map(normalizeHasilDryKiln);
+  },
+
+  /** POST /dry-kiln/:idOven/hasil -> catat hasil oven. */
+  create: async (
+    idOven: number,
+    data: HasilDryKilnPayload
+  ): Promise<HasilDryKilnItem> => {
+    return normalizeHasilDryKiln(
+      await request<HasilDryKilnItem>(`/dry-kiln/${idOven}/hasil`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    );
+  },
+
+  /** PATCH /dry-kiln/:idOven/hasil/:idHasil -> ubah hasil oven. */
+  update: async (
+    idOven: number,
+    idHasil: number,
+    data: Partial<HasilDryKilnPayload>
+  ): Promise<HasilDryKilnItem> => {
+    return normalizeHasilDryKiln(
+      await request<HasilDryKilnItem>(
+        `/dry-kiln/${idOven}/hasil/${idHasil}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        }
+      )
+    );
+  },
+
+  /** DELETE /dry-kiln/:idOven/hasil/:idHasil -> hapus hasil oven. */
+  remove: async (idOven: number, idHasil: number): Promise<void> => {
+    await request<unknown>(`/dry-kiln/${idOven}/hasil/${idHasil}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Dashboard Endpoint                                                  */
+/* ------------------------------------------------------------------ */
+
+const EMPTY_DASHBOARD: DashboardSummary = {
+  production: {
+    totalLog: 0,
+    totalSawmill: 0,
+    totalPlank: 0,
+    totalDryKiln: 0,
+    totalReadyToSale: 0,
+  },
+  finance: {
+    totalRevenue: 0,
+    netProfit: 0,
+    totalExpenses: 0,
+    totalTransactions: 0,
+    pendingInvoices: 0,
+    accountsReceivable: 0,
+  },
+  activities: [],
+  stockAlerts: [],
+  generatedAt: '',
+};
+
+function normalizeDashboard(
+  data: Partial<DashboardSummary> | null | undefined
+): DashboardSummary {
+  return {
+    production: {
+      ...EMPTY_DASHBOARD.production,
+      ...(data?.production ?? {}),
+    },
+    finance: {
+      ...EMPTY_DASHBOARD.finance,
+      ...(data?.finance ?? {}),
+    },
+    activities: Array.isArray(data?.activities) ? data.activities : [],
+    stockAlerts: Array.isArray(data?.stockAlerts) ? data.stockAlerts : [],
+    generatedAt: data?.generatedAt ?? new Date().toISOString(),
+  };
+}
+
+export const dashboardApi = {
+  /** GET /dashboard -> ringkasan sesuai role pemanggil. */
+  get: async (): Promise<DashboardSummary> => {
+    return normalizeDashboard(
+      await request<Partial<DashboardSummary>>('/dashboard')
+    );
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Report Endpoints                                                    */
+/* ------------------------------------------------------------------ */
+
+export const reportApi = {
+  /** GET /report/:type -> data laporan siap dirender/diexport. */
+  get: async (
+    type: ReportType,
+    period?: ReportPeriod
+  ): Promise<ReportResponse> => {
+    const qs = buildQuery({
+      startDate: period?.startDate,
+      endDate: period?.endDate,
+    });
+    const data = await request<ReportResponse>(`/report/${type}${qs}`);
+    return {
+      ...data,
+      columns: Array.isArray(data.columns) ? data.columns : [],
+      rows: Array.isArray(data.rows) ? data.rows : [],
+    };
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Health Endpoint                                                     */
+/* ------------------------------------------------------------------ */
+
+export type HealthStatus = 'ok' | 'degraded' | 'error';
+
+export interface HealthResponse {
+  status: HealthStatus;
+  database?: 'up' | 'down' | 'unknown';
+  timestamp?: string;
+}
+
+export const healthApi = {
+  /**
+   * GET /health -> status backend + database.
+   * `skipAuthRedirect` agar health check tidak memicu logout saat sesi kosong.
+   */
+  check: async (): Promise<HealthResponse> => {
+    return request<HealthResponse>('/health', undefined, {
+      skipAuthRedirect: true,
     });
   },
 };
