@@ -20,6 +20,7 @@ const routeTitleMap: Record<string, string> = {
   '/dry-kiln': 'Data Dry-Kiln',
   '/stock-reports': 'Stock Reports',
   '/suppliers': 'Supplier',
+  '/pembelian': 'Transaksi Pembelian',
   '/sales': 'Sales',
   '/customers': 'Customer',
   '/accounts': 'Account Management',

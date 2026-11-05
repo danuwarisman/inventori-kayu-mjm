@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Check, Plus } from 'lucide-react';
+import { X, Check, Plus, Loader2 } from 'lucide-react';
 import { CustomerItem, CustomerFormData } from '@/types/customer';
 import FormError from '@/components/FormError';
 import {
@@ -15,10 +15,12 @@ import {
 interface CustomerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CustomerFormData) => void;
+  onSubmit: (data: CustomerFormData) => void | Promise<void>;
   initialData?: CustomerItem | null;
   mode: 'input' | 'edit';
   nextCustomerIndex: number;
+  isSaving?: boolean;
+  errorMessage?: string | null;
 }
 
 export default function CustomerModal({
@@ -28,6 +30,8 @@ export default function CustomerModal({
   initialData,
   mode,
   nextCustomerIndex,
+  isSaving = false,
+  errorMessage = null,
 }: CustomerModalProps) {
   const currentYear = new Date().getFullYear();
 
@@ -74,6 +78,7 @@ export default function CustomerModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
 
     const payload: CustomerFormData = {
       ...formData,
@@ -92,7 +97,7 @@ export default function CustomerModal({
       required(payload.alamat, 'Alamat'),
       maxLength(payload.alamat, 'Alamat', 200),
       phone(payload.no_hp, 'No HP'),
-      maxLength(payload.no_hp, 'No HP', 20),
+      maxLength(payload.no_hp, 'No HP', 15),
       email(payload.email),
       maxLength(payload.email, 'Email', 100)
     );
@@ -103,9 +108,10 @@ export default function CustomerModal({
     }
 
     setFormError(null);
-    onSubmit(payload);
-    onClose();
+    void onSubmit(payload);
   };
+
+  const displayedError = formError ?? errorMessage;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs font-sans animate-in fade-in duration-150">
@@ -197,15 +203,21 @@ export default function CustomerModal({
             />
           </div>
 
-          <FormError message={formError} />
+          <FormError message={displayedError} />
 
           {/* Submit Button */}
           <div className="flex justify-end pt-2">
             <button
               type="submit"
-              className="h-10 px-5 bg-green-700 hover:bg-green-800 text-white font-bold rounded flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
+              disabled={isSaving}
+              className="h-10 px-5 bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white font-bold rounded flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
             >
-              {mode === 'input' ? (
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Menyimpan...</span>
+                </>
+              ) : mode === 'input' ? (
                 <>
                   <Plus className="w-3.5 h-3.5" />
                   <span>New Customer</span>

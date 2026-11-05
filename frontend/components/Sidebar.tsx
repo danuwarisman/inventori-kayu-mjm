@@ -13,6 +13,7 @@ import {
   BarChart3,
   Truck,
   ShoppingCart,
+  ShoppingBag,
   Users,
   UserCog,
   Settings,
@@ -33,6 +34,7 @@ interface NavItem {
   href: (role: AppRole) => string;
   icon: React.ComponentType<{ className?: string }>;
   managerOnly?: boolean;
+  allowedRoles?: AppRole[];
 }
 
 const navConfig: NavItem[] = [
@@ -70,6 +72,12 @@ const navConfig: NavItem[] = [
     label: 'Supplier',
     href: () => '/suppliers',
     icon: Truck,
+  },
+  {
+    label: 'Pembelian',
+    href: () => '/pembelian',
+    icon: ShoppingBag,
+    allowedRoles: ['admin_kantor', 'manager'],
   },
   {
     label: 'Sales',
@@ -130,7 +138,12 @@ export default function Sidebar({
   }, [isOpenMobile]);
 
   const visibleNavItems = navConfig
-    .filter((item) => !item.managerOnly || isManager)
+    .filter((item) => {
+      if (item.allowedRoles) {
+        return item.allowedRoles.includes(role);
+      }
+      return !item.managerOnly || isManager;
+    })
     .map((item) => ({
       label: item.label,
       href: item.href(role),

@@ -38,6 +38,7 @@ export const ROLE_ACCESS: Record<string, AppRole[] | null> = {
   '/dry-kiln': null,
   '/stock-reports': null,
   '/suppliers': null,
+  '/pembelian': ['admin_kantor', 'manager'],
   '/sales': null,
   '/customers': null,
   '/accounts': ['manager'],

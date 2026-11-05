@@ -166,8 +166,9 @@ frontend/
 │  ├─ dry-kiln/page.tsx          # Dry Kiln (live)
 │  ├─ stock-reports/page.tsx     # Stock Reports (lokal)
 │  ├─ suppliers/page.tsx         # Supplier (live CRUD)
+│  ├─ pembelian/page.tsx         # Transaksi Pembelian (live CRUD)
 │  ├─ sales/page.tsx             # Sales (lokal)
-│  ├─ customers/page.tsx         # Customer (lokal)
+│  ├─ customers/page.tsx         # Customer (live CRUD)
 │  ├─ accounts/page.tsx          # Account Management (lokal)
 │  └─ settings/page.tsx          # Settings (UI + logout)
 │
@@ -183,6 +184,7 @@ frontend/
 │  ├─ accounts/                  # AccountCard, AccountModal
 │  ├─ customers/                 # CustomerAnalytics, CustomerModal, CustomerTable
 │  ├─ dry-kiln/                  # DryKilnModal, DryKilnTable
+│  ├─ pembelian/                 # PurchaseDetailModal, PurchaseModal, PurchaseStatCards, PurchaseTable
 │  ├─ pra-dry-kiln/              # BatchModal, PlankTable
 │  ├─ sales/                     # SalesModal, SalesStatCards, SalesTable
 │  └─ suppliers/                 # SupplierModal, SupplierTable
@@ -369,6 +371,7 @@ Backend mengirim `role.nama.toUpperCase()`, misalnya `"ADMIN KANTOR"`. Frontend 
 | `/dry-kiln` | Semua role login |
 | `/stock-reports` | Semua role login |
 | `/suppliers` | Semua role login |
+| `/pembelian` | `admin_kantor`, `manager` |
 | `/sales` | Semua role login |
 | `/customers` | Semua role login |
 | `/settings` | Semua role login |
@@ -432,7 +435,9 @@ Sumber tunggal: `lib/permissions.ts` (`can(role, permission)`). Ini **hanya guar
 | Dry Kiln: create/update | — | — | ✅ |
 | Pra Dry Kiln: create/update | — | — | ✅ |
 | Supplier: create/update/delete | — | ✅ | — |
-| Customer: create/update | — | — | ✅ |
+| Pembelian: create/update/delete | — | ✅ | — |
+| Pembelian: approve/reject | ✅ | — | — |
+| Customer: create/update/delete | — | — | ✅ |
 | Sales: create | — | — | ✅ |
 | Sales: approve/reject | ✅ | — | — |
 | Stock: create | — | — | ✅ |
@@ -740,8 +745,9 @@ Catatan:
 | `/dry-kiln` | Dry Kiln | **Live** | Baca, create, update live; belum ada tombol delete |
 | `/stock-reports` | Stock Reports | **UI lokal** | Client `stockApi` siap, endpoint backend belum ada |
 | `/suppliers` | Supplier | **Live penuh** | CRUD lengkap ke backend |
+| `/pembelian` | Transaksi Pembelian | **Live penuh** | CRUD lengkap ke backend via `purchaseApi` (`/pembelian`); akses khusus Admin Kantor & Manager |
 | `/sales` | Sales | **UI lokal** | Client `salesApi` siap, endpoint backend belum ada |
-| `/customers` | Customer | **UI lokal** | Client `customerApi` siap, controller backend masih kosong |
+| `/customers` | Customer | **Live penuh** | CRUD lengkap ke backend via `customerApi` (`GET/POST/PATCH/DELETE /customers`) |
 | `/accounts` | Account Management | **UI lokal** | Client `accountApi` siap, endpoint backend belum ada; manajer-only, data di state |
 | `/settings` | Settings | **UI lokal + logout live** | Profil/password/export simulasi; logout nyata |
 
@@ -885,13 +891,25 @@ Catatan:
 
 ### 9.12 `/customers` — Customer
 
-- Hanya state lokal.
-- Manager melihat widget analitik (`CustomerAnalytics`) dari data state.
-- Tambah/edit customer lewat modal hanya untuk `admin_lapangan`.
-- Client `customerApi` sudah tersedia dan memetakan `BackendCustomer` → `CustomerItem`, tetapi `CustomerController`/`CustomerService` backend masih kosong. Halaman masih memakai state lokal.
-- Manager dan admin_kantor read-only untuk aksi data.
+- **Live Penuh:** Terhubung langsung ke controller backend `@Controller('customers')` via `customerApi` (`GET /customers`, `POST /customers`, `PATCH /customers/:id`, `DELETE /customers/:id`).
+- Menggunakan pola dual-ID: `id_backend` (`Customer.idCustomer`) untuk pemanggilan API dan `id_customer` (`CUS-xxx`) untuk format visual tabel.
+- Registrasi customer baru dan perubahan data dikelola oleh `admin_lapangan`, dengan validasi field DTO (panjang kontak maksimal 15 karakter).
+- Hapus customer didukung dengan dialog konfirmasi dan penanganan error responsif dari backend jika data terkait berelasi.
+- Toolbar dilengkapi pencarian reaktif (nama, ID, kontak, alamat), tombol refresh mandiri, dan banner error global dengan opsi coba lagi.
+- Manager melihat widget analitik (`CustomerAnalytics`) yang dihitung langsung dari data customer backend secara live.
 
-### 9.13 `/accounts` — Account Management
+### 9.13 `/pembelian` — Transaksi Pembelian Bahan Baku
+
+- **Live Penuh:** Terhubung langsung ke controller backend `@Controller('pembelian')` via `purchaseApi` (`GET /pembelian`, `POST /pembelian`, `PATCH /pembelian/:id`, `DELETE /pembelian/:id`).
+- **Hak Akses & Guard:** Hanya dapat diakses oleh `admin_kantor` (membuat, mengubah, dan membatalkan pesanan draft) dan `manager` (melihat riwayat dan memantau status). Halaman dijaga oleh middleware (`ROLE_ACCESS`), permission guard, dan filter navigasi `Sidebar.tsx`.
+- **Kartu Metrik (`PurchaseStatCards`):** Menampilkan Total Transaksi, Total Nilai Pembelian (akumulasi nominal Rp), Menunggu Approval, dan Pesanan Selesai/Disetujui.
+- **Toolbar:** Pencarian terpadu (No. PO, nama supplier, nama staf), filter status transaksi (`ALL`, `MENUNGGU`, `DISETUJUI`, `DITERIMA`, `DITOLAK`), tombol Refresh data, dan tombol `+ New Purchase Order` (khusus Admin Kantor).
+- **Tabel Transaksi (`PurchaseTable`):** Menampilkan nomor pesanan (`PO-xxxx`), tanggal beli format Indonesia (`dd/mm/yyyy`), nama supplier mitra, staf penginput, jumlah total batang log & varian sortimen, total biaya pesanan (Rp), badge status, serta aksi lihat detail, edit draft, dan hapus/batal.
+- **Modal Input & Edit (`PurchaseModal`):** Form terintegrasi dengan dropdown supplier live (dari `supplierApi.list()`), tanggal beli, dan baris repeater dinamis untuk spesifikasi kayu log (asal sortimen, panjang, diameter, jumlah dipesan, dan harga beli per batang) dengan kalkulasi otomatis subtotal dan total grand estimate.
+- **Modal Detail Pembelian (`PurchaseDetailModal`):** Rincian lengkap pesanan, metadata supplier dan staf pembuat, tabel rincian dimensi kayu log, serta riwayat approval manajer.
+- **Auto-injeksi Sesi:** Pada pembuatan pesanan baru, `purchaseApi.create()` otomatis menyematkan `idUser` dari user aktif yang sedang login (`getCurrentUserId()`).
+
+### 9.14 `/accounts` — Account Management
 
 - Hanya state lokal.
 - Daftar akun, search, tambah/edit lewat `AccountModal`.
@@ -899,7 +917,7 @@ Catatan:
 - Model `AccountItem` menyimpan `password` di state client; ini hanya demo UI, bukan autentikasi nyata.
 - Client `accountApi` sudah tersedia untuk `GET/POST /accounts` dan `GET/PATCH/DELETE /accounts/:id`, tetapi endpoint backend belum ada. Halaman masih memakai state lokal.
 
-### 9.14 `/settings` — Settings
+### 9.15 `/settings` — Settings
 
 - Profil user hardcoded (“Danu Warisman”, email, telepon, role Manager) dan bisa diedit di state.
 - Ganti password hanya validasi lokal (password lama tidak dicek ke backend).
@@ -940,6 +958,7 @@ Catatan:
 | Pra Dry Kiln | `PlankTable`, `BatchModal` | Tabel plank dan form batch |
 | Sales | `SalesTable`, `SalesModal`, `SalesStatCards` | Tabel, form, dan kartu statistik sales |
 | Customer | `CustomerTable`, `CustomerModal`, `CustomerAnalytics` | Tabel, form, analitik manager |
+| Pembelian | `PurchaseTable`, `PurchaseModal`, `PurchaseDetailModal`, `PurchaseStatCards` | Tabel pembelian, form input/edit, modal detail, dan kartu metrik |
 | Account | `AccountCard`, `AccountModal` | Kartu akun dan form akun |
 
 ---
@@ -1247,7 +1266,8 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 
 | Tanggal | Commit | Perubahan |
 |---|---|---|
-| 2026-11-05 | *(working tree)* | Penyelarasan API & Kontrak Tipe Data backend: sinkronisasi `customerApi` ke `/customers` (CRUD aktif), sinkronisasi `purchaseApi` ke `/pembelian` (modul pembelian aktif) dengan otomatisasi `idUser` dari session pengguna serta normalisasi payload `detailPembelian`, unifikasi tipe data `PurchaseApproval` dan `SalesApproval` ke model Prisma `Approval`, serta penambahan field `id` pada `SessionUser` dan helper `getCurrentUserId()` dengan fallback dekode JWT. |
+| 2026-11-05 | *(working tree)* | Integrasi halaman `/customers` dan implementasi modul `/pembelian`: penyambungan penuh CRUD Customer ke backend `customerApi` (`GET/POST/PATCH/DELETE /customers`) dengan validasi DTO dan dual-ID, pembangunan halaman `/pembelian` (Purchase Order) terhubung ke `purchaseApi` lengkap dengan kartu metrik, tabel transaksi, modal input/edit dinamis, modal rincian detail, guard akses role (`admin_kantor` & `manager`), dan registrasi menu pada `Sidebar.tsx`. |
+| 2026-11-05 | `ef44482` | Penyelarasan API & Kontrak Tipe Data backend: sinkronisasi `customerApi` ke `/customers` (CRUD aktif), sinkronisasi `purchaseApi` ke `/pembelian` (modul pembelian aktif) dengan otomatisasi `idUser` dari session pengguna serta normalisasi payload `detailPembelian`, unifikasi tipe data `PurchaseApproval` dan `SalesApproval` ke model Prisma `Approval`, serta penambahan field `id` pada `SessionUser` dan helper `getCurrentUserId()` dengan fallback dekode JWT. |
 | 2026-11-04 | *(working tree)* | Scaffolding API/tipe modul lanjutan: `customerApi`, `accountApi`, `salesApi`, `purchaseApi`, `stockApi`, `praDryKilnApi`, `hasilDryKilnApi`, `dashboardApi`, `reportApi`, `healthApi`; tambah `types/purchase.ts`, `types/stock.ts`, `types/report.ts`, `types/dashboard.ts`, serta kontrak backend camelCase di tipe yang sudah ada. Endpoint backend terkait belum tersedia. |
 | 2026-11-04 | *(working tree)* | Export PDF aktif di master-data/sawmill/pra-dry-kiln/dry-kiln/stock-reports, pagination reusable, progress bar stage master-data, export database live (PDF/CSV/XLS), penghapusan fallback lokal pada operasi tulis, kolom Harga Dry Kiln read-only dari harga log asal (tabel + export), dan perapian halaman login (hapus dead link & indikator server palsu) |
 | 2026-11-03 | `58bdbe9` | Validasi form terpusat di `lib/validation.ts`, komponen `FormError`/`ErrorBanner`, pesan error API yang terlihat di dashboard/master-data/sawmill/dry-kiln/settings/stock-reports, dan validasi modal Account/Customer/Sales/Dry Kiln/Batch/Supplier |

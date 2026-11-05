@@ -1,24 +1,30 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Pencil, UsersRound } from 'lucide-react';
+import { Pencil, Trash2, UsersRound, Loader2 } from 'lucide-react';
 import { CustomerItem } from '@/types/customer';
 import Pagination from '@/components/Pagination';
 
 interface CustomerTableProps {
   items: CustomerItem[];
   totalCount: number;
+  isLoading?: boolean;
   isManager?: boolean;
   canEdit?: boolean;
+  canDelete?: boolean;
   onEdit: (item: CustomerItem) => void;
+  onDelete?: (item: CustomerItem) => void;
 }
 
 export default function CustomerTable({
   items,
   totalCount,
+  isLoading = false,
   isManager = false,
   canEdit = false,
+  canDelete = false,
   onEdit,
+  onDelete,
 }: CustomerTableProps) {
   const pageSize = 10;
   const [page, setPage] = useState(1);
@@ -28,6 +34,8 @@ export default function CustomerTable({
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
+
+  const hasAction = canEdit || canDelete;
 
   return (
     <section className="p-4 bg-white rounded-[10px] border border-stone-200 shadow-2xs flex flex-col gap-3 font-sans">
@@ -40,28 +48,40 @@ export default function CustomerTable({
               <th className="py-3 px-3 text-center min-w-[280px]">Alamat</th>
               <th className="py-3 px-3 text-center">No HP</th>
               <th className="py-3 px-3 text-center">Email</th>
-              {canEdit && (
-                <th className="py-3 px-3 text-center w-12">Action</th>
+              {hasAction && (
+                <th className="py-3 px-3 text-center w-20">Action</th>
               )}
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={5 + (canEdit ? 1 : 0)} className="py-14 text-center">
-                  <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
-                    <UsersRound className="w-8 h-8 stroke-[1.5]" />
-                    <p className="text-sm font-semibold text-stone-600">
-                      Belum ada data pelanggan terdaftar
-                    </p>
-                    <p className="text-xs text-stone-400">
-                      {isManager
-                        ? 'Belum ada data mitra pelanggan yang dimasukkan ke sistem.'
-                        : canEdit
-                        ? 'Klik tombol "+ New Customer" untuk meregistrasikan mitra pembeli baru.'
-                        : 'Belum ada data customer yang dapat ditampilkan.'}
-                    </p>
-                  </div>
+                <td colSpan={5 + (hasAction ? 1 : 0)} className="py-14 text-center">
+                  {isLoading ? (
+                    <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
+                      <Loader2 className="w-8 h-8 stroke-[1.5] animate-spin text-green-700" />
+                      <p className="text-sm font-semibold text-stone-600">
+                        Memuat data customer...
+                      </p>
+                      <p className="text-xs text-stone-400">
+                        Mengambil data dari server, mohon tunggu sebentar.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
+                      <UsersRound className="w-8 h-8 stroke-[1.5]" />
+                      <p className="text-sm font-semibold text-stone-600">
+                        Belum ada data pelanggan terdaftar
+                      </p>
+                      <p className="text-xs text-stone-400">
+                        {isManager
+                          ? 'Belum ada data mitra pelanggan yang dimasukkan ke sistem.'
+                          : canEdit
+                          ? 'Klik tombol "+ New Customer" untuk meregistrasikan mitra pembeli baru.'
+                          : 'Belum ada data customer yang dapat ditampilkan.'}
+                      </p>
+                    </div>
+                  )}
                 </td>
               </tr>
             ) : (
@@ -83,18 +103,32 @@ export default function CustomerTable({
                     {item.no_hp}
                   </td>
                   <td className="py-3 px-3 text-center font-normal lowercase">
-                    {item.email}
+                    {item.email || '-'}
                   </td>
-                  {canEdit && (
+                  {hasAction && (
                     <td className="py-3 px-3 text-center">
-                      <button
-                        type="button"
-                        onClick={() => onEdit(item)}
-                        className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
-                        title="Edit Customer"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center justify-center gap-1.5">
+                        {canEdit && (
+                          <button
+                            type="button"
+                            onClick={() => onEdit(item)}
+                            className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                            title="Edit Customer"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {canDelete && onDelete && (
+                          <button
+                            type="button"
+                            onClick={() => onDelete(item)}
+                            className="p-1 text-rose-600 hover:bg-rose-50 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                            title="Hapus Customer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   )}
                 </tr>

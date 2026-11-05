@@ -34,6 +34,12 @@ export type Permission =
   | 'supplier:create'
   | 'supplier:update'
   | 'supplier:delete'
+  | 'purchase:create'
+  | 'purchase:update'
+  | 'purchase:delete'
+  | 'purchase:verify'
+  | 'purchase:approve'
+  | 'purchase:reject'
   | 'customer:create'
   | 'customer:update'
   | 'customer:delete'
@@ -47,6 +53,8 @@ export type Permission =
 
 const ROLE_PERMISSIONS: Record<AppRole, ReadonlySet<Permission>> = {
   manager: new Set<Permission>([
+    'purchase:approve',
+    'purchase:reject',
     'sales:approve',
     'sales:reject',
     'account:create',
@@ -59,6 +67,10 @@ const ROLE_PERMISSIONS: Record<AppRole, ReadonlySet<Permission>> = {
     'supplier:create',
     'supplier:update',
     'supplier:delete',
+    'purchase:create',
+    'purchase:update',
+    'purchase:delete',
+    'purchase:verify',
     'settings:manage-data',
   ]),
   admin_lapangan: new Set<Permission>([
