@@ -15,6 +15,7 @@ export const ACCESS_TOKEN_KEY = 'mjm_access_token';
 
 /** User yang sedang login. */
 export interface SessionUser {
+  id?: number;
   username: string;
   fullName: string;
   role: AppRole;
@@ -98,9 +99,40 @@ function decodeSession(raw: string): SessionUser | null {
       typeof parsed.fullName === 'string' &&
       parsed.role in ROLE_LABELS
     ) {
-      return parsed;
+      return {
+        id: typeof parsed.id === 'number' ? parsed.id : undefined,
+        username: parsed.username,
+        fullName: parsed.fullName,
+        role: parsed.role,
+      };
     }
     return null;
+  } catch {
+    return null;
+  }
+}
+
+/** Ambil ID user yang sedang login dari profil sesi atau decoding payload token JWT. */
+export function getCurrentUserId(): number | null {
+  const sessionUser = getSessionUser();
+  if (typeof sessionUser?.id === 'number' && sessionUser.id > 0) {
+    return sessionUser.id;
+  }
+  const token = getAccessToken();
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payload = JSON.parse(json) as { sub?: unknown; id?: unknown };
+    const id = Number(payload.sub ?? payload.id);
+    return Number.isFinite(id) && id > 0 ? id : null;
   } catch {
     return null;
   }

@@ -4,8 +4,8 @@ Dokumentasi ini menjelaskan kondisi **frontend** aplikasi inventori kayu PT. Mar
 
 - **Scope:** hanya folder `frontend/`
 - **Backend:** NestJS di folder `backend/` (tidak diubah oleh dokumentasi ini)
-- **Terakhir diperbarui:** 4 November 2026
-- **Commit frontend terakhir yang didokumentasikan:** `58bdbe9` — `feat(frontend): perbaiki validasi dan pesan error form`
+- **Terakhir diperbarui:** 5 November 2026
+- **Sinkronisasi backend terakhir yang didokumentasikan:** Penyelarasan endpoint `/customers` & `/pembelian`, unifikasi model `Approval`, dan auto-inject `idUser` dari sesi pengguna
 - **RBAC per aksi:** diterapkan di `lib/permissions.ts` dan dipakai halaman operasional (lihat §7.9)
 - **Validasi & pesan error:** helper di `lib/validation.ts`, komponen `FormError` dan `ErrorBanner` (lihat §12.6)
 
@@ -667,29 +667,46 @@ Respons `GET /dry-kiln` mengembalikan `idOven`, `id_log`, `id_plank`, `kodeOven`
 
 ### 8.8 Customer
 
-`lib/api.ts` sudah memiliki `customerApi` dengan kontrak model `Customer` (camelCase):
+`lib/api.ts` memiliki `customerApi` yang terhubung ke controller backend `@Controller('customers')` dengan kontrak model `Customer` (camelCase):
 
 | Method | Endpoint | Body | Respons |
 |---|---|---|---|
-| `GET` | `/customer` | — | `BackendCustomer[]` |
-| `GET` | `/customer/:id` | — | `BackendCustomer` |
-| `POST` | `/customer` | `CustomerPayload` | `BackendCustomer` |
-| `PATCH` | `/customer/:id` | `CustomerPayload` | `BackendCustomer` |
-| `DELETE` | `/customer/:id` | — | — |
+| `GET` | `/customers` | — | `BackendCustomer[]` |
+| `GET` | `/customers/:id` | — | `BackendCustomer` |
+| `POST` | `/customers` | `CustomerPayload` | `BackendCustomer` |
+| `PATCH` | `/customers/:id` | `CustomerPayload` | `BackendCustomer` |
+| `DELETE` | `/customers/:id` | — | — |
 
-`CustomerPayload` hanya berisi `namaCustomer`, `alamatCustomer`, dan `kontakCustomer`. Model `Customer` belum punya field email, sehingga `CustomerItem.email` selalu diisi string kosong oleh `mapBackendCustomer()` dan tidak dikirim ke backend.
+`CustomerPayload` berisi `namaCustomer`, `alamatCustomer`, dan `kontakCustomer`. Model `Customer` backend belum punya field email, sehingga `CustomerItem.email` diisi string kosong oleh `mapBackendCustomer()` dan tidak dikirim ke backend.
 
-**Status backend:** `CustomerController`/`CustomerService` masih kosong. Endpoint di atas baru berupa kontrak yang direncanakan; pemanggilan akan menghasilkan 404 sampai modul backend diimplementasikan. Halaman `/customers` masih memakai state lokal.
+**Status backend:** `CustomerController` dan `CustomerService` telah aktif di backend (`f4e214f`). Client `customerApi` di frontend telah diselaraskan ke route jamak `/customers`.
 
-### 8.9 Endpoint modul lanjutan (client siap, backend belum ada)
+### 8.9 Transaksi Pembelian (`purchaseApi` / `/pembelian`)
 
-`lib/api.ts` sudah menyiapkan client untuk modul yang direncanakan pada roadmap backend B5–B16. Semua mapping payload/response, normalisasi `Decimal` → `number`, dan perhitungan total dilakukan terpusat di file ini.
+Modul pembelian telah diimplementasikan di backend melalui `PembelianController` (`@Controller('pembelian')`) dan `PembelianService` (`f4e214f`):
+
+| Method | Endpoint | Body | Respons |
+|---|---|---|---|
+| `GET` | `/pembelian` | — | `PurchaseOrder[]` |
+| `GET` | `/pembelian/:id` | — | `PurchaseOrder` |
+| `POST` | `/pembelian` | `{ idSupplier, idUser, tanggalBeli, detailPembelian }` | `PurchaseOrder` |
+| `PATCH` | `/pembelian/:id` | `{ idSupplier?, tanggalBeli? }` | `PurchaseOrder` |
+| `DELETE` | `/pembelian/:id` | — | Soft delete (`deletedAt`) |
+| `POST` | `/pembelian/:id/verify` | `PurchaseDecisionPayload` | `PurchaseOrder` (rencana alur approval) |
+| `POST` | `/pembelian/:id/approve` | `PurchaseDecisionPayload` | `PurchaseOrder` (rencana alur approval) |
+| `POST` | `/pembelian/:id/reject` | `PurchaseRejectPayload` | `PurchaseOrder` (rencana alur approval) |
+| `POST` | `/pembelian/:id/receive` | `PurchaseReceivePayload` | `PurchaseOrder` (rencana penerimaan barang) |
+
+Pada `purchaseApi.create()`, field `idUser` otomatis diinjeksikan dari ID user yang sedang login via `getCurrentUserId()`. Array `detailPembelian` diformat sesuai DTO backend (`asalSortimen`, `panjang`, `diameter`, `dimensiLog`, `jumlahDipesan`, `hargaPerLog`).
+
+### 8.10 Endpoint modul lanjutan lainnya (client siap, backend belum ada)
+
+`lib/api.ts` juga menyiapkan client untuk modul lanjutan yang direncanakan pada roadmap backend:
 
 | Client | Endpoint yang dituju | Tipe terkait |
 |---|---|---|
 | `accountApi` | `GET/POST /accounts`, `GET/PATCH/DELETE /accounts/:id` | `AccountUser`, `AccountCreatePayload`, `AccountUpdatePayload` |
 | `salesApi` | `GET/POST /sales`, `GET/PATCH/DELETE /sales/:id`, `POST /sales/:id/verify`, `/approve`, `/reject` | `SalesOrder`, `SalesCreatePayload`, `SalesDecisionPayload`, `SalesRejectPayload` |
-| `purchaseApi` | `GET/POST /purchase`, `GET/PATCH/DELETE /purchase/:id`, `POST /purchase/:id/verify`, `/approve`, `/reject`, `/receive` | `PurchaseOrder`, `PurchaseCreatePayload`, `PurchaseReceivePayload` |
 | `stockApi` | `GET /stock`, `GET /stock/summary`, `GET /stock/movements`, `POST /stock/adjustments` | `StockItem`, `StockSummary`, `StockMovement`, `StockAdjustmentPayload` |
 | `praDryKilnApi` | CRUD `/pra-dry-kiln`, `POST/DELETE /pra-dry-kiln/:id/planks` | `PraDryKilnBatch`, `PraDryKilnCreatePayload` |
 | `hasilDryKilnApi` | `GET/POST /dry-kiln/:idOven/hasil`, `PATCH/DELETE /dry-kiln/:idOven/hasil/:idHasil` | `HasilDryKilnItem`, `HasilDryKilnPayload` |
@@ -699,9 +716,8 @@ Respons `GET /dry-kiln` mengembalikan `idOven`, `id_log`, `id_plank`, `kodeOven`
 
 Catatan:
 
-- **Belum ada implementasi backend** untuk endpoint di atas (kecuali `/dry-kiln` yang sudah live). Pemanggilan akan gagal 404/`ECONNREFUSED`; pesan error tetap berasal dari `request()` dan **tidak ada fallback data palsu**.
-- `salesApi`/`purchaseApi` memisahkan `verify`, `approve`, `reject`, dan `receive` (pembelian) agar alur approval backend tidak disatukan dalam satu method.
-- `purchaseApi.receive()` diharapkan membuat `StokLog` di backend dari detail pembelian.
+- **Belum ada implementasi backend** untuk endpoint di atas (kecuali `/dry-kiln`, `/customers`, dan `/pembelian` yang sudah live). Pemanggilan akan gagal 404/`ECONNREFUSED`; pesan error tetap berasal dari `request()` dan **tidak ada fallback data palsu**.
+- `salesApi` memisahkan `verify`, `approve`, dan `reject` agar alur approval backend tidak disatukan dalam satu method.
 - `healthApi.check()` memakai `skipAuthRedirect: true` agar health check tidak memicu logout saat sesi kosong/kedaluwarsa.
 - `reportApi` dan `stockApi` memakai helper `buildQuery()`; nilai `undefined`/`null`/string kosong tidak ikut dikirim.
 - `dashboardApi.get()` mengisi field yang tidak dikirim backend dengan nilai 0/kosong, bukan data contoh.
@@ -941,9 +957,9 @@ Catatan:
 | `types/stock-report.ts` | `StockReportItem`, `StockStatus` | Stock Reports |
 | `types/stock.ts` | `StockItem`, `StockSummary`, `StockMovement`, `StockAdjustmentPayload` | API stok (backend belum ada) |
 | `types/supplier.ts` | `SupplierItem`, `SupplierFormData` | Supplier, API |
-| `types/sales.ts` | `SalesItem`, `SalesFormData`, `SalesOrder`, `SalesDetail`, payload create/decision/reject | Sales, API |
-| `types/purchase.ts` | `PurchaseOrder`, `PurchaseDetail`, payload create/decision/reject/receive | API pembelian (backend belum ada) |
-| `types/customer.ts` | `CustomerItem`, `CustomerFormData`, `SmartAlertItem`, `BackendCustomer`, `CustomerPayload` | Customer, API |
+| `types/sales.ts` | `SalesItem`, `SalesFormData`, `SalesOrder`, `SalesDetail`, `SalesApproval` (model `Approval` Prisma), payload create/decision/reject | Sales, API |
+| `types/purchase.ts` | `PurchaseOrder`, `PurchaseDetail`, `PurchaseApproval` (model `Approval` Prisma), payload create/decision/reject/receive | API pembelian (`/pembelian` backend aktif) |
+| `types/customer.ts` | `CustomerItem`, `CustomerFormData`, `SmartAlertItem`, `BackendCustomer`, `CustomerPayload` | Customer, API (`/customers` backend aktif) |
 | `types/account.ts` | `AccountItem`, `AccountFormData`, `AccountUser`, payload create/update | Accounts, API |
 | `types/dashboard.ts` | `DashboardSummary`, ringkasan produksi/keuangan, aktivitas, alert | API dashboard (backend belum ada) |
 | `types/report.ts` | `ReportResponse`, `ReportType`, `ReportPeriod`, `ReportColumn` | API laporan (backend belum ada) |
@@ -1231,6 +1247,7 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 
 | Tanggal | Commit | Perubahan |
 |---|---|---|
+| 2026-11-05 | *(working tree)* | Penyelarasan API & Kontrak Tipe Data backend: sinkronisasi `customerApi` ke `/customers` (CRUD aktif), sinkronisasi `purchaseApi` ke `/pembelian` (modul pembelian aktif) dengan otomatisasi `idUser` dari session pengguna serta normalisasi payload `detailPembelian`, unifikasi tipe data `PurchaseApproval` dan `SalesApproval` ke model Prisma `Approval`, serta penambahan field `id` pada `SessionUser` dan helper `getCurrentUserId()` dengan fallback dekode JWT. |
 | 2026-11-04 | *(working tree)* | Scaffolding API/tipe modul lanjutan: `customerApi`, `accountApi`, `salesApi`, `purchaseApi`, `stockApi`, `praDryKilnApi`, `hasilDryKilnApi`, `dashboardApi`, `reportApi`, `healthApi`; tambah `types/purchase.ts`, `types/stock.ts`, `types/report.ts`, `types/dashboard.ts`, serta kontrak backend camelCase di tipe yang sudah ada. Endpoint backend terkait belum tersedia. |
 | 2026-11-04 | *(working tree)* | Export PDF aktif di master-data/sawmill/pra-dry-kiln/dry-kiln/stock-reports, pagination reusable, progress bar stage master-data, export database live (PDF/CSV/XLS), penghapusan fallback lokal pada operasi tulis, kolom Harga Dry Kiln read-only dari harga log asal (tabel + export), dan perapian halaman login (hapus dead link & indikator server palsu) |
 | 2026-11-03 | `58bdbe9` | Validasi form terpusat di `lib/validation.ts`, komponen `FormError`/`ErrorBanner`, pesan error API yang terlihat di dashboard/master-data/sawmill/dry-kiln/settings/stock-reports, dan validasi modal Account/Customer/Sales/Dry Kiln/Batch/Supplier |

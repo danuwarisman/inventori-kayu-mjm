@@ -65,14 +65,20 @@ export interface SalesCreatePayload {
   detailPenjualan: SalesDetailPayload[];
 }
 
-/** Riwayat approval/verifikasi penjualan (model `ApprovalPenjualan`). */
+/** Riwayat approval/verifikasi penjualan (model `Approval` di schema.prisma). */
 export interface SalesApproval {
-  idApprovalPenjualan: number;
+  idApproval: number;
   idUserManager: number;
-  idPenjualan: number;
+  idPembelian?: number | null;
+  idPenjualan?: number | null;
   status: BackendStatusVerifikasi;
   keteranganCatatan?: string | null;
   tanggalApprove: string;
+  manager?: {
+    id: number;
+    username: string;
+    nama: string;
+  };
 }
 
 /** Respons GET /sales (TransaksiPenjualan + relasi). */

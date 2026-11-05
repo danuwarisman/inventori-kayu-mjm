@@ -55,6 +55,7 @@ export default function LoginPage() {
       // (cookie role untuk middleware + profil untuk Sidebar/Header).
       saveAccessToken(data.accessToken);
       saveSession({
+        id: data.user.id,
         username: data.user.username,
         fullName: data.user.nama,
         role,

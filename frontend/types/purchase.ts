@@ -43,18 +43,25 @@ export interface PurchaseDetailPayload {
 /** Body CreatePurchaseDto. */
 export interface PurchaseCreatePayload {
   idSupplier: number;
+  idUser?: number;
   tanggalBeli: string;
   detailPembelian: PurchaseDetailPayload[];
 }
 
-/** Riwayat approval pembelian (model `ApprovalPembelian`). */
+/** Riwayat approval pembelian (model `Approval` di schema.prisma). */
 export interface PurchaseApproval {
-  idApprovalPembelian: number;
+  idApproval: number;
   idUserManager: number;
-  idPembelian: number;
-  idStatusApprove: number;
+  idPembelian?: number | null;
+  idPenjualan?: number | null;
+  status: PurchaseVerificationStatus;
   keteranganCatatan?: string | null;
   tanggalApprove: string;
+  manager?: {
+    id: number;
+    username: string;
+    nama: string;
+  };
 }
 
 /** Respons GET /purchase (TransaksiPembelian + relasi). */

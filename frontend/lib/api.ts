@@ -55,7 +55,7 @@ import {
   PraDryKilnCreatePayload,
   PraDryKilnUpdatePayload,
 } from '@/types/pra-dry-kiln';
-import { clearSession, getAccessToken } from '@/lib/session';
+import { clearSession, getAccessToken, getCurrentUserId } from '@/lib/session';
 
 /** Base URL backend, di-set via NEXT_PUBLIC_API_URL (lihat .env.local). */
 export const API_BASE_URL =
@@ -683,38 +683,38 @@ function toBackendCustomerPayload(data: CustomerFormData): CustomerPayload {
 }
 
 export const customerApi = {
-  /** GET /customer -> daftar customer. */
+  /** GET /customers -> daftar customer. */
   list: async (): Promise<CustomerItem[]> => {
-    const data = await request<BackendCustomer[]>('/customer');
+    const data = await request<BackendCustomer[]>('/customers');
     return (Array.isArray(data) ? data : []).map(mapBackendCustomer);
   },
 
-  /** GET /customer/:id -> detail customer. */
+  /** GET /customers/:id -> detail customer. */
   get: async (id: number): Promise<CustomerItem> => {
-    return mapBackendCustomer(await request<BackendCustomer>(`/customer/${id}`));
+    return mapBackendCustomer(await request<BackendCustomer>(`/customers/${id}`));
   },
 
-  /** POST /customer -> tambah customer. */
+  /** POST /customers -> tambah customer. */
   create: async (data: CustomerFormData): Promise<CustomerItem> => {
-    const created = await request<BackendCustomer>('/customer', {
+    const created = await request<BackendCustomer>('/customers', {
       method: 'POST',
       body: JSON.stringify(toBackendCustomerPayload(data)),
     });
     return mapBackendCustomer(created);
   },
 
-  /** PATCH /customer/:id -> ubah data customer. */
+  /** PATCH /customers/:id -> ubah data customer. */
   update: async (id: number, data: CustomerFormData): Promise<CustomerItem> => {
-    const updated = await request<BackendCustomer>(`/customer/${id}`, {
+    const updated = await request<BackendCustomer>(`/customers/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(toBackendCustomerPayload(data)),
     });
     return mapBackendCustomer(updated);
   },
 
-  /** DELETE /customer/:id -> hapus customer (soft delete di backend). */
+  /** DELETE /customers/:id -> hapus customer (soft delete di backend). */
   remove: async (id: number): Promise<void> => {
-    await request<unknown>(`/customer/${id}`, { method: 'DELETE' });
+    await request<unknown>(`/customers/${id}`, { method: 'DELETE' });
   },
 };
 
@@ -909,7 +909,7 @@ function normalizePurchaseOrder(order: PurchaseOrder): PurchaseOrder {
 }
 
 export const purchaseApi = {
-  /** GET /purchase -> daftar transaksi pembelian. */
+  /** GET /pembelian -> daftar transaksi pembelian. */
   list: async (filters?: {
     status?: string;
     verification?: string;
@@ -924,91 +924,108 @@ export const purchaseApi = {
       startDate: filters?.startDate,
       endDate: filters?.endDate,
     });
-    const data = await request<PurchaseOrder[]>(`/purchase${qs}`);
+    const data = await request<PurchaseOrder[]>(`/pembelian${qs}`);
     return (Array.isArray(data) ? data : []).map(normalizePurchaseOrder);
   },
 
-  /** GET /purchase/:id -> detail pembelian. */
+  /** GET /pembelian/:id -> detail pembelian. */
   get: async (id: number): Promise<PurchaseOrder> => {
     return normalizePurchaseOrder(
-      await request<PurchaseOrder>(`/purchase/${id}`)
+      await request<PurchaseOrder>(`/pembelian/${id}`)
     );
   },
 
-  /** POST /purchase -> buat draft pembelian. */
+  /** POST /pembelian -> buat draft pembelian. */
   create: async (data: PurchaseCreatePayload): Promise<PurchaseOrder> => {
+    const userId = data.idUser ?? getCurrentUserId() ?? 1;
+    const payload = {
+      idSupplier: Number(data.idSupplier),
+      idUser: Number(userId),
+      tanggalBeli: data.tanggalBeli,
+      detailPembelian: (data.detailPembelian ?? []).map((d) => ({
+        asalSortimen: d.asalSortimen,
+        panjang: Number(d.panjang),
+        diameter: Number(d.diameter),
+        dimensiLog: d.dimensiLog || `${d.panjang} x ${d.diameter}`,
+        jumlahDipesan: Number(d.jumlahDipesan),
+        hargaPerLog: Number(d.hargaPerLog),
+      })),
+    };
     return normalizePurchaseOrder(
-      await request<PurchaseOrder>('/purchase', {
+      await request<PurchaseOrder>('/pembelian', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       })
     );
   },
 
-  /** PATCH /purchase/:id -> ubah draft pembelian. */
+  /** PATCH /pembelian/:id -> ubah draft pembelian. */
   update: async (
     id: number,
     data: Partial<PurchaseCreatePayload>
   ): Promise<PurchaseOrder> => {
+    const payload: Record<string, unknown> = {};
+    if (data.idSupplier !== undefined) payload.idSupplier = Number(data.idSupplier);
+    if (data.tanggalBeli !== undefined) payload.tanggalBeli = data.tanggalBeli;
     return normalizePurchaseOrder(
-      await request<PurchaseOrder>(`/purchase/${id}`, {
+      await request<PurchaseOrder>(`/pembelian/${id}`, {
         method: 'PATCH',
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       })
     );
   },
 
-  /** DELETE /purchase/:id -> batalkan/hapus draft. */
+  /** DELETE /pembelian/:id -> batalkan/hapus draft. */
   remove: async (id: number): Promise<void> => {
-    await request<unknown>(`/purchase/${id}`, { method: 'DELETE' });
+    await request<unknown>(`/pembelian/${id}`, { method: 'DELETE' });
   },
 
-  /** POST /purchase/:id/verify -> verifikasi oleh Admin Kantor. */
+  /** POST /pembelian/:id/verify -> verifikasi oleh Admin Kantor. */
   verify: async (
     id: number,
     data?: PurchaseDecisionPayload
   ): Promise<PurchaseOrder> => {
     return normalizePurchaseOrder(
-      await request<PurchaseOrder>(`/purchase/${id}/verify`, {
+      await request<PurchaseOrder>(`/pembelian/${id}/verify`, {
         method: 'POST',
         body: JSON.stringify(data ?? {}),
       })
     );
   },
 
-  /** POST /purchase/:id/approve -> approval oleh Manager. */
+  /** POST /pembelian/:id/approve -> approval oleh Manager. */
   approve: async (
     id: number,
     data?: PurchaseDecisionPayload
   ): Promise<PurchaseOrder> => {
     return normalizePurchaseOrder(
-      await request<PurchaseOrder>(`/purchase/${id}/approve`, {
+      await request<PurchaseOrder>(`/pembelian/${id}/approve`, {
         method: 'POST',
         body: JSON.stringify(data ?? {}),
       })
     );
   },
 
-  /** POST /purchase/:id/reject -> tolak pembelian (alasan wajib). */
+  /** POST /pembelian/:id/reject -> tolak pembelian (alasan wajib). */
   reject: async (
     id: number,
     data: PurchaseRejectPayload
   ): Promise<PurchaseOrder> => {
     return normalizePurchaseOrder(
-      await request<PurchaseOrder>(`/purchase/${id}/reject`, {
+      await request<PurchaseOrder>(`/pembelian/${id}/reject`, {
         method: 'POST',
         body: JSON.stringify(data),
       })
     );
   },
 
-  /** POST /purchase/:id/receive -> terima barang & buat StokLog. */
+  /** POST /pembelian/:id/receive -> terima barang & buat StokLog. */
   receive: async (
     id: number,
     data?: PurchaseReceivePayload
   ): Promise<PurchaseOrder> => {
     return normalizePurchaseOrder(
-      await request<PurchaseOrder>(`/purchase/${id}/receive`, {
+      await request<PurchaseOrder>(`/pembelian/${id}/receive`, {
         method: 'POST',
         body: JSON.stringify(data ?? {}),
       })
