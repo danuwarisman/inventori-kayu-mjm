@@ -50,6 +50,7 @@ export type DetailPenjualanMinAggregateOutputType = {
   referensiBarang: string | null
   idLog: number | null
   idPlank: number | null
+  deletedAt: Date | null
   kuantitasTerjual: runtime.Decimal | null
   hargaSatuan: runtime.Decimal | null
 }
@@ -60,6 +61,7 @@ export type DetailPenjualanMaxAggregateOutputType = {
   referensiBarang: string | null
   idLog: number | null
   idPlank: number | null
+  deletedAt: Date | null
   kuantitasTerjual: runtime.Decimal | null
   hargaSatuan: runtime.Decimal | null
 }
@@ -70,6 +72,7 @@ export type DetailPenjualanCountAggregateOutputType = {
   referensiBarang: number
   idLog: number
   idPlank: number
+  deletedAt: number
   kuantitasTerjual: number
   hargaSatuan: number
   _all: number
@@ -100,6 +103,7 @@ export type DetailPenjualanMinAggregateInputType = {
   referensiBarang?: true
   idLog?: true
   idPlank?: true
+  deletedAt?: true
   kuantitasTerjual?: true
   hargaSatuan?: true
 }
@@ -110,6 +114,7 @@ export type DetailPenjualanMaxAggregateInputType = {
   referensiBarang?: true
   idLog?: true
   idPlank?: true
+  deletedAt?: true
   kuantitasTerjual?: true
   hargaSatuan?: true
 }
@@ -120,6 +125,7 @@ export type DetailPenjualanCountAggregateInputType = {
   referensiBarang?: true
   idLog?: true
   idPlank?: true
+  deletedAt?: true
   kuantitasTerjual?: true
   hargaSatuan?: true
   _all?: true
@@ -217,6 +223,7 @@ export type DetailPenjualanGroupByOutputType = {
   referensiBarang: string
   idLog: number | null
   idPlank: number | null
+  deletedAt: Date | null
   kuantitasTerjual: runtime.Decimal
   hargaSatuan: runtime.Decimal
   _count: DetailPenjualanCountAggregateOutputType | null
@@ -250,6 +257,7 @@ export type DetailPenjualanWhereInput = {
   referensiBarang?: Prisma.StringFilter<"DetailPenjualan"> | string
   idLog?: Prisma.IntNullableFilter<"DetailPenjualan"> | number | null
   idPlank?: Prisma.IntNullableFilter<"DetailPenjualan"> | number | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"DetailPenjualan"> | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFilter<"DetailPenjualan"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFilter<"DetailPenjualan"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   transaksiPenjualan?: Prisma.XOR<Prisma.TransaksiPenjualanScalarRelationFilter, Prisma.TransaksiPenjualanWhereInput>
@@ -263,6 +271,7 @@ export type DetailPenjualanOrderByWithRelationInput = {
   referensiBarang?: Prisma.SortOrder
   idLog?: Prisma.SortOrderInput | Prisma.SortOrder
   idPlank?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   kuantitasTerjual?: Prisma.SortOrder
   hargaSatuan?: Prisma.SortOrder
   transaksiPenjualan?: Prisma.TransaksiPenjualanOrderByWithRelationInput
@@ -279,6 +288,7 @@ export type DetailPenjualanWhereUniqueInput = Prisma.AtLeast<{
   referensiBarang?: Prisma.StringFilter<"DetailPenjualan"> | string
   idLog?: Prisma.IntNullableFilter<"DetailPenjualan"> | number | null
   idPlank?: Prisma.IntNullableFilter<"DetailPenjualan"> | number | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"DetailPenjualan"> | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFilter<"DetailPenjualan"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFilter<"DetailPenjualan"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   transaksiPenjualan?: Prisma.XOR<Prisma.TransaksiPenjualanScalarRelationFilter, Prisma.TransaksiPenjualanWhereInput>
@@ -292,6 +302,7 @@ export type DetailPenjualanOrderByWithAggregationInput = {
   referensiBarang?: Prisma.SortOrder
   idLog?: Prisma.SortOrderInput | Prisma.SortOrder
   idPlank?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   kuantitasTerjual?: Prisma.SortOrder
   hargaSatuan?: Prisma.SortOrder
   _count?: Prisma.DetailPenjualanCountOrderByAggregateInput
@@ -310,12 +321,14 @@ export type DetailPenjualanScalarWhereWithAggregatesInput = {
   referensiBarang?: Prisma.StringWithAggregatesFilter<"DetailPenjualan"> | string
   idLog?: Prisma.IntNullableWithAggregatesFilter<"DetailPenjualan"> | number | null
   idPlank?: Prisma.IntNullableWithAggregatesFilter<"DetailPenjualan"> | number | null
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"DetailPenjualan"> | Date | string | null
   kuantitasTerjual?: Prisma.DecimalWithAggregatesFilter<"DetailPenjualan"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalWithAggregatesFilter<"DetailPenjualan"> | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type DetailPenjualanCreateInput = {
   referensiBarang: string
+  deletedAt?: Date | string | null
   kuantitasTerjual: runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan: runtime.Decimal | runtime.DecimalJsLike | number | string
   transaksiPenjualan: Prisma.TransaksiPenjualanCreateNestedOneWithoutDetailPenjualanInput
@@ -329,12 +342,14 @@ export type DetailPenjualanUncheckedCreateInput = {
   referensiBarang: string
   idLog?: number | null
   idPlank?: number | null
+  deletedAt?: Date | string | null
   kuantitasTerjual: runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type DetailPenjualanUpdateInput = {
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   transaksiPenjualan?: Prisma.TransaksiPenjualanUpdateOneRequiredWithoutDetailPenjualanNestedInput
@@ -348,6 +363,7 @@ export type DetailPenjualanUncheckedUpdateInput = {
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
   idLog?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
@@ -358,12 +374,14 @@ export type DetailPenjualanCreateManyInput = {
   referensiBarang: string
   idLog?: number | null
   idPlank?: number | null
+  deletedAt?: Date | string | null
   kuantitasTerjual: runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type DetailPenjualanUpdateManyMutationInput = {
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
@@ -374,6 +392,7 @@ export type DetailPenjualanUncheckedUpdateManyInput = {
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
   idLog?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
@@ -394,6 +413,7 @@ export type DetailPenjualanCountOrderByAggregateInput = {
   referensiBarang?: Prisma.SortOrder
   idLog?: Prisma.SortOrder
   idPlank?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   kuantitasTerjual?: Prisma.SortOrder
   hargaSatuan?: Prisma.SortOrder
 }
@@ -413,6 +433,7 @@ export type DetailPenjualanMaxOrderByAggregateInput = {
   referensiBarang?: Prisma.SortOrder
   idLog?: Prisma.SortOrder
   idPlank?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   kuantitasTerjual?: Prisma.SortOrder
   hargaSatuan?: Prisma.SortOrder
 }
@@ -423,6 +444,7 @@ export type DetailPenjualanMinOrderByAggregateInput = {
   referensiBarang?: Prisma.SortOrder
   idLog?: Prisma.SortOrder
   idPlank?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   kuantitasTerjual?: Prisma.SortOrder
   hargaSatuan?: Prisma.SortOrder
 }
@@ -564,6 +586,7 @@ export type DetailPenjualanUncheckedUpdateManyWithoutTransaksiPenjualanNestedInp
 
 export type DetailPenjualanCreateWithoutStokLogInput = {
   referensiBarang: string
+  deletedAt?: Date | string | null
   kuantitasTerjual: runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan: runtime.Decimal | runtime.DecimalJsLike | number | string
   transaksiPenjualan: Prisma.TransaksiPenjualanCreateNestedOneWithoutDetailPenjualanInput
@@ -575,6 +598,7 @@ export type DetailPenjualanUncheckedCreateWithoutStokLogInput = {
   idPenjualan: number
   referensiBarang: string
   idPlank?: number | null
+  deletedAt?: Date | string | null
   kuantitasTerjual: runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
@@ -614,12 +638,14 @@ export type DetailPenjualanScalarWhereInput = {
   referensiBarang?: Prisma.StringFilter<"DetailPenjualan"> | string
   idLog?: Prisma.IntNullableFilter<"DetailPenjualan"> | number | null
   idPlank?: Prisma.IntNullableFilter<"DetailPenjualan"> | number | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"DetailPenjualan"> | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFilter<"DetailPenjualan"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFilter<"DetailPenjualan"> | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type DetailPenjualanCreateWithoutPlankInput = {
   referensiBarang: string
+  deletedAt?: Date | string | null
   kuantitasTerjual: runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan: runtime.Decimal | runtime.DecimalJsLike | number | string
   transaksiPenjualan: Prisma.TransaksiPenjualanCreateNestedOneWithoutDetailPenjualanInput
@@ -631,6 +657,7 @@ export type DetailPenjualanUncheckedCreateWithoutPlankInput = {
   idPenjualan: number
   referensiBarang: string
   idLog?: number | null
+  deletedAt?: Date | string | null
   kuantitasTerjual: runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
@@ -663,6 +690,7 @@ export type DetailPenjualanUpdateManyWithWhereWithoutPlankInput = {
 
 export type DetailPenjualanCreateWithoutTransaksiPenjualanInput = {
   referensiBarang: string
+  deletedAt?: Date | string | null
   kuantitasTerjual: runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan: runtime.Decimal | runtime.DecimalJsLike | number | string
   stokLog?: Prisma.StokLogCreateNestedOneWithoutDetailPenjualanInput
@@ -674,6 +702,7 @@ export type DetailPenjualanUncheckedCreateWithoutTransaksiPenjualanInput = {
   referensiBarang: string
   idLog?: number | null
   idPlank?: number | null
+  deletedAt?: Date | string | null
   kuantitasTerjual: runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
@@ -709,12 +738,14 @@ export type DetailPenjualanCreateManyStokLogInput = {
   idPenjualan: number
   referensiBarang: string
   idPlank?: number | null
+  deletedAt?: Date | string | null
   kuantitasTerjual: runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type DetailPenjualanUpdateWithoutStokLogInput = {
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   transaksiPenjualan?: Prisma.TransaksiPenjualanUpdateOneRequiredWithoutDetailPenjualanNestedInput
@@ -726,6 +757,7 @@ export type DetailPenjualanUncheckedUpdateWithoutStokLogInput = {
   idPenjualan?: Prisma.IntFieldUpdateOperationsInput | number
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
   idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
@@ -735,6 +767,7 @@ export type DetailPenjualanUncheckedUpdateManyWithoutStokLogInput = {
   idPenjualan?: Prisma.IntFieldUpdateOperationsInput | number
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
   idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
@@ -744,12 +777,14 @@ export type DetailPenjualanCreateManyPlankInput = {
   idPenjualan: number
   referensiBarang: string
   idLog?: number | null
+  deletedAt?: Date | string | null
   kuantitasTerjual: runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type DetailPenjualanUpdateWithoutPlankInput = {
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   transaksiPenjualan?: Prisma.TransaksiPenjualanUpdateOneRequiredWithoutDetailPenjualanNestedInput
@@ -761,6 +796,7 @@ export type DetailPenjualanUncheckedUpdateWithoutPlankInput = {
   idPenjualan?: Prisma.IntFieldUpdateOperationsInput | number
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
   idLog?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
@@ -770,6 +806,7 @@ export type DetailPenjualanUncheckedUpdateManyWithoutPlankInput = {
   idPenjualan?: Prisma.IntFieldUpdateOperationsInput | number
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
   idLog?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
@@ -779,12 +816,14 @@ export type DetailPenjualanCreateManyTransaksiPenjualanInput = {
   referensiBarang: string
   idLog?: number | null
   idPlank?: number | null
+  deletedAt?: Date | string | null
   kuantitasTerjual: runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type DetailPenjualanUpdateWithoutTransaksiPenjualanInput = {
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stokLog?: Prisma.StokLogUpdateOneWithoutDetailPenjualanNestedInput
@@ -796,6 +835,7 @@ export type DetailPenjualanUncheckedUpdateWithoutTransaksiPenjualanInput = {
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
   idLog?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
@@ -805,6 +845,7 @@ export type DetailPenjualanUncheckedUpdateManyWithoutTransaksiPenjualanInput = {
   referensiBarang?: Prisma.StringFieldUpdateOperationsInput | string
   idLog?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   kuantitasTerjual?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hargaSatuan?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
@@ -817,6 +858,7 @@ export type DetailPenjualanSelect<ExtArgs extends runtime.Types.Extensions.Inter
   referensiBarang?: boolean
   idLog?: boolean
   idPlank?: boolean
+  deletedAt?: boolean
   kuantitasTerjual?: boolean
   hargaSatuan?: boolean
   transaksiPenjualan?: boolean | Prisma.TransaksiPenjualanDefaultArgs<ExtArgs>
@@ -830,6 +872,7 @@ export type DetailPenjualanSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   referensiBarang?: boolean
   idLog?: boolean
   idPlank?: boolean
+  deletedAt?: boolean
   kuantitasTerjual?: boolean
   hargaSatuan?: boolean
   transaksiPenjualan?: boolean | Prisma.TransaksiPenjualanDefaultArgs<ExtArgs>
@@ -843,6 +886,7 @@ export type DetailPenjualanSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   referensiBarang?: boolean
   idLog?: boolean
   idPlank?: boolean
+  deletedAt?: boolean
   kuantitasTerjual?: boolean
   hargaSatuan?: boolean
   transaksiPenjualan?: boolean | Prisma.TransaksiPenjualanDefaultArgs<ExtArgs>
@@ -856,11 +900,12 @@ export type DetailPenjualanSelectScalar = {
   referensiBarang?: boolean
   idLog?: boolean
   idPlank?: boolean
+  deletedAt?: boolean
   kuantitasTerjual?: boolean
   hargaSatuan?: boolean
 }
 
-export type DetailPenjualanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idDetail" | "idPenjualan" | "referensiBarang" | "idLog" | "idPlank" | "kuantitasTerjual" | "hargaSatuan", ExtArgs["result"]["detailPenjualan"]>
+export type DetailPenjualanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idDetail" | "idPenjualan" | "referensiBarang" | "idLog" | "idPlank" | "deletedAt" | "kuantitasTerjual" | "hargaSatuan", ExtArgs["result"]["detailPenjualan"]>
 export type DetailPenjualanInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   transaksiPenjualan?: boolean | Prisma.TransaksiPenjualanDefaultArgs<ExtArgs>
   stokLog?: boolean | Prisma.DetailPenjualan$stokLogArgs<ExtArgs>
@@ -890,6 +935,7 @@ export type $DetailPenjualanPayload<ExtArgs extends runtime.Types.Extensions.Int
     referensiBarang: string
     idLog: number | null
     idPlank: number | null
+    deletedAt: Date | null
     kuantitasTerjual: runtime.Decimal
     hargaSatuan: runtime.Decimal
   }, ExtArgs["result"]["detailPenjualan"]>
@@ -1323,6 +1369,7 @@ export interface DetailPenjualanFieldRefs {
   readonly referensiBarang: Prisma.FieldRef<"DetailPenjualan", 'String'>
   readonly idLog: Prisma.FieldRef<"DetailPenjualan", 'Int'>
   readonly idPlank: Prisma.FieldRef<"DetailPenjualan", 'Int'>
+  readonly deletedAt: Prisma.FieldRef<"DetailPenjualan", 'DateTime'>
   readonly kuantitasTerjual: Prisma.FieldRef<"DetailPenjualan", 'Decimal'>
   readonly hargaSatuan: Prisma.FieldRef<"DetailPenjualan", 'Decimal'>
 }

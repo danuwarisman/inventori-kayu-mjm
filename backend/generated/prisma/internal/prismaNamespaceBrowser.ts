@@ -58,6 +58,7 @@ export const ModelName = {
   Customer: 'Customer',
   StokLog: 'StokLog',
   TransaksiPembelian: 'TransaksiPembelian',
+  Approval: 'Approval',
   ProsesSawmill: 'ProsesSawmill',
   Plank: 'Plank',
   Palet: 'Palet',
@@ -65,7 +66,8 @@ export const ModelName = {
   DryKiln: 'DryKiln',
   HasilDryKiln: 'HasilDryKiln',
   TransaksiPenjualan: 'TransaksiPenjualan',
-  DetailPenjualan: 'DetailPenjualan'
+  DetailPenjualan: 'DetailPenjualan',
+  DetailPembelian: 'DetailPembelian'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -101,7 +103,8 @@ export const UserScalarFieldEnum = {
   nama: 'nama',
   roleId: 'roleId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -111,7 +114,8 @@ export const SupplierScalarFieldEnum = {
   idSupplier: 'idSupplier',
   namaSupplier: 'namaSupplier',
   alamatSupplier: 'alamatSupplier',
-  kontakSupplier: 'kontakSupplier'
+  kontakSupplier: 'kontakSupplier',
+  deletedAt: 'deletedAt'
 } as const
 
 export type SupplierScalarFieldEnum = (typeof SupplierScalarFieldEnum)[keyof typeof SupplierScalarFieldEnum]
@@ -139,7 +143,8 @@ export const CustomerScalarFieldEnum = {
   idCustomer: 'idCustomer',
   namaCustomer: 'namaCustomer',
   alamatCustomer: 'alamatCustomer',
-  kontakCustomer: 'kontakCustomer'
+  kontakCustomer: 'kontakCustomer',
+  deletedAt: 'deletedAt'
 } as const
 
 export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
@@ -157,7 +162,8 @@ export const StokLogScalarFieldEnum = {
   statusLog: 'statusLog',
   suplier: 'suplier',
   harga: 'harga',
-  tanggalMasuk: 'tanggalMasuk'
+  tanggalMasuk: 'tanggalMasuk',
+  deletedAt: 'deletedAt'
 } as const
 
 export type StokLogScalarFieldEnum = (typeof StokLogScalarFieldEnum)[keyof typeof StokLogScalarFieldEnum]
@@ -167,10 +173,26 @@ export const TransaksiPembelianScalarFieldEnum = {
   idPembelian: 'idPembelian',
   idSupplier: 'idSupplier',
   idUser: 'idUser',
-  tanggalBeli: 'tanggalBeli'
+  tanggalBeli: 'tanggalBeli',
+  statusVerifikasi: 'statusVerifikasi',
+  statusPembelian: 'statusPembelian',
+  deletedAt: 'deletedAt'
 } as const
 
 export type TransaksiPembelianScalarFieldEnum = (typeof TransaksiPembelianScalarFieldEnum)[keyof typeof TransaksiPembelianScalarFieldEnum]
+
+
+export const ApprovalScalarFieldEnum = {
+  idApproval: 'idApproval',
+  idUserManager: 'idUserManager',
+  idPembelian: 'idPembelian',
+  idPenjualan: 'idPenjualan',
+  status: 'status',
+  keteranganCatatan: 'keteranganCatatan',
+  tanggalApprove: 'tanggalApprove'
+} as const
+
+export type ApprovalScalarFieldEnum = (typeof ApprovalScalarFieldEnum)[keyof typeof ApprovalScalarFieldEnum]
 
 
 export const ProsesSawmillScalarFieldEnum = {
@@ -178,6 +200,7 @@ export const ProsesSawmillScalarFieldEnum = {
   kodeSawmill: 'kodeSawmill',
   idLog: 'idLog',
   idUserInput: 'idUserInput',
+  deletedAt: 'deletedAt',
   tanggalProses: 'tanggalProses',
   statusSawmill: 'statusSawmill'
 } as const
@@ -196,7 +219,8 @@ export const PlankScalarFieldEnum = {
   lebar: 'lebar',
   panjang: 'panjang',
   volumePlank: 'volumePlank',
-  stage: 'stage'
+  stage: 'stage',
+  deletedAt: 'deletedAt'
 } as const
 
 export type PlankScalarFieldEnum = (typeof PlankScalarFieldEnum)[keyof typeof PlankScalarFieldEnum]
@@ -205,7 +229,8 @@ export type PlankScalarFieldEnum = (typeof PlankScalarFieldEnum)[keyof typeof Pl
 export const PaletScalarFieldEnum = {
   idPalet: 'idPalet',
   tanggalSticking: 'tanggalSticking',
-  statusPalet: 'statusPalet'
+  statusPalet: 'statusPalet',
+  deletedAt: 'deletedAt'
 } as const
 
 export type PaletScalarFieldEnum = (typeof PaletScalarFieldEnum)[keyof typeof PaletScalarFieldEnum]
@@ -214,7 +239,8 @@ export type PaletScalarFieldEnum = (typeof PaletScalarFieldEnum)[keyof typeof Pa
 export const DetailPaletScalarFieldEnum = {
   idDetailPalet: 'idDetailPalet',
   idPalet: 'idPalet',
-  idPlank: 'idPlank'
+  idPlank: 'idPlank',
+  deletedAt: 'deletedAt'
 } as const
 
 export type DetailPaletScalarFieldEnum = (typeof DetailPaletScalarFieldEnum)[keyof typeof DetailPaletScalarFieldEnum]
@@ -223,7 +249,6 @@ export type DetailPaletScalarFieldEnum = (typeof DetailPaletScalarFieldEnum)[key
 export const DryKilnScalarFieldEnum = {
   idOven: 'idOven',
   idPalet: 'idPalet',
-  idPlank: 'idPlank',
   kodeOven: 'kodeOven',
   sortimen: 'sortimen',
   grade: 'grade',
@@ -233,6 +258,7 @@ export const DryKilnScalarFieldEnum = {
   volume: 'volume',
   tanggalMasuk: 'tanggalMasuk',
   tanggalKeluar: 'tanggalKeluar',
+  deletedAt: 'deletedAt',
   statusPengeringan: 'statusPengeringan',
   stage: 'stage',
   kodeLog: 'kodeLog',
@@ -249,6 +275,7 @@ export const HasilDryKilnScalarFieldEnum = {
   gradeAkhir: 'gradeAkhir',
   volumeAkhir: 'volumeAkhir',
   kadarAirAkhir: 'kadarAirAkhir',
+  deletedAt: 'deletedAt',
   statusKelayakan: 'statusKelayakan'
 } as const
 
@@ -260,7 +287,9 @@ export const TransaksiPenjualanScalarFieldEnum = {
   idCustomer: 'idCustomer',
   idUserInput: 'idUserInput',
   tanggalJual: 'tanggalJual',
-  statusVerifikasi: 'statusVerifikasi'
+  statusVerifikasi: 'statusVerifikasi',
+  statusPenjualan: 'statusPenjualan',
+  deletedAt: 'deletedAt'
 } as const
 
 export type TransaksiPenjualanScalarFieldEnum = (typeof TransaksiPenjualanScalarFieldEnum)[keyof typeof TransaksiPenjualanScalarFieldEnum]
@@ -272,11 +301,27 @@ export const DetailPenjualanScalarFieldEnum = {
   referensiBarang: 'referensiBarang',
   idLog: 'idLog',
   idPlank: 'idPlank',
+  deletedAt: 'deletedAt',
   kuantitasTerjual: 'kuantitasTerjual',
   hargaSatuan: 'hargaSatuan'
 } as const
 
 export type DetailPenjualanScalarFieldEnum = (typeof DetailPenjualanScalarFieldEnum)[keyof typeof DetailPenjualanScalarFieldEnum]
+
+
+export const DetailPembelianScalarFieldEnum = {
+  idDetailPembelian: 'idDetailPembelian',
+  idPembelian: 'idPembelian',
+  asalSortimen: 'asalSortimen',
+  panjang: 'panjang',
+  diameter: 'diameter',
+  dimensiLog: 'dimensiLog',
+  jumlahDipesan: 'jumlahDipesan',
+  hargaPerLog: 'hargaPerLog',
+  createdAt: 'createdAt'
+} as const
+
+export type DetailPembelianScalarFieldEnum = (typeof DetailPembelianScalarFieldEnum)[keyof typeof DetailPembelianScalarFieldEnum]
 
 
 export const SortOrder = {

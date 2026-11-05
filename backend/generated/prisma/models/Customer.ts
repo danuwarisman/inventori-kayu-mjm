@@ -39,6 +39,7 @@ export type CustomerMinAggregateOutputType = {
   namaCustomer: string | null
   alamatCustomer: string | null
   kontakCustomer: string | null
+  deletedAt: Date | null
 }
 
 export type CustomerMaxAggregateOutputType = {
@@ -46,6 +47,7 @@ export type CustomerMaxAggregateOutputType = {
   namaCustomer: string | null
   alamatCustomer: string | null
   kontakCustomer: string | null
+  deletedAt: Date | null
 }
 
 export type CustomerCountAggregateOutputType = {
@@ -53,6 +55,7 @@ export type CustomerCountAggregateOutputType = {
   namaCustomer: number
   alamatCustomer: number
   kontakCustomer: number
+  deletedAt: number
   _all: number
 }
 
@@ -70,6 +73,7 @@ export type CustomerMinAggregateInputType = {
   namaCustomer?: true
   alamatCustomer?: true
   kontakCustomer?: true
+  deletedAt?: true
 }
 
 export type CustomerMaxAggregateInputType = {
@@ -77,6 +81,7 @@ export type CustomerMaxAggregateInputType = {
   namaCustomer?: true
   alamatCustomer?: true
   kontakCustomer?: true
+  deletedAt?: true
 }
 
 export type CustomerCountAggregateInputType = {
@@ -84,6 +89,7 @@ export type CustomerCountAggregateInputType = {
   namaCustomer?: true
   alamatCustomer?: true
   kontakCustomer?: true
+  deletedAt?: true
   _all?: true
 }
 
@@ -178,6 +184,7 @@ export type CustomerGroupByOutputType = {
   namaCustomer: string
   alamatCustomer: string
   kontakCustomer: string
+  deletedAt: Date | null
   _count: CustomerCountAggregateOutputType | null
   _avg: CustomerAvgAggregateOutputType | null
   _sum: CustomerSumAggregateOutputType | null
@@ -208,6 +215,7 @@ export type CustomerWhereInput = {
   namaCustomer?: Prisma.StringFilter<"Customer"> | string
   alamatCustomer?: Prisma.StringFilter<"Customer"> | string
   kontakCustomer?: Prisma.StringFilter<"Customer"> | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   transaksiPenjualan?: Prisma.TransaksiPenjualanListRelationFilter
 }
 
@@ -216,6 +224,7 @@ export type CustomerOrderByWithRelationInput = {
   namaCustomer?: Prisma.SortOrder
   alamatCustomer?: Prisma.SortOrder
   kontakCustomer?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   transaksiPenjualan?: Prisma.TransaksiPenjualanOrderByRelationAggregateInput
 }
 
@@ -227,6 +236,7 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   namaCustomer?: Prisma.StringFilter<"Customer"> | string
   alamatCustomer?: Prisma.StringFilter<"Customer"> | string
   kontakCustomer?: Prisma.StringFilter<"Customer"> | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   transaksiPenjualan?: Prisma.TransaksiPenjualanListRelationFilter
 }, "idCustomer">
 
@@ -235,6 +245,7 @@ export type CustomerOrderByWithAggregationInput = {
   namaCustomer?: Prisma.SortOrder
   alamatCustomer?: Prisma.SortOrder
   kontakCustomer?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.CustomerCountOrderByAggregateInput
   _avg?: Prisma.CustomerAvgOrderByAggregateInput
   _max?: Prisma.CustomerMaxOrderByAggregateInput
@@ -250,12 +261,14 @@ export type CustomerScalarWhereWithAggregatesInput = {
   namaCustomer?: Prisma.StringWithAggregatesFilter<"Customer"> | string
   alamatCustomer?: Prisma.StringWithAggregatesFilter<"Customer"> | string
   kontakCustomer?: Prisma.StringWithAggregatesFilter<"Customer"> | string
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Customer"> | Date | string | null
 }
 
 export type CustomerCreateInput = {
   namaCustomer: string
   alamatCustomer: string
   kontakCustomer: string
+  deletedAt?: Date | string | null
   transaksiPenjualan?: Prisma.TransaksiPenjualanCreateNestedManyWithoutCustomerInput
 }
 
@@ -264,6 +277,7 @@ export type CustomerUncheckedCreateInput = {
   namaCustomer: string
   alamatCustomer: string
   kontakCustomer: string
+  deletedAt?: Date | string | null
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedCreateNestedManyWithoutCustomerInput
 }
 
@@ -271,6 +285,7 @@ export type CustomerUpdateInput = {
   namaCustomer?: Prisma.StringFieldUpdateOperationsInput | string
   alamatCustomer?: Prisma.StringFieldUpdateOperationsInput | string
   kontakCustomer?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   transaksiPenjualan?: Prisma.TransaksiPenjualanUpdateManyWithoutCustomerNestedInput
 }
 
@@ -279,6 +294,7 @@ export type CustomerUncheckedUpdateInput = {
   namaCustomer?: Prisma.StringFieldUpdateOperationsInput | string
   alamatCustomer?: Prisma.StringFieldUpdateOperationsInput | string
   kontakCustomer?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
@@ -287,12 +303,14 @@ export type CustomerCreateManyInput = {
   namaCustomer: string
   alamatCustomer: string
   kontakCustomer: string
+  deletedAt?: Date | string | null
 }
 
 export type CustomerUpdateManyMutationInput = {
   namaCustomer?: Prisma.StringFieldUpdateOperationsInput | string
   alamatCustomer?: Prisma.StringFieldUpdateOperationsInput | string
   kontakCustomer?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type CustomerUncheckedUpdateManyInput = {
@@ -300,6 +318,7 @@ export type CustomerUncheckedUpdateManyInput = {
   namaCustomer?: Prisma.StringFieldUpdateOperationsInput | string
   alamatCustomer?: Prisma.StringFieldUpdateOperationsInput | string
   kontakCustomer?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type CustomerCountOrderByAggregateInput = {
@@ -307,6 +326,7 @@ export type CustomerCountOrderByAggregateInput = {
   namaCustomer?: Prisma.SortOrder
   alamatCustomer?: Prisma.SortOrder
   kontakCustomer?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type CustomerAvgOrderByAggregateInput = {
@@ -318,6 +338,7 @@ export type CustomerMaxOrderByAggregateInput = {
   namaCustomer?: Prisma.SortOrder
   alamatCustomer?: Prisma.SortOrder
   kontakCustomer?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type CustomerMinOrderByAggregateInput = {
@@ -325,6 +346,7 @@ export type CustomerMinOrderByAggregateInput = {
   namaCustomer?: Prisma.SortOrder
   alamatCustomer?: Prisma.SortOrder
   kontakCustomer?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type CustomerSumOrderByAggregateInput = {
@@ -354,6 +376,7 @@ export type CustomerCreateWithoutTransaksiPenjualanInput = {
   namaCustomer: string
   alamatCustomer: string
   kontakCustomer: string
+  deletedAt?: Date | string | null
 }
 
 export type CustomerUncheckedCreateWithoutTransaksiPenjualanInput = {
@@ -361,6 +384,7 @@ export type CustomerUncheckedCreateWithoutTransaksiPenjualanInput = {
   namaCustomer: string
   alamatCustomer: string
   kontakCustomer: string
+  deletedAt?: Date | string | null
 }
 
 export type CustomerCreateOrConnectWithoutTransaksiPenjualanInput = {
@@ -383,6 +407,7 @@ export type CustomerUpdateWithoutTransaksiPenjualanInput = {
   namaCustomer?: Prisma.StringFieldUpdateOperationsInput | string
   alamatCustomer?: Prisma.StringFieldUpdateOperationsInput | string
   kontakCustomer?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type CustomerUncheckedUpdateWithoutTransaksiPenjualanInput = {
@@ -390,6 +415,7 @@ export type CustomerUncheckedUpdateWithoutTransaksiPenjualanInput = {
   namaCustomer?: Prisma.StringFieldUpdateOperationsInput | string
   alamatCustomer?: Prisma.StringFieldUpdateOperationsInput | string
   kontakCustomer?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -428,6 +454,7 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   namaCustomer?: boolean
   alamatCustomer?: boolean
   kontakCustomer?: boolean
+  deletedAt?: boolean
   transaksiPenjualan?: boolean | Prisma.Customer$transaksiPenjualanArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["customer"]>
@@ -437,6 +464,7 @@ export type CustomerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   namaCustomer?: boolean
   alamatCustomer?: boolean
   kontakCustomer?: boolean
+  deletedAt?: boolean
 }, ExtArgs["result"]["customer"]>
 
 export type CustomerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -444,6 +472,7 @@ export type CustomerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   namaCustomer?: boolean
   alamatCustomer?: boolean
   kontakCustomer?: boolean
+  deletedAt?: boolean
 }, ExtArgs["result"]["customer"]>
 
 export type CustomerSelectScalar = {
@@ -451,9 +480,10 @@ export type CustomerSelectScalar = {
   namaCustomer?: boolean
   alamatCustomer?: boolean
   kontakCustomer?: boolean
+  deletedAt?: boolean
 }
 
-export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idCustomer" | "namaCustomer" | "alamatCustomer" | "kontakCustomer", ExtArgs["result"]["customer"]>
+export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idCustomer" | "namaCustomer" | "alamatCustomer" | "kontakCustomer" | "deletedAt", ExtArgs["result"]["customer"]>
 export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   transaksiPenjualan?: boolean | Prisma.Customer$transaksiPenjualanArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
@@ -471,6 +501,7 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     namaCustomer: string
     alamatCustomer: string
     kontakCustomer: string
+    deletedAt: Date | null
   }, ExtArgs["result"]["customer"]>
   composites: {}
 }
@@ -899,6 +930,7 @@ export interface CustomerFieldRefs {
   readonly namaCustomer: Prisma.FieldRef<"Customer", 'String'>
   readonly alamatCustomer: Prisma.FieldRef<"Customer", 'String'>
   readonly kontakCustomer: Prisma.FieldRef<"Customer", 'String'>
+  readonly deletedAt: Prisma.FieldRef<"Customer", 'DateTime'>
 }
     
 

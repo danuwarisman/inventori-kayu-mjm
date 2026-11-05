@@ -4,15 +4,15 @@ export class CreateSupplierDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  namaSupplier: string;
+  namaSupplier?: string;
 
   @IsString()
   @IsNotEmpty()
   @MaxLength(200)
-  alamatSupplier: string;
+  alamatSupplier?: string;
 
   @IsString()
   @IsNotEmpty()
   @MaxLength(15)
-  kontakSupplier: string;
+  kontakSupplier?: string;
 }

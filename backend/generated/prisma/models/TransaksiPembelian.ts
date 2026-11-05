@@ -43,6 +43,9 @@ export type TransaksiPembelianMinAggregateOutputType = {
   idSupplier: number | null
   idUser: number | null
   tanggalBeli: Date | null
+  statusVerifikasi: $Enums.StatusVerifikasi | null
+  statusPembelian: $Enums.StatusPembelian | null
+  deletedAt: Date | null
 }
 
 export type TransaksiPembelianMaxAggregateOutputType = {
@@ -50,6 +53,9 @@ export type TransaksiPembelianMaxAggregateOutputType = {
   idSupplier: number | null
   idUser: number | null
   tanggalBeli: Date | null
+  statusVerifikasi: $Enums.StatusVerifikasi | null
+  statusPembelian: $Enums.StatusPembelian | null
+  deletedAt: Date | null
 }
 
 export type TransaksiPembelianCountAggregateOutputType = {
@@ -57,6 +63,9 @@ export type TransaksiPembelianCountAggregateOutputType = {
   idSupplier: number
   idUser: number
   tanggalBeli: number
+  statusVerifikasi: number
+  statusPembelian: number
+  deletedAt: number
   _all: number
 }
 
@@ -78,6 +87,9 @@ export type TransaksiPembelianMinAggregateInputType = {
   idSupplier?: true
   idUser?: true
   tanggalBeli?: true
+  statusVerifikasi?: true
+  statusPembelian?: true
+  deletedAt?: true
 }
 
 export type TransaksiPembelianMaxAggregateInputType = {
@@ -85,6 +97,9 @@ export type TransaksiPembelianMaxAggregateInputType = {
   idSupplier?: true
   idUser?: true
   tanggalBeli?: true
+  statusVerifikasi?: true
+  statusPembelian?: true
+  deletedAt?: true
 }
 
 export type TransaksiPembelianCountAggregateInputType = {
@@ -92,6 +107,9 @@ export type TransaksiPembelianCountAggregateInputType = {
   idSupplier?: true
   idUser?: true
   tanggalBeli?: true
+  statusVerifikasi?: true
+  statusPembelian?: true
+  deletedAt?: true
   _all?: true
 }
 
@@ -186,6 +204,9 @@ export type TransaksiPembelianGroupByOutputType = {
   idSupplier: number
   idUser: number
   tanggalBeli: Date
+  statusVerifikasi: $Enums.StatusVerifikasi
+  statusPembelian: $Enums.StatusPembelian
+  deletedAt: Date | null
   _count: TransaksiPembelianCountAggregateOutputType | null
   _avg: TransaksiPembelianAvgAggregateOutputType | null
   _sum: TransaksiPembelianSumAggregateOutputType | null
@@ -216,9 +237,14 @@ export type TransaksiPembelianWhereInput = {
   idSupplier?: Prisma.IntFilter<"TransaksiPembelian"> | number
   idUser?: Prisma.IntFilter<"TransaksiPembelian"> | number
   tanggalBeli?: Prisma.DateTimeFilter<"TransaksiPembelian"> | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFilter<"TransaksiPembelian"> | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFilter<"TransaksiPembelian"> | $Enums.StatusPembelian
+  deletedAt?: Prisma.DateTimeNullableFilter<"TransaksiPembelian"> | Date | string | null
   supplier?: Prisma.XOR<Prisma.SupplierScalarRelationFilter, Prisma.SupplierWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   stokLogs?: Prisma.StokLogListRelationFilter
+  approvals?: Prisma.ApprovalListRelationFilter
+  detailPembelian?: Prisma.DetailPembelianListRelationFilter
 }
 
 export type TransaksiPembelianOrderByWithRelationInput = {
@@ -226,9 +252,14 @@ export type TransaksiPembelianOrderByWithRelationInput = {
   idSupplier?: Prisma.SortOrder
   idUser?: Prisma.SortOrder
   tanggalBeli?: Prisma.SortOrder
+  statusVerifikasi?: Prisma.SortOrder
+  statusPembelian?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   supplier?: Prisma.SupplierOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
   stokLogs?: Prisma.StokLogOrderByRelationAggregateInput
+  approvals?: Prisma.ApprovalOrderByRelationAggregateInput
+  detailPembelian?: Prisma.DetailPembelianOrderByRelationAggregateInput
 }
 
 export type TransaksiPembelianWhereUniqueInput = Prisma.AtLeast<{
@@ -239,9 +270,14 @@ export type TransaksiPembelianWhereUniqueInput = Prisma.AtLeast<{
   idSupplier?: Prisma.IntFilter<"TransaksiPembelian"> | number
   idUser?: Prisma.IntFilter<"TransaksiPembelian"> | number
   tanggalBeli?: Prisma.DateTimeFilter<"TransaksiPembelian"> | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFilter<"TransaksiPembelian"> | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFilter<"TransaksiPembelian"> | $Enums.StatusPembelian
+  deletedAt?: Prisma.DateTimeNullableFilter<"TransaksiPembelian"> | Date | string | null
   supplier?: Prisma.XOR<Prisma.SupplierScalarRelationFilter, Prisma.SupplierWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   stokLogs?: Prisma.StokLogListRelationFilter
+  approvals?: Prisma.ApprovalListRelationFilter
+  detailPembelian?: Prisma.DetailPembelianListRelationFilter
 }, "idPembelian">
 
 export type TransaksiPembelianOrderByWithAggregationInput = {
@@ -249,6 +285,9 @@ export type TransaksiPembelianOrderByWithAggregationInput = {
   idSupplier?: Prisma.SortOrder
   idUser?: Prisma.SortOrder
   tanggalBeli?: Prisma.SortOrder
+  statusVerifikasi?: Prisma.SortOrder
+  statusPembelian?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.TransaksiPembelianCountOrderByAggregateInput
   _avg?: Prisma.TransaksiPembelianAvgOrderByAggregateInput
   _max?: Prisma.TransaksiPembelianMaxOrderByAggregateInput
@@ -264,13 +303,21 @@ export type TransaksiPembelianScalarWhereWithAggregatesInput = {
   idSupplier?: Prisma.IntWithAggregatesFilter<"TransaksiPembelian"> | number
   idUser?: Prisma.IntWithAggregatesFilter<"TransaksiPembelian"> | number
   tanggalBeli?: Prisma.DateTimeWithAggregatesFilter<"TransaksiPembelian"> | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiWithAggregatesFilter<"TransaksiPembelian"> | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianWithAggregatesFilter<"TransaksiPembelian"> | $Enums.StatusPembelian
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"TransaksiPembelian"> | Date | string | null
 }
 
 export type TransaksiPembelianCreateInput = {
   tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
   supplier: Prisma.SupplierCreateNestedOneWithoutTransaksiPembelianInput
   user: Prisma.UserCreateNestedOneWithoutTransaksiPembelianInput
   stokLogs?: Prisma.StokLogCreateNestedManyWithoutTransaksiPembelianInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutPembelianInput
+  detailPembelian?: Prisma.DetailPembelianCreateNestedManyWithoutTransaksiPembelianInput
 }
 
 export type TransaksiPembelianUncheckedCreateInput = {
@@ -278,14 +325,24 @@ export type TransaksiPembelianUncheckedCreateInput = {
   idSupplier: number
   idUser: number
   tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
   stokLogs?: Prisma.StokLogUncheckedCreateNestedManyWithoutTransaksiPembelianInput
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutPembelianInput
+  detailPembelian?: Prisma.DetailPembelianUncheckedCreateNestedManyWithoutTransaksiPembelianInput
 }
 
 export type TransaksiPembelianUpdateInput = {
   tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   supplier?: Prisma.SupplierUpdateOneRequiredWithoutTransaksiPembelianNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTransaksiPembelianNestedInput
   stokLogs?: Prisma.StokLogUpdateManyWithoutTransaksiPembelianNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutPembelianNestedInput
+  detailPembelian?: Prisma.DetailPembelianUpdateManyWithoutTransaksiPembelianNestedInput
 }
 
 export type TransaksiPembelianUncheckedUpdateInput = {
@@ -293,7 +350,12 @@ export type TransaksiPembelianUncheckedUpdateInput = {
   idSupplier?: Prisma.IntFieldUpdateOperationsInput | number
   idUser?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   stokLogs?: Prisma.StokLogUncheckedUpdateManyWithoutTransaksiPembelianNestedInput
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutPembelianNestedInput
+  detailPembelian?: Prisma.DetailPembelianUncheckedUpdateManyWithoutTransaksiPembelianNestedInput
 }
 
 export type TransaksiPembelianCreateManyInput = {
@@ -301,10 +363,16 @@ export type TransaksiPembelianCreateManyInput = {
   idSupplier: number
   idUser: number
   tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
 }
 
 export type TransaksiPembelianUpdateManyMutationInput = {
   tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type TransaksiPembelianUncheckedUpdateManyInput = {
@@ -312,6 +380,9 @@ export type TransaksiPembelianUncheckedUpdateManyInput = {
   idSupplier?: Prisma.IntFieldUpdateOperationsInput | number
   idUser?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type TransaksiPembelianListRelationFilter = {
@@ -334,6 +405,9 @@ export type TransaksiPembelianCountOrderByAggregateInput = {
   idSupplier?: Prisma.SortOrder
   idUser?: Prisma.SortOrder
   tanggalBeli?: Prisma.SortOrder
+  statusVerifikasi?: Prisma.SortOrder
+  statusPembelian?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type TransaksiPembelianAvgOrderByAggregateInput = {
@@ -347,6 +421,9 @@ export type TransaksiPembelianMaxOrderByAggregateInput = {
   idSupplier?: Prisma.SortOrder
   idUser?: Prisma.SortOrder
   tanggalBeli?: Prisma.SortOrder
+  statusVerifikasi?: Prisma.SortOrder
+  statusPembelian?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type TransaksiPembelianMinOrderByAggregateInput = {
@@ -354,12 +431,20 @@ export type TransaksiPembelianMinOrderByAggregateInput = {
   idSupplier?: Prisma.SortOrder
   idUser?: Prisma.SortOrder
   tanggalBeli?: Prisma.SortOrder
+  statusVerifikasi?: Prisma.SortOrder
+  statusPembelian?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type TransaksiPembelianSumOrderByAggregateInput = {
   idPembelian?: Prisma.SortOrder
   idSupplier?: Prisma.SortOrder
   idUser?: Prisma.SortOrder
+}
+
+export type TransaksiPembelianScalarRelationFilter = {
+  is?: Prisma.TransaksiPembelianWhereInput
+  isNot?: Prisma.TransaksiPembelianWhereInput
 }
 
 export type TransaksiPembelianCreateNestedManyWithoutUserInput = {
@@ -462,17 +547,65 @@ export type TransaksiPembelianUpdateOneWithoutStokLogsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TransaksiPembelianUpdateToOneWithWhereWithoutStokLogsInput, Prisma.TransaksiPembelianUpdateWithoutStokLogsInput>, Prisma.TransaksiPembelianUncheckedUpdateWithoutStokLogsInput>
 }
 
+export type EnumStatusVerifikasiFieldUpdateOperationsInput = {
+  set?: $Enums.StatusVerifikasi
+}
+
+export type EnumStatusPembelianFieldUpdateOperationsInput = {
+  set?: $Enums.StatusPembelian
+}
+
+export type TransaksiPembelianCreateNestedOneWithoutApprovalsInput = {
+  create?: Prisma.XOR<Prisma.TransaksiPembelianCreateWithoutApprovalsInput, Prisma.TransaksiPembelianUncheckedCreateWithoutApprovalsInput>
+  connectOrCreate?: Prisma.TransaksiPembelianCreateOrConnectWithoutApprovalsInput
+  connect?: Prisma.TransaksiPembelianWhereUniqueInput
+}
+
+export type TransaksiPembelianUpdateOneWithoutApprovalsNestedInput = {
+  create?: Prisma.XOR<Prisma.TransaksiPembelianCreateWithoutApprovalsInput, Prisma.TransaksiPembelianUncheckedCreateWithoutApprovalsInput>
+  connectOrCreate?: Prisma.TransaksiPembelianCreateOrConnectWithoutApprovalsInput
+  upsert?: Prisma.TransaksiPembelianUpsertWithoutApprovalsInput
+  disconnect?: Prisma.TransaksiPembelianWhereInput | boolean
+  delete?: Prisma.TransaksiPembelianWhereInput | boolean
+  connect?: Prisma.TransaksiPembelianWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TransaksiPembelianUpdateToOneWithWhereWithoutApprovalsInput, Prisma.TransaksiPembelianUpdateWithoutApprovalsInput>, Prisma.TransaksiPembelianUncheckedUpdateWithoutApprovalsInput>
+}
+
+export type TransaksiPembelianCreateNestedOneWithoutDetailPembelianInput = {
+  create?: Prisma.XOR<Prisma.TransaksiPembelianCreateWithoutDetailPembelianInput, Prisma.TransaksiPembelianUncheckedCreateWithoutDetailPembelianInput>
+  connectOrCreate?: Prisma.TransaksiPembelianCreateOrConnectWithoutDetailPembelianInput
+  connect?: Prisma.TransaksiPembelianWhereUniqueInput
+}
+
+export type TransaksiPembelianUpdateOneRequiredWithoutDetailPembelianNestedInput = {
+  create?: Prisma.XOR<Prisma.TransaksiPembelianCreateWithoutDetailPembelianInput, Prisma.TransaksiPembelianUncheckedCreateWithoutDetailPembelianInput>
+  connectOrCreate?: Prisma.TransaksiPembelianCreateOrConnectWithoutDetailPembelianInput
+  upsert?: Prisma.TransaksiPembelianUpsertWithoutDetailPembelianInput
+  connect?: Prisma.TransaksiPembelianWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TransaksiPembelianUpdateToOneWithWhereWithoutDetailPembelianInput, Prisma.TransaksiPembelianUpdateWithoutDetailPembelianInput>, Prisma.TransaksiPembelianUncheckedUpdateWithoutDetailPembelianInput>
+}
+
 export type TransaksiPembelianCreateWithoutUserInput = {
   tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
   supplier: Prisma.SupplierCreateNestedOneWithoutTransaksiPembelianInput
   stokLogs?: Prisma.StokLogCreateNestedManyWithoutTransaksiPembelianInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutPembelianInput
+  detailPembelian?: Prisma.DetailPembelianCreateNestedManyWithoutTransaksiPembelianInput
 }
 
 export type TransaksiPembelianUncheckedCreateWithoutUserInput = {
   idPembelian?: number
   idSupplier: number
   tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
   stokLogs?: Prisma.StokLogUncheckedCreateNestedManyWithoutTransaksiPembelianInput
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutPembelianInput
+  detailPembelian?: Prisma.DetailPembelianUncheckedCreateNestedManyWithoutTransaksiPembelianInput
 }
 
 export type TransaksiPembelianCreateOrConnectWithoutUserInput = {
@@ -509,19 +642,32 @@ export type TransaksiPembelianScalarWhereInput = {
   idSupplier?: Prisma.IntFilter<"TransaksiPembelian"> | number
   idUser?: Prisma.IntFilter<"TransaksiPembelian"> | number
   tanggalBeli?: Prisma.DateTimeFilter<"TransaksiPembelian"> | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFilter<"TransaksiPembelian"> | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFilter<"TransaksiPembelian"> | $Enums.StatusPembelian
+  deletedAt?: Prisma.DateTimeNullableFilter<"TransaksiPembelian"> | Date | string | null
 }
 
 export type TransaksiPembelianCreateWithoutSupplierInput = {
   tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
   user: Prisma.UserCreateNestedOneWithoutTransaksiPembelianInput
   stokLogs?: Prisma.StokLogCreateNestedManyWithoutTransaksiPembelianInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutPembelianInput
+  detailPembelian?: Prisma.DetailPembelianCreateNestedManyWithoutTransaksiPembelianInput
 }
 
 export type TransaksiPembelianUncheckedCreateWithoutSupplierInput = {
   idPembelian?: number
   idUser: number
   tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
   stokLogs?: Prisma.StokLogUncheckedCreateNestedManyWithoutTransaksiPembelianInput
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutPembelianInput
+  detailPembelian?: Prisma.DetailPembelianUncheckedCreateNestedManyWithoutTransaksiPembelianInput
 }
 
 export type TransaksiPembelianCreateOrConnectWithoutSupplierInput = {
@@ -552,8 +698,13 @@ export type TransaksiPembelianUpdateManyWithWhereWithoutSupplierInput = {
 
 export type TransaksiPembelianCreateWithoutStokLogsInput = {
   tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
   supplier: Prisma.SupplierCreateNestedOneWithoutTransaksiPembelianInput
   user: Prisma.UserCreateNestedOneWithoutTransaksiPembelianInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutPembelianInput
+  detailPembelian?: Prisma.DetailPembelianCreateNestedManyWithoutTransaksiPembelianInput
 }
 
 export type TransaksiPembelianUncheckedCreateWithoutStokLogsInput = {
@@ -561,6 +712,11 @@ export type TransaksiPembelianUncheckedCreateWithoutStokLogsInput = {
   idSupplier: number
   idUser: number
   tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutPembelianInput
+  detailPembelian?: Prisma.DetailPembelianUncheckedCreateNestedManyWithoutTransaksiPembelianInput
 }
 
 export type TransaksiPembelianCreateOrConnectWithoutStokLogsInput = {
@@ -581,8 +737,13 @@ export type TransaksiPembelianUpdateToOneWithWhereWithoutStokLogsInput = {
 
 export type TransaksiPembelianUpdateWithoutStokLogsInput = {
   tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   supplier?: Prisma.SupplierUpdateOneRequiredWithoutTransaksiPembelianNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTransaksiPembelianNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutPembelianNestedInput
+  detailPembelian?: Prisma.DetailPembelianUpdateManyWithoutTransaksiPembelianNestedInput
 }
 
 export type TransaksiPembelianUncheckedUpdateWithoutStokLogsInput = {
@@ -590,56 +751,217 @@ export type TransaksiPembelianUncheckedUpdateWithoutStokLogsInput = {
   idSupplier?: Prisma.IntFieldUpdateOperationsInput | number
   idUser?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutPembelianNestedInput
+  detailPembelian?: Prisma.DetailPembelianUncheckedUpdateManyWithoutTransaksiPembelianNestedInput
+}
+
+export type TransaksiPembelianCreateWithoutApprovalsInput = {
+  tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
+  supplier: Prisma.SupplierCreateNestedOneWithoutTransaksiPembelianInput
+  user: Prisma.UserCreateNestedOneWithoutTransaksiPembelianInput
+  stokLogs?: Prisma.StokLogCreateNestedManyWithoutTransaksiPembelianInput
+  detailPembelian?: Prisma.DetailPembelianCreateNestedManyWithoutTransaksiPembelianInput
+}
+
+export type TransaksiPembelianUncheckedCreateWithoutApprovalsInput = {
+  idPembelian?: number
+  idSupplier: number
+  idUser: number
+  tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
+  stokLogs?: Prisma.StokLogUncheckedCreateNestedManyWithoutTransaksiPembelianInput
+  detailPembelian?: Prisma.DetailPembelianUncheckedCreateNestedManyWithoutTransaksiPembelianInput
+}
+
+export type TransaksiPembelianCreateOrConnectWithoutApprovalsInput = {
+  where: Prisma.TransaksiPembelianWhereUniqueInput
+  create: Prisma.XOR<Prisma.TransaksiPembelianCreateWithoutApprovalsInput, Prisma.TransaksiPembelianUncheckedCreateWithoutApprovalsInput>
+}
+
+export type TransaksiPembelianUpsertWithoutApprovalsInput = {
+  update: Prisma.XOR<Prisma.TransaksiPembelianUpdateWithoutApprovalsInput, Prisma.TransaksiPembelianUncheckedUpdateWithoutApprovalsInput>
+  create: Prisma.XOR<Prisma.TransaksiPembelianCreateWithoutApprovalsInput, Prisma.TransaksiPembelianUncheckedCreateWithoutApprovalsInput>
+  where?: Prisma.TransaksiPembelianWhereInput
+}
+
+export type TransaksiPembelianUpdateToOneWithWhereWithoutApprovalsInput = {
+  where?: Prisma.TransaksiPembelianWhereInput
+  data: Prisma.XOR<Prisma.TransaksiPembelianUpdateWithoutApprovalsInput, Prisma.TransaksiPembelianUncheckedUpdateWithoutApprovalsInput>
+}
+
+export type TransaksiPembelianUpdateWithoutApprovalsInput = {
+  tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supplier?: Prisma.SupplierUpdateOneRequiredWithoutTransaksiPembelianNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutTransaksiPembelianNestedInput
+  stokLogs?: Prisma.StokLogUpdateManyWithoutTransaksiPembelianNestedInput
+  detailPembelian?: Prisma.DetailPembelianUpdateManyWithoutTransaksiPembelianNestedInput
+}
+
+export type TransaksiPembelianUncheckedUpdateWithoutApprovalsInput = {
+  idPembelian?: Prisma.IntFieldUpdateOperationsInput | number
+  idSupplier?: Prisma.IntFieldUpdateOperationsInput | number
+  idUser?: Prisma.IntFieldUpdateOperationsInput | number
+  tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stokLogs?: Prisma.StokLogUncheckedUpdateManyWithoutTransaksiPembelianNestedInput
+  detailPembelian?: Prisma.DetailPembelianUncheckedUpdateManyWithoutTransaksiPembelianNestedInput
+}
+
+export type TransaksiPembelianCreateWithoutDetailPembelianInput = {
+  tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
+  supplier: Prisma.SupplierCreateNestedOneWithoutTransaksiPembelianInput
+  user: Prisma.UserCreateNestedOneWithoutTransaksiPembelianInput
+  stokLogs?: Prisma.StokLogCreateNestedManyWithoutTransaksiPembelianInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutPembelianInput
+}
+
+export type TransaksiPembelianUncheckedCreateWithoutDetailPembelianInput = {
+  idPembelian?: number
+  idSupplier: number
+  idUser: number
+  tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
+  stokLogs?: Prisma.StokLogUncheckedCreateNestedManyWithoutTransaksiPembelianInput
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutPembelianInput
+}
+
+export type TransaksiPembelianCreateOrConnectWithoutDetailPembelianInput = {
+  where: Prisma.TransaksiPembelianWhereUniqueInput
+  create: Prisma.XOR<Prisma.TransaksiPembelianCreateWithoutDetailPembelianInput, Prisma.TransaksiPembelianUncheckedCreateWithoutDetailPembelianInput>
+}
+
+export type TransaksiPembelianUpsertWithoutDetailPembelianInput = {
+  update: Prisma.XOR<Prisma.TransaksiPembelianUpdateWithoutDetailPembelianInput, Prisma.TransaksiPembelianUncheckedUpdateWithoutDetailPembelianInput>
+  create: Prisma.XOR<Prisma.TransaksiPembelianCreateWithoutDetailPembelianInput, Prisma.TransaksiPembelianUncheckedCreateWithoutDetailPembelianInput>
+  where?: Prisma.TransaksiPembelianWhereInput
+}
+
+export type TransaksiPembelianUpdateToOneWithWhereWithoutDetailPembelianInput = {
+  where?: Prisma.TransaksiPembelianWhereInput
+  data: Prisma.XOR<Prisma.TransaksiPembelianUpdateWithoutDetailPembelianInput, Prisma.TransaksiPembelianUncheckedUpdateWithoutDetailPembelianInput>
+}
+
+export type TransaksiPembelianUpdateWithoutDetailPembelianInput = {
+  tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supplier?: Prisma.SupplierUpdateOneRequiredWithoutTransaksiPembelianNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutTransaksiPembelianNestedInput
+  stokLogs?: Prisma.StokLogUpdateManyWithoutTransaksiPembelianNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutPembelianNestedInput
+}
+
+export type TransaksiPembelianUncheckedUpdateWithoutDetailPembelianInput = {
+  idPembelian?: Prisma.IntFieldUpdateOperationsInput | number
+  idSupplier?: Prisma.IntFieldUpdateOperationsInput | number
+  idUser?: Prisma.IntFieldUpdateOperationsInput | number
+  tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stokLogs?: Prisma.StokLogUncheckedUpdateManyWithoutTransaksiPembelianNestedInput
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutPembelianNestedInput
 }
 
 export type TransaksiPembelianCreateManyUserInput = {
   idPembelian?: number
   idSupplier: number
   tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
 }
 
 export type TransaksiPembelianUpdateWithoutUserInput = {
   tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   supplier?: Prisma.SupplierUpdateOneRequiredWithoutTransaksiPembelianNestedInput
   stokLogs?: Prisma.StokLogUpdateManyWithoutTransaksiPembelianNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutPembelianNestedInput
+  detailPembelian?: Prisma.DetailPembelianUpdateManyWithoutTransaksiPembelianNestedInput
 }
 
 export type TransaksiPembelianUncheckedUpdateWithoutUserInput = {
   idPembelian?: Prisma.IntFieldUpdateOperationsInput | number
   idSupplier?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   stokLogs?: Prisma.StokLogUncheckedUpdateManyWithoutTransaksiPembelianNestedInput
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutPembelianNestedInput
+  detailPembelian?: Prisma.DetailPembelianUncheckedUpdateManyWithoutTransaksiPembelianNestedInput
 }
 
 export type TransaksiPembelianUncheckedUpdateManyWithoutUserInput = {
   idPembelian?: Prisma.IntFieldUpdateOperationsInput | number
   idSupplier?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type TransaksiPembelianCreateManySupplierInput = {
   idPembelian?: number
   idUser: number
   tanggalBeli: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPembelian?: $Enums.StatusPembelian
+  deletedAt?: Date | string | null
 }
 
 export type TransaksiPembelianUpdateWithoutSupplierInput = {
   tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutTransaksiPembelianNestedInput
   stokLogs?: Prisma.StokLogUpdateManyWithoutTransaksiPembelianNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutPembelianNestedInput
+  detailPembelian?: Prisma.DetailPembelianUpdateManyWithoutTransaksiPembelianNestedInput
 }
 
 export type TransaksiPembelianUncheckedUpdateWithoutSupplierInput = {
   idPembelian?: Prisma.IntFieldUpdateOperationsInput | number
   idUser?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   stokLogs?: Prisma.StokLogUncheckedUpdateManyWithoutTransaksiPembelianNestedInput
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutPembelianNestedInput
+  detailPembelian?: Prisma.DetailPembelianUncheckedUpdateManyWithoutTransaksiPembelianNestedInput
 }
 
 export type TransaksiPembelianUncheckedUpdateManyWithoutSupplierInput = {
   idPembelian?: Prisma.IntFieldUpdateOperationsInput | number
   idUser?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalBeli?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPembelian?: Prisma.EnumStatusPembelianFieldUpdateOperationsInput | $Enums.StatusPembelian
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -649,10 +971,14 @@ export type TransaksiPembelianUncheckedUpdateManyWithoutSupplierInput = {
 
 export type TransaksiPembelianCountOutputType = {
   stokLogs: number
+  approvals: number
+  detailPembelian: number
 }
 
 export type TransaksiPembelianCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   stokLogs?: boolean | TransaksiPembelianCountOutputTypeCountStokLogsArgs
+  approvals?: boolean | TransaksiPembelianCountOutputTypeCountApprovalsArgs
+  detailPembelian?: boolean | TransaksiPembelianCountOutputTypeCountDetailPembelianArgs
 }
 
 /**
@@ -672,15 +998,34 @@ export type TransaksiPembelianCountOutputTypeCountStokLogsArgs<ExtArgs extends r
   where?: Prisma.StokLogWhereInput
 }
 
+/**
+ * TransaksiPembelianCountOutputType without action
+ */
+export type TransaksiPembelianCountOutputTypeCountApprovalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ApprovalWhereInput
+}
+
+/**
+ * TransaksiPembelianCountOutputType without action
+ */
+export type TransaksiPembelianCountOutputTypeCountDetailPembelianArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DetailPembelianWhereInput
+}
+
 
 export type TransaksiPembelianSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   idPembelian?: boolean
   idSupplier?: boolean
   idUser?: boolean
   tanggalBeli?: boolean
+  statusVerifikasi?: boolean
+  statusPembelian?: boolean
+  deletedAt?: boolean
   supplier?: boolean | Prisma.SupplierDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   stokLogs?: boolean | Prisma.TransaksiPembelian$stokLogsArgs<ExtArgs>
+  approvals?: boolean | Prisma.TransaksiPembelian$approvalsArgs<ExtArgs>
+  detailPembelian?: boolean | Prisma.TransaksiPembelian$detailPembelianArgs<ExtArgs>
   _count?: boolean | Prisma.TransaksiPembelianCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["transaksiPembelian"]>
 
@@ -689,6 +1034,9 @@ export type TransaksiPembelianSelectCreateManyAndReturn<ExtArgs extends runtime.
   idSupplier?: boolean
   idUser?: boolean
   tanggalBeli?: boolean
+  statusVerifikasi?: boolean
+  statusPembelian?: boolean
+  deletedAt?: boolean
   supplier?: boolean | Prisma.SupplierDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["transaksiPembelian"]>
@@ -698,6 +1046,9 @@ export type TransaksiPembelianSelectUpdateManyAndReturn<ExtArgs extends runtime.
   idSupplier?: boolean
   idUser?: boolean
   tanggalBeli?: boolean
+  statusVerifikasi?: boolean
+  statusPembelian?: boolean
+  deletedAt?: boolean
   supplier?: boolean | Prisma.SupplierDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["transaksiPembelian"]>
@@ -707,13 +1058,18 @@ export type TransaksiPembelianSelectScalar = {
   idSupplier?: boolean
   idUser?: boolean
   tanggalBeli?: boolean
+  statusVerifikasi?: boolean
+  statusPembelian?: boolean
+  deletedAt?: boolean
 }
 
-export type TransaksiPembelianOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idPembelian" | "idSupplier" | "idUser" | "tanggalBeli", ExtArgs["result"]["transaksiPembelian"]>
+export type TransaksiPembelianOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idPembelian" | "idSupplier" | "idUser" | "tanggalBeli" | "statusVerifikasi" | "statusPembelian" | "deletedAt", ExtArgs["result"]["transaksiPembelian"]>
 export type TransaksiPembelianInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   supplier?: boolean | Prisma.SupplierDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   stokLogs?: boolean | Prisma.TransaksiPembelian$stokLogsArgs<ExtArgs>
+  approvals?: boolean | Prisma.TransaksiPembelian$approvalsArgs<ExtArgs>
+  detailPembelian?: boolean | Prisma.TransaksiPembelian$detailPembelianArgs<ExtArgs>
   _count?: boolean | Prisma.TransaksiPembelianCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TransaksiPembelianIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -731,12 +1087,17 @@ export type $TransaksiPembelianPayload<ExtArgs extends runtime.Types.Extensions.
     supplier: Prisma.$SupplierPayload<ExtArgs>
     user: Prisma.$UserPayload<ExtArgs>
     stokLogs: Prisma.$StokLogPayload<ExtArgs>[]
+    approvals: Prisma.$ApprovalPayload<ExtArgs>[]
+    detailPembelian: Prisma.$DetailPembelianPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     idPembelian: number
     idSupplier: number
     idUser: number
     tanggalBeli: Date
+    statusVerifikasi: $Enums.StatusVerifikasi
+    statusPembelian: $Enums.StatusPembelian
+    deletedAt: Date | null
   }, ExtArgs["result"]["transaksiPembelian"]>
   composites: {}
 }
@@ -1134,6 +1495,8 @@ export interface Prisma__TransaksiPembelianClient<T, Null = never, ExtArgs exten
   supplier<T extends Prisma.SupplierDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SupplierDefaultArgs<ExtArgs>>): Prisma.Prisma__SupplierClient<runtime.Types.Result.GetResult<Prisma.$SupplierPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   stokLogs<T extends Prisma.TransaksiPembelian$stokLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TransaksiPembelian$stokLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StokLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  approvals<T extends Prisma.TransaksiPembelian$approvalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TransaksiPembelian$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  detailPembelian<T extends Prisma.TransaksiPembelian$detailPembelianArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TransaksiPembelian$detailPembelianArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DetailPembelianPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1167,6 +1530,9 @@ export interface TransaksiPembelianFieldRefs {
   readonly idSupplier: Prisma.FieldRef<"TransaksiPembelian", 'Int'>
   readonly idUser: Prisma.FieldRef<"TransaksiPembelian", 'Int'>
   readonly tanggalBeli: Prisma.FieldRef<"TransaksiPembelian", 'DateTime'>
+  readonly statusVerifikasi: Prisma.FieldRef<"TransaksiPembelian", 'StatusVerifikasi'>
+  readonly statusPembelian: Prisma.FieldRef<"TransaksiPembelian", 'StatusPembelian'>
+  readonly deletedAt: Prisma.FieldRef<"TransaksiPembelian", 'DateTime'>
 }
     
 
@@ -1589,6 +1955,54 @@ export type TransaksiPembelian$stokLogsArgs<ExtArgs extends runtime.Types.Extens
   take?: number
   skip?: number
   distinct?: Prisma.StokLogScalarFieldEnum | Prisma.StokLogScalarFieldEnum[]
+}
+
+/**
+ * TransaksiPembelian.approvals
+ */
+export type TransaksiPembelian$approvalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Approval
+   */
+  select?: Prisma.ApprovalSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Approval
+   */
+  omit?: Prisma.ApprovalOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ApprovalInclude<ExtArgs> | null
+  where?: Prisma.ApprovalWhereInput
+  orderBy?: Prisma.ApprovalOrderByWithRelationInput | Prisma.ApprovalOrderByWithRelationInput[]
+  cursor?: Prisma.ApprovalWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ApprovalScalarFieldEnum | Prisma.ApprovalScalarFieldEnum[]
+}
+
+/**
+ * TransaksiPembelian.detailPembelian
+ */
+export type TransaksiPembelian$detailPembelianArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DetailPembelian
+   */
+  select?: Prisma.DetailPembelianSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DetailPembelian
+   */
+  omit?: Prisma.DetailPembelianOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DetailPembelianInclude<ExtArgs> | null
+  where?: Prisma.DetailPembelianWhereInput
+  orderBy?: Prisma.DetailPembelianOrderByWithRelationInput | Prisma.DetailPembelianOrderByWithRelationInput[]
+  cursor?: Prisma.DetailPembelianWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DetailPembelianScalarFieldEnum | Prisma.DetailPembelianScalarFieldEnum[]
 }
 
 /**

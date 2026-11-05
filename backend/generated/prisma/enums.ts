@@ -12,7 +12,8 @@
 export const StatusVerifikasi = {
   PENDING: 'PENDING',
   DISETUJUI: 'DISETUJUI',
-  DITOLAK: 'DITOLAK'
+  DITOLAK: 'DITOLAK',
+  DIBATALKAN: 'DIBATALKAN'
 } as const
 
 export type StatusVerifikasi = (typeof StatusVerifikasi)[keyof typeof StatusVerifikasi]
@@ -21,7 +22,8 @@ export type StatusVerifikasi = (typeof StatusVerifikasi)[keyof typeof StatusVeri
 export const StatusPengajuanSupplier = {
   MENUNGGU: 'MENUNGGU',
   DISETUJUI: 'DISETUJUI',
-  DITOLAK: 'DITOLAK'
+  DITOLAK: 'DITOLAK',
+  DIBATALKAN: 'DIBATALKAN'
 } as const
 
 export type StatusPengajuanSupplier = (typeof StatusPengajuanSupplier)[keyof typeof StatusPengajuanSupplier]
@@ -38,7 +40,29 @@ export type JenisAksiSupplier = (typeof JenisAksiSupplier)[keyof typeof JenisAks
 
 export const StatusKelayakanKayu = {
   SIAP_JUAL: 'SIAP_JUAL',
-  PENGERINGAN_ULANG: 'PENGERINGAN_ULANG'
+  PENGERINGAN_ULANG: 'PENGERINGAN_ULANG',
+  RUSAK: 'RUSAK'
 } as const
 
 export type StatusKelayakanKayu = (typeof StatusKelayakanKayu)[keyof typeof StatusKelayakanKayu]
+
+
+export const StatusPembelian = {
+  MENUNGGU: 'MENUNGGU',
+  DISETUJUI: 'DISETUJUI',
+  DITOLAK: 'DITOLAK',
+  DITERIMA: 'DITERIMA',
+  DIBATALKAN: 'DIBATALKAN'
+} as const
+
+export type StatusPembelian = (typeof StatusPembelian)[keyof typeof StatusPembelian]
+
+
+export const StatusPenjualan = {
+  MENUNGGU: 'MENUNGGU',
+  DISETUJUI: 'DISETUJUI',
+  DITOLAK: 'DITOLAK',
+  DIBATALKAN: 'DIBATALKAN'
+} as const
+
+export type StatusPenjualan = (typeof StatusPenjualan)[keyof typeof StatusPenjualan]

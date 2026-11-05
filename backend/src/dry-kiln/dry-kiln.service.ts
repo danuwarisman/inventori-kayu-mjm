@@ -85,7 +85,6 @@ export class DryKilnService {
       data: {
         kodeLog: dto.kodeLog || dto.id_log || 'L-0',
         kodePlank: dto.kodePlank || dto.id_plank || undefined,
-        idPlank: dto.idPlank || undefined,
         sortimen: dto.sortimen || 'Sortimen A',
         grade: dto.grade || 'Grade A',
         panjang: p,

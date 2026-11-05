@@ -44,6 +44,8 @@ export type TransaksiPenjualanMinAggregateOutputType = {
   idUserInput: number | null
   tanggalJual: Date | null
   statusVerifikasi: $Enums.StatusVerifikasi | null
+  statusPenjualan: $Enums.StatusPenjualan | null
+  deletedAt: Date | null
 }
 
 export type TransaksiPenjualanMaxAggregateOutputType = {
@@ -52,6 +54,8 @@ export type TransaksiPenjualanMaxAggregateOutputType = {
   idUserInput: number | null
   tanggalJual: Date | null
   statusVerifikasi: $Enums.StatusVerifikasi | null
+  statusPenjualan: $Enums.StatusPenjualan | null
+  deletedAt: Date | null
 }
 
 export type TransaksiPenjualanCountAggregateOutputType = {
@@ -60,6 +64,8 @@ export type TransaksiPenjualanCountAggregateOutputType = {
   idUserInput: number
   tanggalJual: number
   statusVerifikasi: number
+  statusPenjualan: number
+  deletedAt: number
   _all: number
 }
 
@@ -82,6 +88,8 @@ export type TransaksiPenjualanMinAggregateInputType = {
   idUserInput?: true
   tanggalJual?: true
   statusVerifikasi?: true
+  statusPenjualan?: true
+  deletedAt?: true
 }
 
 export type TransaksiPenjualanMaxAggregateInputType = {
@@ -90,6 +98,8 @@ export type TransaksiPenjualanMaxAggregateInputType = {
   idUserInput?: true
   tanggalJual?: true
   statusVerifikasi?: true
+  statusPenjualan?: true
+  deletedAt?: true
 }
 
 export type TransaksiPenjualanCountAggregateInputType = {
@@ -98,6 +108,8 @@ export type TransaksiPenjualanCountAggregateInputType = {
   idUserInput?: true
   tanggalJual?: true
   statusVerifikasi?: true
+  statusPenjualan?: true
+  deletedAt?: true
   _all?: true
 }
 
@@ -193,6 +205,8 @@ export type TransaksiPenjualanGroupByOutputType = {
   idUserInput: number
   tanggalJual: Date
   statusVerifikasi: $Enums.StatusVerifikasi
+  statusPenjualan: $Enums.StatusPenjualan
+  deletedAt: Date | null
   _count: TransaksiPenjualanCountAggregateOutputType | null
   _avg: TransaksiPenjualanAvgAggregateOutputType | null
   _sum: TransaksiPenjualanSumAggregateOutputType | null
@@ -224,6 +238,9 @@ export type TransaksiPenjualanWhereInput = {
   idUserInput?: Prisma.IntFilter<"TransaksiPenjualan"> | number
   tanggalJual?: Prisma.DateTimeFilter<"TransaksiPenjualan"> | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFilter<"TransaksiPenjualan"> | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFilter<"TransaksiPenjualan"> | $Enums.StatusPenjualan
+  deletedAt?: Prisma.DateTimeNullableFilter<"TransaksiPenjualan"> | Date | string | null
+  approvals?: Prisma.ApprovalListRelationFilter
   detailPenjualan?: Prisma.DetailPenjualanListRelationFilter
   customer?: Prisma.XOR<Prisma.CustomerScalarRelationFilter, Prisma.CustomerWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -235,6 +252,9 @@ export type TransaksiPenjualanOrderByWithRelationInput = {
   idUserInput?: Prisma.SortOrder
   tanggalJual?: Prisma.SortOrder
   statusVerifikasi?: Prisma.SortOrder
+  statusPenjualan?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  approvals?: Prisma.ApprovalOrderByRelationAggregateInput
   detailPenjualan?: Prisma.DetailPenjualanOrderByRelationAggregateInput
   customer?: Prisma.CustomerOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
@@ -249,6 +269,9 @@ export type TransaksiPenjualanWhereUniqueInput = Prisma.AtLeast<{
   idUserInput?: Prisma.IntFilter<"TransaksiPenjualan"> | number
   tanggalJual?: Prisma.DateTimeFilter<"TransaksiPenjualan"> | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFilter<"TransaksiPenjualan"> | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFilter<"TransaksiPenjualan"> | $Enums.StatusPenjualan
+  deletedAt?: Prisma.DateTimeNullableFilter<"TransaksiPenjualan"> | Date | string | null
+  approvals?: Prisma.ApprovalListRelationFilter
   detailPenjualan?: Prisma.DetailPenjualanListRelationFilter
   customer?: Prisma.XOR<Prisma.CustomerScalarRelationFilter, Prisma.CustomerWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -260,6 +283,8 @@ export type TransaksiPenjualanOrderByWithAggregationInput = {
   idUserInput?: Prisma.SortOrder
   tanggalJual?: Prisma.SortOrder
   statusVerifikasi?: Prisma.SortOrder
+  statusPenjualan?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.TransaksiPenjualanCountOrderByAggregateInput
   _avg?: Prisma.TransaksiPenjualanAvgOrderByAggregateInput
   _max?: Prisma.TransaksiPenjualanMaxOrderByAggregateInput
@@ -276,11 +301,16 @@ export type TransaksiPenjualanScalarWhereWithAggregatesInput = {
   idUserInput?: Prisma.IntWithAggregatesFilter<"TransaksiPenjualan"> | number
   tanggalJual?: Prisma.DateTimeWithAggregatesFilter<"TransaksiPenjualan"> | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiWithAggregatesFilter<"TransaksiPenjualan"> | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanWithAggregatesFilter<"TransaksiPenjualan"> | $Enums.StatusPenjualan
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"TransaksiPenjualan"> | Date | string | null
 }
 
 export type TransaksiPenjualanCreateInput = {
   tanggalJual: Date | string
   statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutPenjualanInput
   detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutTransaksiPenjualanInput
   customer: Prisma.CustomerCreateNestedOneWithoutTransaksiPenjualanInput
   user: Prisma.UserCreateNestedOneWithoutTransaksiPenjualanInput
@@ -292,12 +322,18 @@ export type TransaksiPenjualanUncheckedCreateInput = {
   idUserInput: number
   tanggalJual: Date | string
   statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutPenjualanInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutTransaksiPenjualanInput
 }
 
 export type TransaksiPenjualanUpdateInput = {
   tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUpdateManyWithoutPenjualanNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutTransaksiPenjualanNestedInput
   customer?: Prisma.CustomerUpdateOneRequiredWithoutTransaksiPenjualanNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTransaksiPenjualanNestedInput
@@ -309,6 +345,9 @@ export type TransaksiPenjualanUncheckedUpdateInput = {
   idUserInput?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutPenjualanNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutTransaksiPenjualanNestedInput
 }
 
@@ -318,11 +357,15 @@ export type TransaksiPenjualanCreateManyInput = {
   idUserInput: number
   tanggalJual: Date | string
   statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
 }
 
 export type TransaksiPenjualanUpdateManyMutationInput = {
   tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type TransaksiPenjualanUncheckedUpdateManyInput = {
@@ -331,6 +374,8 @@ export type TransaksiPenjualanUncheckedUpdateManyInput = {
   idUserInput?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type TransaksiPenjualanListRelationFilter = {
@@ -343,12 +388,19 @@ export type TransaksiPenjualanOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type TransaksiPenjualanNullableScalarRelationFilter = {
+  is?: Prisma.TransaksiPenjualanWhereInput | null
+  isNot?: Prisma.TransaksiPenjualanWhereInput | null
+}
+
 export type TransaksiPenjualanCountOrderByAggregateInput = {
   idPenjualan?: Prisma.SortOrder
   idCustomer?: Prisma.SortOrder
   idUserInput?: Prisma.SortOrder
   tanggalJual?: Prisma.SortOrder
   statusVerifikasi?: Prisma.SortOrder
+  statusPenjualan?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type TransaksiPenjualanAvgOrderByAggregateInput = {
@@ -363,6 +415,8 @@ export type TransaksiPenjualanMaxOrderByAggregateInput = {
   idUserInput?: Prisma.SortOrder
   tanggalJual?: Prisma.SortOrder
   statusVerifikasi?: Prisma.SortOrder
+  statusPenjualan?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type TransaksiPenjualanMinOrderByAggregateInput = {
@@ -371,6 +425,8 @@ export type TransaksiPenjualanMinOrderByAggregateInput = {
   idUserInput?: Prisma.SortOrder
   tanggalJual?: Prisma.SortOrder
   statusVerifikasi?: Prisma.SortOrder
+  statusPenjualan?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type TransaksiPenjualanSumOrderByAggregateInput = {
@@ -468,8 +524,24 @@ export type TransaksiPenjualanUncheckedUpdateManyWithoutCustomerNestedInput = {
   deleteMany?: Prisma.TransaksiPenjualanScalarWhereInput | Prisma.TransaksiPenjualanScalarWhereInput[]
 }
 
-export type EnumStatusVerifikasiFieldUpdateOperationsInput = {
-  set?: $Enums.StatusVerifikasi
+export type TransaksiPenjualanCreateNestedOneWithoutApprovalsInput = {
+  create?: Prisma.XOR<Prisma.TransaksiPenjualanCreateWithoutApprovalsInput, Prisma.TransaksiPenjualanUncheckedCreateWithoutApprovalsInput>
+  connectOrCreate?: Prisma.TransaksiPenjualanCreateOrConnectWithoutApprovalsInput
+  connect?: Prisma.TransaksiPenjualanWhereUniqueInput
+}
+
+export type TransaksiPenjualanUpdateOneWithoutApprovalsNestedInput = {
+  create?: Prisma.XOR<Prisma.TransaksiPenjualanCreateWithoutApprovalsInput, Prisma.TransaksiPenjualanUncheckedCreateWithoutApprovalsInput>
+  connectOrCreate?: Prisma.TransaksiPenjualanCreateOrConnectWithoutApprovalsInput
+  upsert?: Prisma.TransaksiPenjualanUpsertWithoutApprovalsInput
+  disconnect?: Prisma.TransaksiPenjualanWhereInput | boolean
+  delete?: Prisma.TransaksiPenjualanWhereInput | boolean
+  connect?: Prisma.TransaksiPenjualanWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TransaksiPenjualanUpdateToOneWithWhereWithoutApprovalsInput, Prisma.TransaksiPenjualanUpdateWithoutApprovalsInput>, Prisma.TransaksiPenjualanUncheckedUpdateWithoutApprovalsInput>
+}
+
+export type EnumStatusPenjualanFieldUpdateOperationsInput = {
+  set?: $Enums.StatusPenjualan
 }
 
 export type TransaksiPenjualanCreateNestedOneWithoutDetailPenjualanInput = {
@@ -489,6 +561,9 @@ export type TransaksiPenjualanUpdateOneRequiredWithoutDetailPenjualanNestedInput
 export type TransaksiPenjualanCreateWithoutUserInput = {
   tanggalJual: Date | string
   statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutPenjualanInput
   detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutTransaksiPenjualanInput
   customer: Prisma.CustomerCreateNestedOneWithoutTransaksiPenjualanInput
 }
@@ -498,6 +573,9 @@ export type TransaksiPenjualanUncheckedCreateWithoutUserInput = {
   idCustomer: number
   tanggalJual: Date | string
   statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutPenjualanInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutTransaksiPenjualanInput
 }
 
@@ -536,11 +614,16 @@ export type TransaksiPenjualanScalarWhereInput = {
   idUserInput?: Prisma.IntFilter<"TransaksiPenjualan"> | number
   tanggalJual?: Prisma.DateTimeFilter<"TransaksiPenjualan"> | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFilter<"TransaksiPenjualan"> | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFilter<"TransaksiPenjualan"> | $Enums.StatusPenjualan
+  deletedAt?: Prisma.DateTimeNullableFilter<"TransaksiPenjualan"> | Date | string | null
 }
 
 export type TransaksiPenjualanCreateWithoutCustomerInput = {
   tanggalJual: Date | string
   statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutPenjualanInput
   detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutTransaksiPenjualanInput
   user: Prisma.UserCreateNestedOneWithoutTransaksiPenjualanInput
 }
@@ -550,6 +633,9 @@ export type TransaksiPenjualanUncheckedCreateWithoutCustomerInput = {
   idUserInput: number
   tanggalJual: Date | string
   statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutPenjualanInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutTransaksiPenjualanInput
 }
 
@@ -579,9 +665,70 @@ export type TransaksiPenjualanUpdateManyWithWhereWithoutCustomerInput = {
   data: Prisma.XOR<Prisma.TransaksiPenjualanUpdateManyMutationInput, Prisma.TransaksiPenjualanUncheckedUpdateManyWithoutCustomerInput>
 }
 
+export type TransaksiPenjualanCreateWithoutApprovalsInput = {
+  tanggalJual: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
+  detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutTransaksiPenjualanInput
+  customer: Prisma.CustomerCreateNestedOneWithoutTransaksiPenjualanInput
+  user: Prisma.UserCreateNestedOneWithoutTransaksiPenjualanInput
+}
+
+export type TransaksiPenjualanUncheckedCreateWithoutApprovalsInput = {
+  idPenjualan?: number
+  idCustomer: number
+  idUserInput: number
+  tanggalJual: Date | string
+  statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
+  detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutTransaksiPenjualanInput
+}
+
+export type TransaksiPenjualanCreateOrConnectWithoutApprovalsInput = {
+  where: Prisma.TransaksiPenjualanWhereUniqueInput
+  create: Prisma.XOR<Prisma.TransaksiPenjualanCreateWithoutApprovalsInput, Prisma.TransaksiPenjualanUncheckedCreateWithoutApprovalsInput>
+}
+
+export type TransaksiPenjualanUpsertWithoutApprovalsInput = {
+  update: Prisma.XOR<Prisma.TransaksiPenjualanUpdateWithoutApprovalsInput, Prisma.TransaksiPenjualanUncheckedUpdateWithoutApprovalsInput>
+  create: Prisma.XOR<Prisma.TransaksiPenjualanCreateWithoutApprovalsInput, Prisma.TransaksiPenjualanUncheckedCreateWithoutApprovalsInput>
+  where?: Prisma.TransaksiPenjualanWhereInput
+}
+
+export type TransaksiPenjualanUpdateToOneWithWhereWithoutApprovalsInput = {
+  where?: Prisma.TransaksiPenjualanWhereInput
+  data: Prisma.XOR<Prisma.TransaksiPenjualanUpdateWithoutApprovalsInput, Prisma.TransaksiPenjualanUncheckedUpdateWithoutApprovalsInput>
+}
+
+export type TransaksiPenjualanUpdateWithoutApprovalsInput = {
+  tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutTransaksiPenjualanNestedInput
+  customer?: Prisma.CustomerUpdateOneRequiredWithoutTransaksiPenjualanNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutTransaksiPenjualanNestedInput
+}
+
+export type TransaksiPenjualanUncheckedUpdateWithoutApprovalsInput = {
+  idPenjualan?: Prisma.IntFieldUpdateOperationsInput | number
+  idCustomer?: Prisma.IntFieldUpdateOperationsInput | number
+  idUserInput?: Prisma.IntFieldUpdateOperationsInput | number
+  tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutTransaksiPenjualanNestedInput
+}
+
 export type TransaksiPenjualanCreateWithoutDetailPenjualanInput = {
   tanggalJual: Date | string
   statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutPenjualanInput
   customer: Prisma.CustomerCreateNestedOneWithoutTransaksiPenjualanInput
   user: Prisma.UserCreateNestedOneWithoutTransaksiPenjualanInput
 }
@@ -592,6 +739,9 @@ export type TransaksiPenjualanUncheckedCreateWithoutDetailPenjualanInput = {
   idUserInput: number
   tanggalJual: Date | string
   statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutPenjualanInput
 }
 
 export type TransaksiPenjualanCreateOrConnectWithoutDetailPenjualanInput = {
@@ -613,6 +763,9 @@ export type TransaksiPenjualanUpdateToOneWithWhereWithoutDetailPenjualanInput = 
 export type TransaksiPenjualanUpdateWithoutDetailPenjualanInput = {
   tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUpdateManyWithoutPenjualanNestedInput
   customer?: Prisma.CustomerUpdateOneRequiredWithoutTransaksiPenjualanNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTransaksiPenjualanNestedInput
 }
@@ -623,6 +776,9 @@ export type TransaksiPenjualanUncheckedUpdateWithoutDetailPenjualanInput = {
   idUserInput?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutPenjualanNestedInput
 }
 
 export type TransaksiPenjualanCreateManyUserInput = {
@@ -630,11 +786,16 @@ export type TransaksiPenjualanCreateManyUserInput = {
   idCustomer: number
   tanggalJual: Date | string
   statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
 }
 
 export type TransaksiPenjualanUpdateWithoutUserInput = {
   tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUpdateManyWithoutPenjualanNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutTransaksiPenjualanNestedInput
   customer?: Prisma.CustomerUpdateOneRequiredWithoutTransaksiPenjualanNestedInput
 }
@@ -644,6 +805,9 @@ export type TransaksiPenjualanUncheckedUpdateWithoutUserInput = {
   idCustomer?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutPenjualanNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutTransaksiPenjualanNestedInput
 }
 
@@ -652,6 +816,8 @@ export type TransaksiPenjualanUncheckedUpdateManyWithoutUserInput = {
   idCustomer?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type TransaksiPenjualanCreateManyCustomerInput = {
@@ -659,11 +825,16 @@ export type TransaksiPenjualanCreateManyCustomerInput = {
   idUserInput: number
   tanggalJual: Date | string
   statusVerifikasi?: $Enums.StatusVerifikasi
+  statusPenjualan?: $Enums.StatusPenjualan
+  deletedAt?: Date | string | null
 }
 
 export type TransaksiPenjualanUpdateWithoutCustomerInput = {
   tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUpdateManyWithoutPenjualanNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutTransaksiPenjualanNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTransaksiPenjualanNestedInput
 }
@@ -673,6 +844,9 @@ export type TransaksiPenjualanUncheckedUpdateWithoutCustomerInput = {
   idUserInput?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutPenjualanNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutTransaksiPenjualanNestedInput
 }
 
@@ -681,6 +855,8 @@ export type TransaksiPenjualanUncheckedUpdateManyWithoutCustomerInput = {
   idUserInput?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalJual?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusVerifikasi?: Prisma.EnumStatusVerifikasiFieldUpdateOperationsInput | $Enums.StatusVerifikasi
+  statusPenjualan?: Prisma.EnumStatusPenjualanFieldUpdateOperationsInput | $Enums.StatusPenjualan
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -689,10 +865,12 @@ export type TransaksiPenjualanUncheckedUpdateManyWithoutCustomerInput = {
  */
 
 export type TransaksiPenjualanCountOutputType = {
+  approvals: number
   detailPenjualan: number
 }
 
 export type TransaksiPenjualanCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  approvals?: boolean | TransaksiPenjualanCountOutputTypeCountApprovalsArgs
   detailPenjualan?: boolean | TransaksiPenjualanCountOutputTypeCountDetailPenjualanArgs
 }
 
@@ -709,6 +887,13 @@ export type TransaksiPenjualanCountOutputTypeDefaultArgs<ExtArgs extends runtime
 /**
  * TransaksiPenjualanCountOutputType without action
  */
+export type TransaksiPenjualanCountOutputTypeCountApprovalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ApprovalWhereInput
+}
+
+/**
+ * TransaksiPenjualanCountOutputType without action
+ */
 export type TransaksiPenjualanCountOutputTypeCountDetailPenjualanArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.DetailPenjualanWhereInput
 }
@@ -720,6 +905,9 @@ export type TransaksiPenjualanSelect<ExtArgs extends runtime.Types.Extensions.In
   idUserInput?: boolean
   tanggalJual?: boolean
   statusVerifikasi?: boolean
+  statusPenjualan?: boolean
+  deletedAt?: boolean
+  approvals?: boolean | Prisma.TransaksiPenjualan$approvalsArgs<ExtArgs>
   detailPenjualan?: boolean | Prisma.TransaksiPenjualan$detailPenjualanArgs<ExtArgs>
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -732,6 +920,8 @@ export type TransaksiPenjualanSelectCreateManyAndReturn<ExtArgs extends runtime.
   idUserInput?: boolean
   tanggalJual?: boolean
   statusVerifikasi?: boolean
+  statusPenjualan?: boolean
+  deletedAt?: boolean
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["transaksiPenjualan"]>
@@ -742,6 +932,8 @@ export type TransaksiPenjualanSelectUpdateManyAndReturn<ExtArgs extends runtime.
   idUserInput?: boolean
   tanggalJual?: boolean
   statusVerifikasi?: boolean
+  statusPenjualan?: boolean
+  deletedAt?: boolean
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["transaksiPenjualan"]>
@@ -752,10 +944,13 @@ export type TransaksiPenjualanSelectScalar = {
   idUserInput?: boolean
   tanggalJual?: boolean
   statusVerifikasi?: boolean
+  statusPenjualan?: boolean
+  deletedAt?: boolean
 }
 
-export type TransaksiPenjualanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idPenjualan" | "idCustomer" | "idUserInput" | "tanggalJual" | "statusVerifikasi", ExtArgs["result"]["transaksiPenjualan"]>
+export type TransaksiPenjualanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idPenjualan" | "idCustomer" | "idUserInput" | "tanggalJual" | "statusVerifikasi" | "statusPenjualan" | "deletedAt", ExtArgs["result"]["transaksiPenjualan"]>
 export type TransaksiPenjualanInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  approvals?: boolean | Prisma.TransaksiPenjualan$approvalsArgs<ExtArgs>
   detailPenjualan?: boolean | Prisma.TransaksiPenjualan$detailPenjualanArgs<ExtArgs>
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -773,6 +968,7 @@ export type TransaksiPenjualanIncludeUpdateManyAndReturn<ExtArgs extends runtime
 export type $TransaksiPenjualanPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "TransaksiPenjualan"
   objects: {
+    approvals: Prisma.$ApprovalPayload<ExtArgs>[]
     detailPenjualan: Prisma.$DetailPenjualanPayload<ExtArgs>[]
     customer: Prisma.$CustomerPayload<ExtArgs>
     user: Prisma.$UserPayload<ExtArgs>
@@ -783,6 +979,8 @@ export type $TransaksiPenjualanPayload<ExtArgs extends runtime.Types.Extensions.
     idUserInput: number
     tanggalJual: Date
     statusVerifikasi: $Enums.StatusVerifikasi
+    statusPenjualan: $Enums.StatusPenjualan
+    deletedAt: Date | null
   }, ExtArgs["result"]["transaksiPenjualan"]>
   composites: {}
 }
@@ -1177,6 +1375,7 @@ readonly fields: TransaksiPenjualanFieldRefs;
  */
 export interface Prisma__TransaksiPenjualanClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  approvals<T extends Prisma.TransaksiPenjualan$approvalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TransaksiPenjualan$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   detailPenjualan<T extends Prisma.TransaksiPenjualan$detailPenjualanArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TransaksiPenjualan$detailPenjualanArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DetailPenjualanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   customer<T extends Prisma.CustomerDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CustomerDefaultArgs<ExtArgs>>): Prisma.Prisma__CustomerClient<runtime.Types.Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
@@ -1214,6 +1413,8 @@ export interface TransaksiPenjualanFieldRefs {
   readonly idUserInput: Prisma.FieldRef<"TransaksiPenjualan", 'Int'>
   readonly tanggalJual: Prisma.FieldRef<"TransaksiPenjualan", 'DateTime'>
   readonly statusVerifikasi: Prisma.FieldRef<"TransaksiPenjualan", 'StatusVerifikasi'>
+  readonly statusPenjualan: Prisma.FieldRef<"TransaksiPenjualan", 'StatusPenjualan'>
+  readonly deletedAt: Prisma.FieldRef<"TransaksiPenjualan", 'DateTime'>
 }
     
 
@@ -1612,6 +1813,30 @@ export type TransaksiPenjualanDeleteManyArgs<ExtArgs extends runtime.Types.Exten
    * Limit how many TransaksiPenjualans to delete.
    */
   limit?: number
+}
+
+/**
+ * TransaksiPenjualan.approvals
+ */
+export type TransaksiPenjualan$approvalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Approval
+   */
+  select?: Prisma.ApprovalSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Approval
+   */
+  omit?: Prisma.ApprovalOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ApprovalInclude<ExtArgs> | null
+  where?: Prisma.ApprovalWhereInput
+  orderBy?: Prisma.ApprovalOrderByWithRelationInput | Prisma.ApprovalOrderByWithRelationInput[]
+  cursor?: Prisma.ApprovalWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ApprovalScalarFieldEnum | Prisma.ApprovalScalarFieldEnum[]
 }
 
 /**

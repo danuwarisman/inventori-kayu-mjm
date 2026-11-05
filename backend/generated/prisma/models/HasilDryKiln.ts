@@ -49,6 +49,7 @@ export type HasilDryKilnMinAggregateOutputType = {
   gradeAkhir: string | null
   volumeAkhir: runtime.Decimal | null
   kadarAirAkhir: runtime.Decimal | null
+  deletedAt: Date | null
   statusKelayakan: $Enums.StatusKelayakanKayu | null
 }
 
@@ -59,6 +60,7 @@ export type HasilDryKilnMaxAggregateOutputType = {
   gradeAkhir: string | null
   volumeAkhir: runtime.Decimal | null
   kadarAirAkhir: runtime.Decimal | null
+  deletedAt: Date | null
   statusKelayakan: $Enums.StatusKelayakanKayu | null
 }
 
@@ -69,6 +71,7 @@ export type HasilDryKilnCountAggregateOutputType = {
   gradeAkhir: number
   volumeAkhir: number
   kadarAirAkhir: number
+  deletedAt: number
   statusKelayakan: number
   _all: number
 }
@@ -97,6 +100,7 @@ export type HasilDryKilnMinAggregateInputType = {
   gradeAkhir?: true
   volumeAkhir?: true
   kadarAirAkhir?: true
+  deletedAt?: true
   statusKelayakan?: true
 }
 
@@ -107,6 +111,7 @@ export type HasilDryKilnMaxAggregateInputType = {
   gradeAkhir?: true
   volumeAkhir?: true
   kadarAirAkhir?: true
+  deletedAt?: true
   statusKelayakan?: true
 }
 
@@ -117,6 +122,7 @@ export type HasilDryKilnCountAggregateInputType = {
   gradeAkhir?: true
   volumeAkhir?: true
   kadarAirAkhir?: true
+  deletedAt?: true
   statusKelayakan?: true
   _all?: true
 }
@@ -214,6 +220,7 @@ export type HasilDryKilnGroupByOutputType = {
   gradeAkhir: string
   volumeAkhir: runtime.Decimal
   kadarAirAkhir: runtime.Decimal
+  deletedAt: Date | null
   statusKelayakan: $Enums.StatusKelayakanKayu
   _count: HasilDryKilnCountAggregateOutputType | null
   _avg: HasilDryKilnAvgAggregateOutputType | null
@@ -247,6 +254,7 @@ export type HasilDryKilnWhereInput = {
   gradeAkhir?: Prisma.StringFilter<"HasilDryKiln"> | string
   volumeAkhir?: Prisma.DecimalFilter<"HasilDryKiln"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFilter<"HasilDryKiln"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"HasilDryKiln"> | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFilter<"HasilDryKiln"> | $Enums.StatusKelayakanKayu
   dryKiln?: Prisma.XOR<Prisma.DryKilnScalarRelationFilter, Prisma.DryKilnWhereInput>
   plank?: Prisma.XOR<Prisma.PlankScalarRelationFilter, Prisma.PlankWhereInput>
@@ -259,6 +267,7 @@ export type HasilDryKilnOrderByWithRelationInput = {
   gradeAkhir?: Prisma.SortOrder
   volumeAkhir?: Prisma.SortOrder
   kadarAirAkhir?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   statusKelayakan?: Prisma.SortOrder
   dryKiln?: Prisma.DryKilnOrderByWithRelationInput
   plank?: Prisma.PlankOrderByWithRelationInput
@@ -274,6 +283,7 @@ export type HasilDryKilnWhereUniqueInput = Prisma.AtLeast<{
   gradeAkhir?: Prisma.StringFilter<"HasilDryKiln"> | string
   volumeAkhir?: Prisma.DecimalFilter<"HasilDryKiln"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFilter<"HasilDryKiln"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"HasilDryKiln"> | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFilter<"HasilDryKiln"> | $Enums.StatusKelayakanKayu
   dryKiln?: Prisma.XOR<Prisma.DryKilnScalarRelationFilter, Prisma.DryKilnWhereInput>
   plank?: Prisma.XOR<Prisma.PlankScalarRelationFilter, Prisma.PlankWhereInput>
@@ -286,6 +296,7 @@ export type HasilDryKilnOrderByWithAggregationInput = {
   gradeAkhir?: Prisma.SortOrder
   volumeAkhir?: Prisma.SortOrder
   kadarAirAkhir?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   statusKelayakan?: Prisma.SortOrder
   _count?: Prisma.HasilDryKilnCountOrderByAggregateInput
   _avg?: Prisma.HasilDryKilnAvgOrderByAggregateInput
@@ -304,6 +315,7 @@ export type HasilDryKilnScalarWhereWithAggregatesInput = {
   gradeAkhir?: Prisma.StringWithAggregatesFilter<"HasilDryKiln"> | string
   volumeAkhir?: Prisma.DecimalWithAggregatesFilter<"HasilDryKiln"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalWithAggregatesFilter<"HasilDryKiln"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"HasilDryKiln"> | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuWithAggregatesFilter<"HasilDryKiln"> | $Enums.StatusKelayakanKayu
 }
 
@@ -311,6 +323,7 @@ export type HasilDryKilnCreateInput = {
   gradeAkhir: string
   volumeAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Date | string | null
   statusKelayakan: $Enums.StatusKelayakanKayu
   dryKiln: Prisma.DryKilnCreateNestedOneWithoutHasilDryKilnInput
   plank: Prisma.PlankCreateNestedOneWithoutHasilDryKilnInput
@@ -323,6 +336,7 @@ export type HasilDryKilnUncheckedCreateInput = {
   gradeAkhir: string
   volumeAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Date | string | null
   statusKelayakan: $Enums.StatusKelayakanKayu
 }
 
@@ -330,6 +344,7 @@ export type HasilDryKilnUpdateInput = {
   gradeAkhir?: Prisma.StringFieldUpdateOperationsInput | string
   volumeAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFieldUpdateOperationsInput | $Enums.StatusKelayakanKayu
   dryKiln?: Prisma.DryKilnUpdateOneRequiredWithoutHasilDryKilnNestedInput
   plank?: Prisma.PlankUpdateOneRequiredWithoutHasilDryKilnNestedInput
@@ -342,6 +357,7 @@ export type HasilDryKilnUncheckedUpdateInput = {
   gradeAkhir?: Prisma.StringFieldUpdateOperationsInput | string
   volumeAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFieldUpdateOperationsInput | $Enums.StatusKelayakanKayu
 }
 
@@ -352,6 +368,7 @@ export type HasilDryKilnCreateManyInput = {
   gradeAkhir: string
   volumeAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Date | string | null
   statusKelayakan: $Enums.StatusKelayakanKayu
 }
 
@@ -359,6 +376,7 @@ export type HasilDryKilnUpdateManyMutationInput = {
   gradeAkhir?: Prisma.StringFieldUpdateOperationsInput | string
   volumeAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFieldUpdateOperationsInput | $Enums.StatusKelayakanKayu
 }
 
@@ -369,6 +387,7 @@ export type HasilDryKilnUncheckedUpdateManyInput = {
   gradeAkhir?: Prisma.StringFieldUpdateOperationsInput | string
   volumeAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFieldUpdateOperationsInput | $Enums.StatusKelayakanKayu
 }
 
@@ -389,6 +408,7 @@ export type HasilDryKilnCountOrderByAggregateInput = {
   gradeAkhir?: Prisma.SortOrder
   volumeAkhir?: Prisma.SortOrder
   kadarAirAkhir?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   statusKelayakan?: Prisma.SortOrder
 }
 
@@ -407,6 +427,7 @@ export type HasilDryKilnMaxOrderByAggregateInput = {
   gradeAkhir?: Prisma.SortOrder
   volumeAkhir?: Prisma.SortOrder
   kadarAirAkhir?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   statusKelayakan?: Prisma.SortOrder
 }
 
@@ -417,6 +438,7 @@ export type HasilDryKilnMinOrderByAggregateInput = {
   gradeAkhir?: Prisma.SortOrder
   volumeAkhir?: Prisma.SortOrder
   kadarAirAkhir?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   statusKelayakan?: Prisma.SortOrder
 }
 
@@ -520,6 +542,7 @@ export type HasilDryKilnCreateWithoutPlankInput = {
   gradeAkhir: string
   volumeAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Date | string | null
   statusKelayakan: $Enums.StatusKelayakanKayu
   dryKiln: Prisma.DryKilnCreateNestedOneWithoutHasilDryKilnInput
 }
@@ -530,6 +553,7 @@ export type HasilDryKilnUncheckedCreateWithoutPlankInput = {
   gradeAkhir: string
   volumeAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Date | string | null
   statusKelayakan: $Enums.StatusKelayakanKayu
 }
 
@@ -569,6 +593,7 @@ export type HasilDryKilnScalarWhereInput = {
   gradeAkhir?: Prisma.StringFilter<"HasilDryKiln"> | string
   volumeAkhir?: Prisma.DecimalFilter<"HasilDryKiln"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFilter<"HasilDryKiln"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"HasilDryKiln"> | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFilter<"HasilDryKiln"> | $Enums.StatusKelayakanKayu
 }
 
@@ -576,6 +601,7 @@ export type HasilDryKilnCreateWithoutDryKilnInput = {
   gradeAkhir: string
   volumeAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Date | string | null
   statusKelayakan: $Enums.StatusKelayakanKayu
   plank: Prisma.PlankCreateNestedOneWithoutHasilDryKilnInput
 }
@@ -586,6 +612,7 @@ export type HasilDryKilnUncheckedCreateWithoutDryKilnInput = {
   gradeAkhir: string
   volumeAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Date | string | null
   statusKelayakan: $Enums.StatusKelayakanKayu
 }
 
@@ -621,6 +648,7 @@ export type HasilDryKilnCreateManyPlankInput = {
   gradeAkhir: string
   volumeAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Date | string | null
   statusKelayakan: $Enums.StatusKelayakanKayu
 }
 
@@ -628,6 +656,7 @@ export type HasilDryKilnUpdateWithoutPlankInput = {
   gradeAkhir?: Prisma.StringFieldUpdateOperationsInput | string
   volumeAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFieldUpdateOperationsInput | $Enums.StatusKelayakanKayu
   dryKiln?: Prisma.DryKilnUpdateOneRequiredWithoutHasilDryKilnNestedInput
 }
@@ -638,6 +667,7 @@ export type HasilDryKilnUncheckedUpdateWithoutPlankInput = {
   gradeAkhir?: Prisma.StringFieldUpdateOperationsInput | string
   volumeAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFieldUpdateOperationsInput | $Enums.StatusKelayakanKayu
 }
 
@@ -647,6 +677,7 @@ export type HasilDryKilnUncheckedUpdateManyWithoutPlankInput = {
   gradeAkhir?: Prisma.StringFieldUpdateOperationsInput | string
   volumeAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFieldUpdateOperationsInput | $Enums.StatusKelayakanKayu
 }
 
@@ -656,6 +687,7 @@ export type HasilDryKilnCreateManyDryKilnInput = {
   gradeAkhir: string
   volumeAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir: runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Date | string | null
   statusKelayakan: $Enums.StatusKelayakanKayu
 }
 
@@ -663,6 +695,7 @@ export type HasilDryKilnUpdateWithoutDryKilnInput = {
   gradeAkhir?: Prisma.StringFieldUpdateOperationsInput | string
   volumeAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFieldUpdateOperationsInput | $Enums.StatusKelayakanKayu
   plank?: Prisma.PlankUpdateOneRequiredWithoutHasilDryKilnNestedInput
 }
@@ -673,6 +706,7 @@ export type HasilDryKilnUncheckedUpdateWithoutDryKilnInput = {
   gradeAkhir?: Prisma.StringFieldUpdateOperationsInput | string
   volumeAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFieldUpdateOperationsInput | $Enums.StatusKelayakanKayu
 }
 
@@ -682,6 +716,7 @@ export type HasilDryKilnUncheckedUpdateManyWithoutDryKilnInput = {
   gradeAkhir?: Prisma.StringFieldUpdateOperationsInput | string
   volumeAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   kadarAirAkhir?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusKelayakan?: Prisma.EnumStatusKelayakanKayuFieldUpdateOperationsInput | $Enums.StatusKelayakanKayu
 }
 
@@ -694,6 +729,7 @@ export type HasilDryKilnSelect<ExtArgs extends runtime.Types.Extensions.Internal
   gradeAkhir?: boolean
   volumeAkhir?: boolean
   kadarAirAkhir?: boolean
+  deletedAt?: boolean
   statusKelayakan?: boolean
   dryKiln?: boolean | Prisma.DryKilnDefaultArgs<ExtArgs>
   plank?: boolean | Prisma.PlankDefaultArgs<ExtArgs>
@@ -706,6 +742,7 @@ export type HasilDryKilnSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   gradeAkhir?: boolean
   volumeAkhir?: boolean
   kadarAirAkhir?: boolean
+  deletedAt?: boolean
   statusKelayakan?: boolean
   dryKiln?: boolean | Prisma.DryKilnDefaultArgs<ExtArgs>
   plank?: boolean | Prisma.PlankDefaultArgs<ExtArgs>
@@ -718,6 +755,7 @@ export type HasilDryKilnSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   gradeAkhir?: boolean
   volumeAkhir?: boolean
   kadarAirAkhir?: boolean
+  deletedAt?: boolean
   statusKelayakan?: boolean
   dryKiln?: boolean | Prisma.DryKilnDefaultArgs<ExtArgs>
   plank?: boolean | Prisma.PlankDefaultArgs<ExtArgs>
@@ -730,10 +768,11 @@ export type HasilDryKilnSelectScalar = {
   gradeAkhir?: boolean
   volumeAkhir?: boolean
   kadarAirAkhir?: boolean
+  deletedAt?: boolean
   statusKelayakan?: boolean
 }
 
-export type HasilDryKilnOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idHasilOven" | "idOven" | "idPlank" | "gradeAkhir" | "volumeAkhir" | "kadarAirAkhir" | "statusKelayakan", ExtArgs["result"]["hasilDryKiln"]>
+export type HasilDryKilnOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idHasilOven" | "idOven" | "idPlank" | "gradeAkhir" | "volumeAkhir" | "kadarAirAkhir" | "deletedAt" | "statusKelayakan", ExtArgs["result"]["hasilDryKiln"]>
 export type HasilDryKilnInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   dryKiln?: boolean | Prisma.DryKilnDefaultArgs<ExtArgs>
   plank?: boolean | Prisma.PlankDefaultArgs<ExtArgs>
@@ -760,6 +799,7 @@ export type $HasilDryKilnPayload<ExtArgs extends runtime.Types.Extensions.Intern
     gradeAkhir: string
     volumeAkhir: runtime.Decimal
     kadarAirAkhir: runtime.Decimal
+    deletedAt: Date | null
     statusKelayakan: $Enums.StatusKelayakanKayu
   }, ExtArgs["result"]["hasilDryKiln"]>
   composites: {}
@@ -1192,6 +1232,7 @@ export interface HasilDryKilnFieldRefs {
   readonly gradeAkhir: Prisma.FieldRef<"HasilDryKiln", 'String'>
   readonly volumeAkhir: Prisma.FieldRef<"HasilDryKiln", 'Decimal'>
   readonly kadarAirAkhir: Prisma.FieldRef<"HasilDryKiln", 'Decimal'>
+  readonly deletedAt: Prisma.FieldRef<"HasilDryKiln", 'DateTime'>
   readonly statusKelayakan: Prisma.FieldRef<"HasilDryKiln", 'StatusKelayakanKayu'>
 }
     

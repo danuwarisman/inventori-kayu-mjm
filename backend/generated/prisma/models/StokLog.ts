@@ -57,6 +57,7 @@ export type StokLogMinAggregateOutputType = {
   suplier: string | null
   harga: runtime.Decimal | null
   tanggalMasuk: Date | null
+  deletedAt: Date | null
 }
 
 export type StokLogMaxAggregateOutputType = {
@@ -72,6 +73,7 @@ export type StokLogMaxAggregateOutputType = {
   suplier: string | null
   harga: runtime.Decimal | null
   tanggalMasuk: Date | null
+  deletedAt: Date | null
 }
 
 export type StokLogCountAggregateOutputType = {
@@ -87,6 +89,7 @@ export type StokLogCountAggregateOutputType = {
   suplier: number
   harga: number
   tanggalMasuk: number
+  deletedAt: number
   _all: number
 }
 
@@ -122,6 +125,7 @@ export type StokLogMinAggregateInputType = {
   suplier?: true
   harga?: true
   tanggalMasuk?: true
+  deletedAt?: true
 }
 
 export type StokLogMaxAggregateInputType = {
@@ -137,6 +141,7 @@ export type StokLogMaxAggregateInputType = {
   suplier?: true
   harga?: true
   tanggalMasuk?: true
+  deletedAt?: true
 }
 
 export type StokLogCountAggregateInputType = {
@@ -152,6 +157,7 @@ export type StokLogCountAggregateInputType = {
   suplier?: true
   harga?: true
   tanggalMasuk?: true
+  deletedAt?: true
   _all?: true
 }
 
@@ -254,6 +260,7 @@ export type StokLogGroupByOutputType = {
   suplier: string | null
   harga: runtime.Decimal | null
   tanggalMasuk: Date | null
+  deletedAt: Date | null
   _count: StokLogCountAggregateOutputType | null
   _avg: StokLogAvgAggregateOutputType | null
   _sum: StokLogSumAggregateOutputType | null
@@ -292,6 +299,7 @@ export type StokLogWhereInput = {
   suplier?: Prisma.StringNullableFilter<"StokLog"> | string | null
   harga?: Prisma.DecimalNullableFilter<"StokLog"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.DateTimeNullableFilter<"StokLog"> | Date | string | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"StokLog"> | Date | string | null
   planks?: Prisma.PlankListRelationFilter
   detailPenjualan?: Prisma.DetailPenjualanListRelationFilter
   transaksiPembelian?: Prisma.XOR<Prisma.TransaksiPembelianNullableScalarRelationFilter, Prisma.TransaksiPembelianWhereInput> | null
@@ -311,6 +319,7 @@ export type StokLogOrderByWithRelationInput = {
   suplier?: Prisma.SortOrderInput | Prisma.SortOrder
   harga?: Prisma.SortOrderInput | Prisma.SortOrder
   tanggalMasuk?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   planks?: Prisma.PlankOrderByRelationAggregateInput
   detailPenjualan?: Prisma.DetailPenjualanOrderByRelationAggregateInput
   transaksiPembelian?: Prisma.TransaksiPembelianOrderByWithRelationInput
@@ -333,6 +342,7 @@ export type StokLogWhereUniqueInput = Prisma.AtLeast<{
   suplier?: Prisma.StringNullableFilter<"StokLog"> | string | null
   harga?: Prisma.DecimalNullableFilter<"StokLog"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.DateTimeNullableFilter<"StokLog"> | Date | string | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"StokLog"> | Date | string | null
   planks?: Prisma.PlankListRelationFilter
   detailPenjualan?: Prisma.DetailPenjualanListRelationFilter
   transaksiPembelian?: Prisma.XOR<Prisma.TransaksiPembelianNullableScalarRelationFilter, Prisma.TransaksiPembelianWhereInput> | null
@@ -352,6 +362,7 @@ export type StokLogOrderByWithAggregationInput = {
   suplier?: Prisma.SortOrderInput | Prisma.SortOrder
   harga?: Prisma.SortOrderInput | Prisma.SortOrder
   tanggalMasuk?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.StokLogCountOrderByAggregateInput
   _avg?: Prisma.StokLogAvgOrderByAggregateInput
   _max?: Prisma.StokLogMaxOrderByAggregateInput
@@ -375,6 +386,7 @@ export type StokLogScalarWhereWithAggregatesInput = {
   suplier?: Prisma.StringNullableWithAggregatesFilter<"StokLog"> | string | null
   harga?: Prisma.DecimalNullableWithAggregatesFilter<"StokLog"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.DateTimeNullableWithAggregatesFilter<"StokLog"> | Date | string | null
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"StokLog"> | Date | string | null
 }
 
 export type StokLogCreateInput = {
@@ -388,6 +400,7 @@ export type StokLogCreateInput = {
   suplier?: string | null
   harga?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
+  deletedAt?: Date | string | null
   planks?: Prisma.PlankCreateNestedManyWithoutStokLogInput
   detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutStokLogInput
   transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedOneWithoutStokLogsInput
@@ -407,6 +420,7 @@ export type StokLogUncheckedCreateInput = {
   suplier?: string | null
   harga?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
+  deletedAt?: Date | string | null
   planks?: Prisma.PlankUncheckedCreateNestedManyWithoutStokLogInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutStokLogInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedCreateNestedManyWithoutStokLogInput
@@ -423,6 +437,7 @@ export type StokLogUpdateInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   planks?: Prisma.PlankUpdateManyWithoutStokLogNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutStokLogNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUpdateOneWithoutStokLogsNestedInput
@@ -442,6 +457,7 @@ export type StokLogUncheckedUpdateInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   planks?: Prisma.PlankUncheckedUpdateManyWithoutStokLogNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutStokLogNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedUpdateManyWithoutStokLogNestedInput
@@ -460,6 +476,7 @@ export type StokLogCreateManyInput = {
   suplier?: string | null
   harga?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
+  deletedAt?: Date | string | null
 }
 
 export type StokLogUpdateManyMutationInput = {
@@ -473,6 +490,7 @@ export type StokLogUpdateManyMutationInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type StokLogUncheckedUpdateManyInput = {
@@ -488,6 +506,7 @@ export type StokLogUncheckedUpdateManyInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type StokLogCountOrderByAggregateInput = {
@@ -503,6 +522,7 @@ export type StokLogCountOrderByAggregateInput = {
   suplier?: Prisma.SortOrder
   harga?: Prisma.SortOrder
   tanggalMasuk?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type StokLogAvgOrderByAggregateInput = {
@@ -527,6 +547,7 @@ export type StokLogMaxOrderByAggregateInput = {
   suplier?: Prisma.SortOrder
   harga?: Prisma.SortOrder
   tanggalMasuk?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type StokLogMinOrderByAggregateInput = {
@@ -542,6 +563,7 @@ export type StokLogMinOrderByAggregateInput = {
   suplier?: Prisma.SortOrder
   harga?: Prisma.SortOrder
   tanggalMasuk?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type StokLogSumOrderByAggregateInput = {
@@ -686,6 +708,7 @@ export type StokLogCreateWithoutTransaksiPembelianInput = {
   suplier?: string | null
   harga?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
+  deletedAt?: Date | string | null
   planks?: Prisma.PlankCreateNestedManyWithoutStokLogInput
   detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutStokLogInput
   prosesSawmill?: Prisma.ProsesSawmillCreateNestedManyWithoutStokLogInput
@@ -703,6 +726,7 @@ export type StokLogUncheckedCreateWithoutTransaksiPembelianInput = {
   suplier?: string | null
   harga?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
+  deletedAt?: Date | string | null
   planks?: Prisma.PlankUncheckedCreateNestedManyWithoutStokLogInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutStokLogInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedCreateNestedManyWithoutStokLogInput
@@ -750,6 +774,7 @@ export type StokLogScalarWhereInput = {
   suplier?: Prisma.StringNullableFilter<"StokLog"> | string | null
   harga?: Prisma.DecimalNullableFilter<"StokLog"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.DateTimeNullableFilter<"StokLog"> | Date | string | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"StokLog"> | Date | string | null
 }
 
 export type StokLogCreateWithoutProsesSawmillInput = {
@@ -763,6 +788,7 @@ export type StokLogCreateWithoutProsesSawmillInput = {
   suplier?: string | null
   harga?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
+  deletedAt?: Date | string | null
   planks?: Prisma.PlankCreateNestedManyWithoutStokLogInput
   detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutStokLogInput
   transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedOneWithoutStokLogsInput
@@ -781,6 +807,7 @@ export type StokLogUncheckedCreateWithoutProsesSawmillInput = {
   suplier?: string | null
   harga?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
+  deletedAt?: Date | string | null
   planks?: Prisma.PlankUncheckedCreateNestedManyWithoutStokLogInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutStokLogInput
 }
@@ -812,6 +839,7 @@ export type StokLogUpdateWithoutProsesSawmillInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   planks?: Prisma.PlankUpdateManyWithoutStokLogNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutStokLogNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUpdateOneWithoutStokLogsNestedInput
@@ -830,6 +858,7 @@ export type StokLogUncheckedUpdateWithoutProsesSawmillInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   planks?: Prisma.PlankUncheckedUpdateManyWithoutStokLogNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutStokLogNestedInput
 }
@@ -845,6 +874,7 @@ export type StokLogCreateWithoutPlanksInput = {
   suplier?: string | null
   harga?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
+  deletedAt?: Date | string | null
   detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutStokLogInput
   transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedOneWithoutStokLogsInput
   prosesSawmill?: Prisma.ProsesSawmillCreateNestedManyWithoutStokLogInput
@@ -863,6 +893,7 @@ export type StokLogUncheckedCreateWithoutPlanksInput = {
   suplier?: string | null
   harga?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
+  deletedAt?: Date | string | null
   detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutStokLogInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedCreateNestedManyWithoutStokLogInput
 }
@@ -894,6 +925,7 @@ export type StokLogUpdateWithoutPlanksInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutStokLogNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUpdateOneWithoutStokLogsNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUpdateManyWithoutStokLogNestedInput
@@ -912,6 +944,7 @@ export type StokLogUncheckedUpdateWithoutPlanksInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutStokLogNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedUpdateManyWithoutStokLogNestedInput
 }
@@ -927,6 +960,7 @@ export type StokLogCreateWithoutDetailPenjualanInput = {
   suplier?: string | null
   harga?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
+  deletedAt?: Date | string | null
   planks?: Prisma.PlankCreateNestedManyWithoutStokLogInput
   transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedOneWithoutStokLogsInput
   prosesSawmill?: Prisma.ProsesSawmillCreateNestedManyWithoutStokLogInput
@@ -945,6 +979,7 @@ export type StokLogUncheckedCreateWithoutDetailPenjualanInput = {
   suplier?: string | null
   harga?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
+  deletedAt?: Date | string | null
   planks?: Prisma.PlankUncheckedCreateNestedManyWithoutStokLogInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedCreateNestedManyWithoutStokLogInput
 }
@@ -976,6 +1011,7 @@ export type StokLogUpdateWithoutDetailPenjualanInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   planks?: Prisma.PlankUpdateManyWithoutStokLogNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUpdateOneWithoutStokLogsNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUpdateManyWithoutStokLogNestedInput
@@ -994,6 +1030,7 @@ export type StokLogUncheckedUpdateWithoutDetailPenjualanInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   planks?: Prisma.PlankUncheckedUpdateManyWithoutStokLogNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedUpdateManyWithoutStokLogNestedInput
 }
@@ -1010,6 +1047,7 @@ export type StokLogCreateManyTransaksiPembelianInput = {
   suplier?: string | null
   harga?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
+  deletedAt?: Date | string | null
 }
 
 export type StokLogUpdateWithoutTransaksiPembelianInput = {
@@ -1023,6 +1061,7 @@ export type StokLogUpdateWithoutTransaksiPembelianInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   planks?: Prisma.PlankUpdateManyWithoutStokLogNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutStokLogNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUpdateManyWithoutStokLogNestedInput
@@ -1040,6 +1079,7 @@ export type StokLogUncheckedUpdateWithoutTransaksiPembelianInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   planks?: Prisma.PlankUncheckedUpdateManyWithoutStokLogNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutStokLogNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedUpdateManyWithoutStokLogNestedInput
@@ -1057,6 +1097,7 @@ export type StokLogUncheckedUpdateManyWithoutTransaksiPembelianInput = {
   suplier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   harga?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -1121,6 +1162,7 @@ export type StokLogSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   suplier?: boolean
   harga?: boolean
   tanggalMasuk?: boolean
+  deletedAt?: boolean
   planks?: boolean | Prisma.StokLog$planksArgs<ExtArgs>
   detailPenjualan?: boolean | Prisma.StokLog$detailPenjualanArgs<ExtArgs>
   transaksiPembelian?: boolean | Prisma.StokLog$transaksiPembelianArgs<ExtArgs>
@@ -1141,6 +1183,7 @@ export type StokLogSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   suplier?: boolean
   harga?: boolean
   tanggalMasuk?: boolean
+  deletedAt?: boolean
   transaksiPembelian?: boolean | Prisma.StokLog$transaksiPembelianArgs<ExtArgs>
 }, ExtArgs["result"]["stokLog"]>
 
@@ -1157,6 +1200,7 @@ export type StokLogSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   suplier?: boolean
   harga?: boolean
   tanggalMasuk?: boolean
+  deletedAt?: boolean
   transaksiPembelian?: boolean | Prisma.StokLog$transaksiPembelianArgs<ExtArgs>
 }, ExtArgs["result"]["stokLog"]>
 
@@ -1173,9 +1217,10 @@ export type StokLogSelectScalar = {
   suplier?: boolean
   harga?: boolean
   tanggalMasuk?: boolean
+  deletedAt?: boolean
 }
 
-export type StokLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idLog" | "kodeLog" | "idPembelian" | "asalSortimen" | "panjang" | "diameter" | "dimensiLog" | "volumeLog" | "statusLog" | "suplier" | "harga" | "tanggalMasuk", ExtArgs["result"]["stokLog"]>
+export type StokLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idLog" | "kodeLog" | "idPembelian" | "asalSortimen" | "panjang" | "diameter" | "dimensiLog" | "volumeLog" | "statusLog" | "suplier" | "harga" | "tanggalMasuk" | "deletedAt", ExtArgs["result"]["stokLog"]>
 export type StokLogInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   planks?: boolean | Prisma.StokLog$planksArgs<ExtArgs>
   detailPenjualan?: boolean | Prisma.StokLog$detailPenjualanArgs<ExtArgs>
@@ -1211,6 +1256,7 @@ export type $StokLogPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     suplier: string | null
     harga: runtime.Decimal | null
     tanggalMasuk: Date | null
+    deletedAt: Date | null
   }, ExtArgs["result"]["stokLog"]>
   composites: {}
 }
@@ -1650,6 +1696,7 @@ export interface StokLogFieldRefs {
   readonly suplier: Prisma.FieldRef<"StokLog", 'String'>
   readonly harga: Prisma.FieldRef<"StokLog", 'Decimal'>
   readonly tanggalMasuk: Prisma.FieldRef<"StokLog", 'DateTime'>
+  readonly deletedAt: Prisma.FieldRef<"StokLog", 'DateTime'>
 }
     
 

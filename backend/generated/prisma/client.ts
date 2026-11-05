@@ -75,6 +75,11 @@ export type StokLog = Prisma.StokLogModel
  */
 export type TransaksiPembelian = Prisma.TransaksiPembelianModel
 /**
+ * Model Approval
+ * 
+ */
+export type Approval = Prisma.ApprovalModel
+/**
  * Model ProsesSawmill
  * 
  */
@@ -114,3 +119,8 @@ export type TransaksiPenjualan = Prisma.TransaksiPenjualanModel
  * 
  */
 export type DetailPenjualan = Prisma.DetailPenjualanModel
+/**
+ * Model DetailPembelian
+ * 
+ */
+export type DetailPembelian = Prisma.DetailPembelianModel

@@ -44,6 +44,7 @@ export type UserMinAggregateOutputType = {
   roleId: number | null
   createdAt: Date | null
   updatedAt: Date | null
+  deletedAt: Date | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -54,6 +55,7 @@ export type UserMaxAggregateOutputType = {
   roleId: number | null
   createdAt: Date | null
   updatedAt: Date | null
+  deletedAt: Date | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -64,6 +66,7 @@ export type UserCountAggregateOutputType = {
   roleId: number
   createdAt: number
   updatedAt: number
+  deletedAt: number
   _all: number
 }
 
@@ -86,6 +89,7 @@ export type UserMinAggregateInputType = {
   roleId?: true
   createdAt?: true
   updatedAt?: true
+  deletedAt?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -96,6 +100,7 @@ export type UserMaxAggregateInputType = {
   roleId?: true
   createdAt?: true
   updatedAt?: true
+  deletedAt?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -106,6 +111,7 @@ export type UserCountAggregateInputType = {
   roleId?: true
   createdAt?: true
   updatedAt?: true
+  deletedAt?: true
   _all?: true
 }
 
@@ -203,6 +209,7 @@ export type UserGroupByOutputType = {
   roleId: number
   createdAt: Date
   updatedAt: Date
+  deletedAt: Date | null
   _count: UserCountAggregateOutputType | null
   _avg: UserAvgAggregateOutputType | null
   _sum: UserSumAggregateOutputType | null
@@ -236,7 +243,9 @@ export type UserWhereInput = {
   roleId?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
+  approvals?: Prisma.ApprovalListRelationFilter
   transaksiPembelian?: Prisma.TransaksiPembelianListRelationFilter
   prosesSawmill?: Prisma.ProsesSawmillListRelationFilter
   transaksiPenjualan?: Prisma.TransaksiPenjualanListRelationFilter
@@ -252,7 +261,9 @@ export type UserOrderByWithRelationInput = {
   roleId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.RoleOrderByWithRelationInput
+  approvals?: Prisma.ApprovalOrderByRelationAggregateInput
   transaksiPembelian?: Prisma.TransaksiPembelianOrderByRelationAggregateInput
   prosesSawmill?: Prisma.ProsesSawmillOrderByRelationAggregateInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanOrderByRelationAggregateInput
@@ -271,7 +282,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   roleId?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
+  approvals?: Prisma.ApprovalListRelationFilter
   transaksiPembelian?: Prisma.TransaksiPembelianListRelationFilter
   prosesSawmill?: Prisma.ProsesSawmillListRelationFilter
   transaksiPenjualan?: Prisma.TransaksiPenjualanListRelationFilter
@@ -287,6 +300,7 @@ export type UserOrderByWithAggregationInput = {
   roleId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -305,6 +319,7 @@ export type UserScalarWhereWithAggregatesInput = {
   roleId?: Prisma.IntWithAggregatesFilter<"User"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
 }
 
 export type UserCreateInput = {
@@ -313,7 +328,9 @@ export type UserCreateInput = {
   nama: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutManagerInput
   transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedManyWithoutUserInput
   prosesSawmill?: Prisma.ProsesSawmillCreateNestedManyWithoutUserInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanCreateNestedManyWithoutUserInput
@@ -329,6 +346,8 @@ export type UserUncheckedCreateInput = {
   roleId: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutManagerInput
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedCreateNestedManyWithoutUserInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedCreateNestedManyWithoutUserInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedCreateNestedManyWithoutUserInput
@@ -342,7 +361,9 @@ export type UserUpdateInput = {
   nama?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutManagerNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUpdateManyWithoutUserNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUpdateManyWithoutUserNestedInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUpdateManyWithoutUserNestedInput
@@ -358,6 +379,8 @@ export type UserUncheckedUpdateInput = {
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutManagerNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedUpdateManyWithoutUserNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedUpdateManyWithoutUserNestedInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedUpdateManyWithoutUserNestedInput
@@ -373,6 +396,7 @@ export type UserCreateManyInput = {
   roleId: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -381,6 +405,7 @@ export type UserUpdateManyMutationInput = {
   nama?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -391,6 +416,7 @@ export type UserUncheckedUpdateManyInput = {
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type UserListRelationFilter = {
@@ -411,6 +437,7 @@ export type UserCountOrderByAggregateInput = {
   roleId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type UserAvgOrderByAggregateInput = {
@@ -426,6 +453,7 @@ export type UserMaxOrderByAggregateInput = {
   roleId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -436,6 +464,7 @@ export type UserMinOrderByAggregateInput = {
   roleId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type UserSumOrderByAggregateInput = {
@@ -495,6 +524,10 @@ export type UserUncheckedUpdateManyWithoutRoleNestedInput = {
   deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
 }
 
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
 export type UserCreateNestedOneWithoutPengajuanSupplierDibuatInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutPengajuanSupplierDibuatInput, Prisma.UserUncheckedCreateWithoutPengajuanSupplierDibuatInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutPengajuanSupplierDibuatInput
@@ -539,6 +572,20 @@ export type UserUpdateOneRequiredWithoutTransaksiPembelianNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTransaksiPembelianInput, Prisma.UserUpdateWithoutTransaksiPembelianInput>, Prisma.UserUncheckedUpdateWithoutTransaksiPembelianInput>
 }
 
+export type UserCreateNestedOneWithoutApprovalsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutApprovalsInput, Prisma.UserUncheckedCreateWithoutApprovalsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutApprovalsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutApprovalsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutApprovalsInput, Prisma.UserUncheckedCreateWithoutApprovalsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutApprovalsInput
+  upsert?: Prisma.UserUpsertWithoutApprovalsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutApprovalsInput, Prisma.UserUpdateWithoutApprovalsInput>, Prisma.UserUncheckedUpdateWithoutApprovalsInput>
+}
+
 export type UserCreateNestedOneWithoutProsesSawmillInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutProsesSawmillInput, Prisma.UserUncheckedCreateWithoutProsesSawmillInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutProsesSawmillInput
@@ -575,6 +622,8 @@ export type UserCreateWithoutRoleInput = {
   nama: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutManagerInput
   transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedManyWithoutUserInput
   prosesSawmill?: Prisma.ProsesSawmillCreateNestedManyWithoutUserInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanCreateNestedManyWithoutUserInput
@@ -589,6 +638,8 @@ export type UserUncheckedCreateWithoutRoleInput = {
   nama: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutManagerInput
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedCreateNestedManyWithoutUserInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedCreateNestedManyWithoutUserInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedCreateNestedManyWithoutUserInput
@@ -633,6 +684,7 @@ export type UserScalarWhereInput = {
   roleId?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
 }
 
 export type UserCreateWithoutPengajuanSupplierDibuatInput = {
@@ -641,7 +693,9 @@ export type UserCreateWithoutPengajuanSupplierDibuatInput = {
   nama: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutManagerInput
   transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedManyWithoutUserInput
   prosesSawmill?: Prisma.ProsesSawmillCreateNestedManyWithoutUserInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanCreateNestedManyWithoutUserInput
@@ -656,6 +710,8 @@ export type UserUncheckedCreateWithoutPengajuanSupplierDibuatInput = {
   roleId: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutManagerInput
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedCreateNestedManyWithoutUserInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedCreateNestedManyWithoutUserInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedCreateNestedManyWithoutUserInput
@@ -673,7 +729,9 @@ export type UserCreateWithoutPengajuanSupplierDiperiksaInput = {
   nama: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutManagerInput
   transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedManyWithoutUserInput
   prosesSawmill?: Prisma.ProsesSawmillCreateNestedManyWithoutUserInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanCreateNestedManyWithoutUserInput
@@ -688,6 +746,8 @@ export type UserUncheckedCreateWithoutPengajuanSupplierDiperiksaInput = {
   roleId: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutManagerInput
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedCreateNestedManyWithoutUserInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedCreateNestedManyWithoutUserInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedCreateNestedManyWithoutUserInput
@@ -716,7 +776,9 @@ export type UserUpdateWithoutPengajuanSupplierDibuatInput = {
   nama?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutManagerNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUpdateManyWithoutUserNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUpdateManyWithoutUserNestedInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUpdateManyWithoutUserNestedInput
@@ -731,6 +793,8 @@ export type UserUncheckedUpdateWithoutPengajuanSupplierDibuatInput = {
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutManagerNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedUpdateManyWithoutUserNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedUpdateManyWithoutUserNestedInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedUpdateManyWithoutUserNestedInput
@@ -754,7 +818,9 @@ export type UserUpdateWithoutPengajuanSupplierDiperiksaInput = {
   nama?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutManagerNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUpdateManyWithoutUserNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUpdateManyWithoutUserNestedInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUpdateManyWithoutUserNestedInput
@@ -769,6 +835,8 @@ export type UserUncheckedUpdateWithoutPengajuanSupplierDiperiksaInput = {
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutManagerNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedUpdateManyWithoutUserNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedUpdateManyWithoutUserNestedInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedUpdateManyWithoutUserNestedInput
@@ -781,7 +849,9 @@ export type UserCreateWithoutTransaksiPembelianInput = {
   nama: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutManagerInput
   prosesSawmill?: Prisma.ProsesSawmillCreateNestedManyWithoutUserInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanCreateNestedManyWithoutUserInput
   pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierCreateNestedManyWithoutPengajuInput
@@ -796,6 +866,8 @@ export type UserUncheckedCreateWithoutTransaksiPembelianInput = {
   roleId: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutManagerInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedCreateNestedManyWithoutUserInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedCreateNestedManyWithoutUserInput
   pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierUncheckedCreateNestedManyWithoutPengajuInput
@@ -824,7 +896,9 @@ export type UserUpdateWithoutTransaksiPembelianInput = {
   nama?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutManagerNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUpdateManyWithoutUserNestedInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUpdateManyWithoutUserNestedInput
   pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierUpdateManyWithoutPengajuNestedInput
@@ -839,6 +913,86 @@ export type UserUncheckedUpdateWithoutTransaksiPembelianInput = {
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutManagerNestedInput
+  prosesSawmill?: Prisma.ProsesSawmillUncheckedUpdateManyWithoutUserNestedInput
+  transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedUpdateManyWithoutUserNestedInput
+  pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierUncheckedUpdateManyWithoutPengajuNestedInput
+  pengajuanSupplierDiperiksa?: Prisma.PengajuanPerubahanSupplierUncheckedUpdateManyWithoutPemeriksaNestedInput
+}
+
+export type UserCreateWithoutApprovalsInput = {
+  username: string
+  password: string
+  nama: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+  transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedManyWithoutUserInput
+  prosesSawmill?: Prisma.ProsesSawmillCreateNestedManyWithoutUserInput
+  transaksiPenjualan?: Prisma.TransaksiPenjualanCreateNestedManyWithoutUserInput
+  pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierCreateNestedManyWithoutPengajuInput
+  pengajuanSupplierDiperiksa?: Prisma.PengajuanPerubahanSupplierCreateNestedManyWithoutPemeriksaInput
+}
+
+export type UserUncheckedCreateWithoutApprovalsInput = {
+  id?: number
+  username: string
+  password: string
+  nama: string
+  roleId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  transaksiPembelian?: Prisma.TransaksiPembelianUncheckedCreateNestedManyWithoutUserInput
+  prosesSawmill?: Prisma.ProsesSawmillUncheckedCreateNestedManyWithoutUserInput
+  transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedCreateNestedManyWithoutUserInput
+  pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierUncheckedCreateNestedManyWithoutPengajuInput
+  pengajuanSupplierDiperiksa?: Prisma.PengajuanPerubahanSupplierUncheckedCreateNestedManyWithoutPemeriksaInput
+}
+
+export type UserCreateOrConnectWithoutApprovalsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutApprovalsInput, Prisma.UserUncheckedCreateWithoutApprovalsInput>
+}
+
+export type UserUpsertWithoutApprovalsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutApprovalsInput, Prisma.UserUncheckedUpdateWithoutApprovalsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutApprovalsInput, Prisma.UserUncheckedCreateWithoutApprovalsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutApprovalsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutApprovalsInput, Prisma.UserUncheckedUpdateWithoutApprovalsInput>
+}
+
+export type UserUpdateWithoutApprovalsInput = {
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  nama?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+  transaksiPembelian?: Prisma.TransaksiPembelianUpdateManyWithoutUserNestedInput
+  prosesSawmill?: Prisma.ProsesSawmillUpdateManyWithoutUserNestedInput
+  transaksiPenjualan?: Prisma.TransaksiPenjualanUpdateManyWithoutUserNestedInput
+  pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierUpdateManyWithoutPengajuNestedInput
+  pengajuanSupplierDiperiksa?: Prisma.PengajuanPerubahanSupplierUpdateManyWithoutPemeriksaNestedInput
+}
+
+export type UserUncheckedUpdateWithoutApprovalsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  nama?: Prisma.StringFieldUpdateOperationsInput | string
+  roleId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  transaksiPembelian?: Prisma.TransaksiPembelianUncheckedUpdateManyWithoutUserNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedUpdateManyWithoutUserNestedInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedUpdateManyWithoutUserNestedInput
   pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierUncheckedUpdateManyWithoutPengajuNestedInput
@@ -851,7 +1005,9 @@ export type UserCreateWithoutProsesSawmillInput = {
   nama: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutManagerInput
   transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedManyWithoutUserInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanCreateNestedManyWithoutUserInput
   pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierCreateNestedManyWithoutPengajuInput
@@ -866,6 +1022,8 @@ export type UserUncheckedCreateWithoutProsesSawmillInput = {
   roleId: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutManagerInput
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedCreateNestedManyWithoutUserInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedCreateNestedManyWithoutUserInput
   pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierUncheckedCreateNestedManyWithoutPengajuInput
@@ -894,7 +1052,9 @@ export type UserUpdateWithoutProsesSawmillInput = {
   nama?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutManagerNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUpdateManyWithoutUserNestedInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUpdateManyWithoutUserNestedInput
   pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierUpdateManyWithoutPengajuNestedInput
@@ -909,6 +1069,8 @@ export type UserUncheckedUpdateWithoutProsesSawmillInput = {
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutManagerNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedUpdateManyWithoutUserNestedInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedUpdateManyWithoutUserNestedInput
   pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierUncheckedUpdateManyWithoutPengajuNestedInput
@@ -921,7 +1083,9 @@ export type UserCreateWithoutTransaksiPenjualanInput = {
   nama: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutManagerInput
   transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedManyWithoutUserInput
   prosesSawmill?: Prisma.ProsesSawmillCreateNestedManyWithoutUserInput
   pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierCreateNestedManyWithoutPengajuInput
@@ -936,6 +1100,8 @@ export type UserUncheckedCreateWithoutTransaksiPenjualanInput = {
   roleId: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutManagerInput
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedCreateNestedManyWithoutUserInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedCreateNestedManyWithoutUserInput
   pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierUncheckedCreateNestedManyWithoutPengajuInput
@@ -964,7 +1130,9 @@ export type UserUpdateWithoutTransaksiPenjualanInput = {
   nama?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutManagerNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUpdateManyWithoutUserNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUpdateManyWithoutUserNestedInput
   pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierUpdateManyWithoutPengajuNestedInput
@@ -979,6 +1147,8 @@ export type UserUncheckedUpdateWithoutTransaksiPenjualanInput = {
   roleId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutManagerNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedUpdateManyWithoutUserNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedUpdateManyWithoutUserNestedInput
   pengajuanSupplierDibuat?: Prisma.PengajuanPerubahanSupplierUncheckedUpdateManyWithoutPengajuNestedInput
@@ -992,6 +1162,7 @@ export type UserCreateManyRoleInput = {
   nama: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
 }
 
 export type UserUpdateWithoutRoleInput = {
@@ -1000,6 +1171,8 @@ export type UserUpdateWithoutRoleInput = {
   nama?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUpdateManyWithoutManagerNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUpdateManyWithoutUserNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUpdateManyWithoutUserNestedInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUpdateManyWithoutUserNestedInput
@@ -1014,6 +1187,8 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   nama?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutManagerNestedInput
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedUpdateManyWithoutUserNestedInput
   prosesSawmill?: Prisma.ProsesSawmillUncheckedUpdateManyWithoutUserNestedInput
   transaksiPenjualan?: Prisma.TransaksiPenjualanUncheckedUpdateManyWithoutUserNestedInput
@@ -1028,6 +1203,7 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
   nama?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -1036,6 +1212,7 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
  */
 
 export type UserCountOutputType = {
+  approvals: number
   transaksiPembelian: number
   prosesSawmill: number
   transaksiPenjualan: number
@@ -1044,6 +1221,7 @@ export type UserCountOutputType = {
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  approvals?: boolean | UserCountOutputTypeCountApprovalsArgs
   transaksiPembelian?: boolean | UserCountOutputTypeCountTransaksiPembelianArgs
   prosesSawmill?: boolean | UserCountOutputTypeCountProsesSawmillArgs
   transaksiPenjualan?: boolean | UserCountOutputTypeCountTransaksiPenjualanArgs
@@ -1059,6 +1237,13 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
    * Select specific fields to fetch from the UserCountOutputType
    */
   select?: Prisma.UserCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountApprovalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ApprovalWhereInput
 }
 
 /**
@@ -1105,7 +1290,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   roleId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  deletedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
+  approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
   transaksiPembelian?: boolean | Prisma.User$transaksiPembelianArgs<ExtArgs>
   prosesSawmill?: boolean | Prisma.User$prosesSawmillArgs<ExtArgs>
   transaksiPenjualan?: boolean | Prisma.User$transaksiPenjualanArgs<ExtArgs>
@@ -1122,6 +1309,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   roleId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  deletedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1133,6 +1321,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   roleId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  deletedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1144,11 +1333,13 @@ export type UserSelectScalar = {
   roleId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  deletedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "password" | "nama" | "roleId" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "password" | "nama" | "roleId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
+  approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
   transaksiPembelian?: boolean | Prisma.User$transaksiPembelianArgs<ExtArgs>
   prosesSawmill?: boolean | Prisma.User$prosesSawmillArgs<ExtArgs>
   transaksiPenjualan?: boolean | Prisma.User$transaksiPenjualanArgs<ExtArgs>
@@ -1167,6 +1358,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     role: Prisma.$RolePayload<ExtArgs>
+    approvals: Prisma.$ApprovalPayload<ExtArgs>[]
     transaksiPembelian: Prisma.$TransaksiPembelianPayload<ExtArgs>[]
     prosesSawmill: Prisma.$ProsesSawmillPayload<ExtArgs>[]
     transaksiPenjualan: Prisma.$TransaksiPenjualanPayload<ExtArgs>[]
@@ -1181,6 +1373,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     roleId: number
     createdAt: Date
     updatedAt: Date
+    deletedAt: Date | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -1576,6 +1769,7 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   role<T extends Prisma.RoleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RoleDefaultArgs<ExtArgs>>): Prisma.Prisma__RoleClient<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  approvals<T extends Prisma.User$approvalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transaksiPembelian<T extends Prisma.User$transaksiPembelianArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transaksiPembelianArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransaksiPembelianPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   prosesSawmill<T extends Prisma.User$prosesSawmillArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$prosesSawmillArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProsesSawmillPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transaksiPenjualan<T extends Prisma.User$transaksiPenjualanArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transaksiPenjualanArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransaksiPenjualanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1617,6 +1811,7 @@ export interface UserFieldRefs {
   readonly roleId: Prisma.FieldRef<"User", 'Int'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly deletedAt: Prisma.FieldRef<"User", 'DateTime'>
 }
     
 
@@ -2015,6 +2210,30 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Users to delete.
    */
   limit?: number
+}
+
+/**
+ * User.approvals
+ */
+export type User$approvalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Approval
+   */
+  select?: Prisma.ApprovalSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Approval
+   */
+  omit?: Prisma.ApprovalOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ApprovalInclude<ExtArgs> | null
+  where?: Prisma.ApprovalWhereInput
+  orderBy?: Prisma.ApprovalOrderByWithRelationInput | Prisma.ApprovalOrderByWithRelationInput[]
+  cursor?: Prisma.ApprovalWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ApprovalScalarFieldEnum | Prisma.ApprovalScalarFieldEnum[]
 }
 
 /**

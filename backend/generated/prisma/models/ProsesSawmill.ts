@@ -43,6 +43,7 @@ export type ProsesSawmillMinAggregateOutputType = {
   kodeSawmill: string | null
   idLog: number | null
   idUserInput: number | null
+  deletedAt: Date | null
   tanggalProses: Date | null
   statusSawmill: string | null
 }
@@ -52,6 +53,7 @@ export type ProsesSawmillMaxAggregateOutputType = {
   kodeSawmill: string | null
   idLog: number | null
   idUserInput: number | null
+  deletedAt: Date | null
   tanggalProses: Date | null
   statusSawmill: string | null
 }
@@ -61,6 +63,7 @@ export type ProsesSawmillCountAggregateOutputType = {
   kodeSawmill: number
   idLog: number
   idUserInput: number
+  deletedAt: number
   tanggalProses: number
   statusSawmill: number
   _all: number
@@ -84,6 +87,7 @@ export type ProsesSawmillMinAggregateInputType = {
   kodeSawmill?: true
   idLog?: true
   idUserInput?: true
+  deletedAt?: true
   tanggalProses?: true
   statusSawmill?: true
 }
@@ -93,6 +97,7 @@ export type ProsesSawmillMaxAggregateInputType = {
   kodeSawmill?: true
   idLog?: true
   idUserInput?: true
+  deletedAt?: true
   tanggalProses?: true
   statusSawmill?: true
 }
@@ -102,6 +107,7 @@ export type ProsesSawmillCountAggregateInputType = {
   kodeSawmill?: true
   idLog?: true
   idUserInput?: true
+  deletedAt?: true
   tanggalProses?: true
   statusSawmill?: true
   _all?: true
@@ -198,6 +204,7 @@ export type ProsesSawmillGroupByOutputType = {
   kodeSawmill: string | null
   idLog: number
   idUserInput: number | null
+  deletedAt: Date | null
   tanggalProses: Date | null
   statusSawmill: string
   _count: ProsesSawmillCountAggregateOutputType | null
@@ -230,6 +237,7 @@ export type ProsesSawmillWhereInput = {
   kodeSawmill?: Prisma.StringNullableFilter<"ProsesSawmill"> | string | null
   idLog?: Prisma.IntFilter<"ProsesSawmill"> | number
   idUserInput?: Prisma.IntNullableFilter<"ProsesSawmill"> | number | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"ProsesSawmill"> | Date | string | null
   tanggalProses?: Prisma.DateTimeNullableFilter<"ProsesSawmill"> | Date | string | null
   statusSawmill?: Prisma.StringFilter<"ProsesSawmill"> | string
   planks?: Prisma.PlankListRelationFilter
@@ -242,6 +250,7 @@ export type ProsesSawmillOrderByWithRelationInput = {
   kodeSawmill?: Prisma.SortOrderInput | Prisma.SortOrder
   idLog?: Prisma.SortOrder
   idUserInput?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   tanggalProses?: Prisma.SortOrderInput | Prisma.SortOrder
   statusSawmill?: Prisma.SortOrder
   planks?: Prisma.PlankOrderByRelationAggregateInput
@@ -257,6 +266,7 @@ export type ProsesSawmillWhereUniqueInput = Prisma.AtLeast<{
   kodeSawmill?: Prisma.StringNullableFilter<"ProsesSawmill"> | string | null
   idLog?: Prisma.IntFilter<"ProsesSawmill"> | number
   idUserInput?: Prisma.IntNullableFilter<"ProsesSawmill"> | number | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"ProsesSawmill"> | Date | string | null
   tanggalProses?: Prisma.DateTimeNullableFilter<"ProsesSawmill"> | Date | string | null
   statusSawmill?: Prisma.StringFilter<"ProsesSawmill"> | string
   planks?: Prisma.PlankListRelationFilter
@@ -269,6 +279,7 @@ export type ProsesSawmillOrderByWithAggregationInput = {
   kodeSawmill?: Prisma.SortOrderInput | Prisma.SortOrder
   idLog?: Prisma.SortOrder
   idUserInput?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   tanggalProses?: Prisma.SortOrderInput | Prisma.SortOrder
   statusSawmill?: Prisma.SortOrder
   _count?: Prisma.ProsesSawmillCountOrderByAggregateInput
@@ -286,12 +297,14 @@ export type ProsesSawmillScalarWhereWithAggregatesInput = {
   kodeSawmill?: Prisma.StringNullableWithAggregatesFilter<"ProsesSawmill"> | string | null
   idLog?: Prisma.IntWithAggregatesFilter<"ProsesSawmill"> | number
   idUserInput?: Prisma.IntNullableWithAggregatesFilter<"ProsesSawmill"> | number | null
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ProsesSawmill"> | Date | string | null
   tanggalProses?: Prisma.DateTimeNullableWithAggregatesFilter<"ProsesSawmill"> | Date | string | null
   statusSawmill?: Prisma.StringWithAggregatesFilter<"ProsesSawmill"> | string
 }
 
 export type ProsesSawmillCreateInput = {
   kodeSawmill?: string | null
+  deletedAt?: Date | string | null
   tanggalProses?: Date | string | null
   statusSawmill: string
   planks?: Prisma.PlankCreateNestedManyWithoutSawmillInput
@@ -304,6 +317,7 @@ export type ProsesSawmillUncheckedCreateInput = {
   kodeSawmill?: string | null
   idLog: number
   idUserInput?: number | null
+  deletedAt?: Date | string | null
   tanggalProses?: Date | string | null
   statusSawmill: string
   planks?: Prisma.PlankUncheckedCreateNestedManyWithoutSawmillInput
@@ -311,6 +325,7 @@ export type ProsesSawmillUncheckedCreateInput = {
 
 export type ProsesSawmillUpdateInput = {
   kodeSawmill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalProses?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusSawmill?: Prisma.StringFieldUpdateOperationsInput | string
   planks?: Prisma.PlankUpdateManyWithoutSawmillNestedInput
@@ -323,6 +338,7 @@ export type ProsesSawmillUncheckedUpdateInput = {
   kodeSawmill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   idLog?: Prisma.IntFieldUpdateOperationsInput | number
   idUserInput?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalProses?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusSawmill?: Prisma.StringFieldUpdateOperationsInput | string
   planks?: Prisma.PlankUncheckedUpdateManyWithoutSawmillNestedInput
@@ -333,12 +349,14 @@ export type ProsesSawmillCreateManyInput = {
   kodeSawmill?: string | null
   idLog: number
   idUserInput?: number | null
+  deletedAt?: Date | string | null
   tanggalProses?: Date | string | null
   statusSawmill: string
 }
 
 export type ProsesSawmillUpdateManyMutationInput = {
   kodeSawmill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalProses?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusSawmill?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -348,6 +366,7 @@ export type ProsesSawmillUncheckedUpdateManyInput = {
   kodeSawmill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   idLog?: Prisma.IntFieldUpdateOperationsInput | number
   idUserInput?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalProses?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusSawmill?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -367,6 +386,7 @@ export type ProsesSawmillCountOrderByAggregateInput = {
   kodeSawmill?: Prisma.SortOrder
   idLog?: Prisma.SortOrder
   idUserInput?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   tanggalProses?: Prisma.SortOrder
   statusSawmill?: Prisma.SortOrder
 }
@@ -382,6 +402,7 @@ export type ProsesSawmillMaxOrderByAggregateInput = {
   kodeSawmill?: Prisma.SortOrder
   idLog?: Prisma.SortOrder
   idUserInput?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   tanggalProses?: Prisma.SortOrder
   statusSawmill?: Prisma.SortOrder
 }
@@ -391,6 +412,7 @@ export type ProsesSawmillMinOrderByAggregateInput = {
   kodeSawmill?: Prisma.SortOrder
   idLog?: Prisma.SortOrder
   idUserInput?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   tanggalProses?: Prisma.SortOrder
   statusSawmill?: Prisma.SortOrder
 }
@@ -508,6 +530,7 @@ export type ProsesSawmillUpdateOneWithoutPlanksNestedInput = {
 
 export type ProsesSawmillCreateWithoutUserInput = {
   kodeSawmill?: string | null
+  deletedAt?: Date | string | null
   tanggalProses?: Date | string | null
   statusSawmill: string
   planks?: Prisma.PlankCreateNestedManyWithoutSawmillInput
@@ -518,6 +541,7 @@ export type ProsesSawmillUncheckedCreateWithoutUserInput = {
   idSawmill?: number
   kodeSawmill?: string | null
   idLog: number
+  deletedAt?: Date | string | null
   tanggalProses?: Date | string | null
   statusSawmill: string
   planks?: Prisma.PlankUncheckedCreateNestedManyWithoutSawmillInput
@@ -557,12 +581,14 @@ export type ProsesSawmillScalarWhereInput = {
   kodeSawmill?: Prisma.StringNullableFilter<"ProsesSawmill"> | string | null
   idLog?: Prisma.IntFilter<"ProsesSawmill"> | number
   idUserInput?: Prisma.IntNullableFilter<"ProsesSawmill"> | number | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"ProsesSawmill"> | Date | string | null
   tanggalProses?: Prisma.DateTimeNullableFilter<"ProsesSawmill"> | Date | string | null
   statusSawmill?: Prisma.StringFilter<"ProsesSawmill"> | string
 }
 
 export type ProsesSawmillCreateWithoutStokLogInput = {
   kodeSawmill?: string | null
+  deletedAt?: Date | string | null
   tanggalProses?: Date | string | null
   statusSawmill: string
   planks?: Prisma.PlankCreateNestedManyWithoutSawmillInput
@@ -573,6 +599,7 @@ export type ProsesSawmillUncheckedCreateWithoutStokLogInput = {
   idSawmill?: number
   kodeSawmill?: string | null
   idUserInput?: number | null
+  deletedAt?: Date | string | null
   tanggalProses?: Date | string | null
   statusSawmill: string
   planks?: Prisma.PlankUncheckedCreateNestedManyWithoutSawmillInput
@@ -606,6 +633,7 @@ export type ProsesSawmillUpdateManyWithWhereWithoutStokLogInput = {
 
 export type ProsesSawmillCreateWithoutPlanksInput = {
   kodeSawmill?: string | null
+  deletedAt?: Date | string | null
   tanggalProses?: Date | string | null
   statusSawmill: string
   stokLog: Prisma.StokLogCreateNestedOneWithoutProsesSawmillInput
@@ -617,6 +645,7 @@ export type ProsesSawmillUncheckedCreateWithoutPlanksInput = {
   kodeSawmill?: string | null
   idLog: number
   idUserInput?: number | null
+  deletedAt?: Date | string | null
   tanggalProses?: Date | string | null
   statusSawmill: string
 }
@@ -639,6 +668,7 @@ export type ProsesSawmillUpdateToOneWithWhereWithoutPlanksInput = {
 
 export type ProsesSawmillUpdateWithoutPlanksInput = {
   kodeSawmill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalProses?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusSawmill?: Prisma.StringFieldUpdateOperationsInput | string
   stokLog?: Prisma.StokLogUpdateOneRequiredWithoutProsesSawmillNestedInput
@@ -650,6 +680,7 @@ export type ProsesSawmillUncheckedUpdateWithoutPlanksInput = {
   kodeSawmill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   idLog?: Prisma.IntFieldUpdateOperationsInput | number
   idUserInput?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalProses?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusSawmill?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -658,12 +689,14 @@ export type ProsesSawmillCreateManyUserInput = {
   idSawmill?: number
   kodeSawmill?: string | null
   idLog: number
+  deletedAt?: Date | string | null
   tanggalProses?: Date | string | null
   statusSawmill: string
 }
 
 export type ProsesSawmillUpdateWithoutUserInput = {
   kodeSawmill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalProses?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusSawmill?: Prisma.StringFieldUpdateOperationsInput | string
   planks?: Prisma.PlankUpdateManyWithoutSawmillNestedInput
@@ -674,6 +707,7 @@ export type ProsesSawmillUncheckedUpdateWithoutUserInput = {
   idSawmill?: Prisma.IntFieldUpdateOperationsInput | number
   kodeSawmill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   idLog?: Prisma.IntFieldUpdateOperationsInput | number
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalProses?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusSawmill?: Prisma.StringFieldUpdateOperationsInput | string
   planks?: Prisma.PlankUncheckedUpdateManyWithoutSawmillNestedInput
@@ -683,6 +717,7 @@ export type ProsesSawmillUncheckedUpdateManyWithoutUserInput = {
   idSawmill?: Prisma.IntFieldUpdateOperationsInput | number
   kodeSawmill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   idLog?: Prisma.IntFieldUpdateOperationsInput | number
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalProses?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusSawmill?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -691,12 +726,14 @@ export type ProsesSawmillCreateManyStokLogInput = {
   idSawmill?: number
   kodeSawmill?: string | null
   idUserInput?: number | null
+  deletedAt?: Date | string | null
   tanggalProses?: Date | string | null
   statusSawmill: string
 }
 
 export type ProsesSawmillUpdateWithoutStokLogInput = {
   kodeSawmill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalProses?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusSawmill?: Prisma.StringFieldUpdateOperationsInput | string
   planks?: Prisma.PlankUpdateManyWithoutSawmillNestedInput
@@ -707,6 +744,7 @@ export type ProsesSawmillUncheckedUpdateWithoutStokLogInput = {
   idSawmill?: Prisma.IntFieldUpdateOperationsInput | number
   kodeSawmill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   idUserInput?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalProses?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusSawmill?: Prisma.StringFieldUpdateOperationsInput | string
   planks?: Prisma.PlankUncheckedUpdateManyWithoutSawmillNestedInput
@@ -716,6 +754,7 @@ export type ProsesSawmillUncheckedUpdateManyWithoutStokLogInput = {
   idSawmill?: Prisma.IntFieldUpdateOperationsInput | number
   kodeSawmill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   idUserInput?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalProses?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusSawmill?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -756,6 +795,7 @@ export type ProsesSawmillSelect<ExtArgs extends runtime.Types.Extensions.Interna
   kodeSawmill?: boolean
   idLog?: boolean
   idUserInput?: boolean
+  deletedAt?: boolean
   tanggalProses?: boolean
   statusSawmill?: boolean
   planks?: boolean | Prisma.ProsesSawmill$planksArgs<ExtArgs>
@@ -769,6 +809,7 @@ export type ProsesSawmillSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   kodeSawmill?: boolean
   idLog?: boolean
   idUserInput?: boolean
+  deletedAt?: boolean
   tanggalProses?: boolean
   statusSawmill?: boolean
   stokLog?: boolean | Prisma.StokLogDefaultArgs<ExtArgs>
@@ -780,6 +821,7 @@ export type ProsesSawmillSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   kodeSawmill?: boolean
   idLog?: boolean
   idUserInput?: boolean
+  deletedAt?: boolean
   tanggalProses?: boolean
   statusSawmill?: boolean
   stokLog?: boolean | Prisma.StokLogDefaultArgs<ExtArgs>
@@ -791,11 +833,12 @@ export type ProsesSawmillSelectScalar = {
   kodeSawmill?: boolean
   idLog?: boolean
   idUserInput?: boolean
+  deletedAt?: boolean
   tanggalProses?: boolean
   statusSawmill?: boolean
 }
 
-export type ProsesSawmillOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idSawmill" | "kodeSawmill" | "idLog" | "idUserInput" | "tanggalProses" | "statusSawmill", ExtArgs["result"]["prosesSawmill"]>
+export type ProsesSawmillOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idSawmill" | "kodeSawmill" | "idLog" | "idUserInput" | "deletedAt" | "tanggalProses" | "statusSawmill", ExtArgs["result"]["prosesSawmill"]>
 export type ProsesSawmillInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   planks?: boolean | Prisma.ProsesSawmill$planksArgs<ExtArgs>
   stokLog?: boolean | Prisma.StokLogDefaultArgs<ExtArgs>
@@ -823,6 +866,7 @@ export type $ProsesSawmillPayload<ExtArgs extends runtime.Types.Extensions.Inter
     kodeSawmill: string | null
     idLog: number
     idUserInput: number | null
+    deletedAt: Date | null
     tanggalProses: Date | null
     statusSawmill: string
   }, ExtArgs["result"]["prosesSawmill"]>
@@ -1255,6 +1299,7 @@ export interface ProsesSawmillFieldRefs {
   readonly kodeSawmill: Prisma.FieldRef<"ProsesSawmill", 'String'>
   readonly idLog: Prisma.FieldRef<"ProsesSawmill", 'Int'>
   readonly idUserInput: Prisma.FieldRef<"ProsesSawmill", 'Int'>
+  readonly deletedAt: Prisma.FieldRef<"ProsesSawmill", 'DateTime'>
   readonly tanggalProses: Prisma.FieldRef<"ProsesSawmill", 'DateTime'>
   readonly statusSawmill: Prisma.FieldRef<"ProsesSawmill", 'String'>
 }

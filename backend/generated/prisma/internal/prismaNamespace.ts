@@ -404,6 +404,7 @@ export const ModelName = {
   Customer: 'Customer',
   StokLog: 'StokLog',
   TransaksiPembelian: 'TransaksiPembelian',
+  Approval: 'Approval',
   ProsesSawmill: 'ProsesSawmill',
   Plank: 'Plank',
   Palet: 'Palet',
@@ -411,7 +412,8 @@ export const ModelName = {
   DryKiln: 'DryKiln',
   HasilDryKiln: 'HasilDryKiln',
   TransaksiPenjualan: 'TransaksiPenjualan',
-  DetailPenjualan: 'DetailPenjualan'
+  DetailPenjualan: 'DetailPenjualan',
+  DetailPembelian: 'DetailPembelian'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -427,7 +429,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "role" | "user" | "supplier" | "pengajuanPerubahanSupplier" | "customer" | "stokLog" | "transaksiPembelian" | "prosesSawmill" | "plank" | "palet" | "detailPalet" | "dryKiln" | "hasilDryKiln" | "transaksiPenjualan" | "detailPenjualan"
+    modelProps: "role" | "user" | "supplier" | "pengajuanPerubahanSupplier" | "customer" | "stokLog" | "transaksiPembelian" | "approval" | "prosesSawmill" | "plank" | "palet" | "detailPalet" | "dryKiln" | "hasilDryKiln" | "transaksiPenjualan" | "detailPenjualan" | "detailPembelian"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -946,6 +948,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TransaksiPembelianCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TransaksiPembelianCountAggregateOutputType> | number
+        }
+      }
+    }
+    Approval: {
+      payload: Prisma.$ApprovalPayload<ExtArgs>
+      fields: Prisma.ApprovalFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ApprovalFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ApprovalFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalPayload>
+        }
+        findFirst: {
+          args: Prisma.ApprovalFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ApprovalFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalPayload>
+        }
+        findMany: {
+          args: Prisma.ApprovalFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalPayload>[]
+        }
+        create: {
+          args: Prisma.ApprovalCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalPayload>
+        }
+        createMany: {
+          args: Prisma.ApprovalCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ApprovalCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalPayload>[]
+        }
+        delete: {
+          args: Prisma.ApprovalDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalPayload>
+        }
+        update: {
+          args: Prisma.ApprovalUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalPayload>
+        }
+        deleteMany: {
+          args: Prisma.ApprovalDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ApprovalUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ApprovalUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalPayload>[]
+        }
+        upsert: {
+          args: Prisma.ApprovalUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalPayload>
+        }
+        aggregate: {
+          args: Prisma.ApprovalAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateApproval>
+        }
+        groupBy: {
+          args: Prisma.ApprovalGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApprovalGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ApprovalCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApprovalCountAggregateOutputType> | number
         }
       }
     }
@@ -1541,6 +1617,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DetailPembelian: {
+      payload: Prisma.$DetailPembelianPayload<ExtArgs>
+      fields: Prisma.DetailPembelianFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DetailPembelianFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DetailPembelianPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DetailPembelianFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DetailPembelianPayload>
+        }
+        findFirst: {
+          args: Prisma.DetailPembelianFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DetailPembelianPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DetailPembelianFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DetailPembelianPayload>
+        }
+        findMany: {
+          args: Prisma.DetailPembelianFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DetailPembelianPayload>[]
+        }
+        create: {
+          args: Prisma.DetailPembelianCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DetailPembelianPayload>
+        }
+        createMany: {
+          args: Prisma.DetailPembelianCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DetailPembelianCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DetailPembelianPayload>[]
+        }
+        delete: {
+          args: Prisma.DetailPembelianDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DetailPembelianPayload>
+        }
+        update: {
+          args: Prisma.DetailPembelianUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DetailPembelianPayload>
+        }
+        deleteMany: {
+          args: Prisma.DetailPembelianDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DetailPembelianUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DetailPembelianUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DetailPembelianPayload>[]
+        }
+        upsert: {
+          args: Prisma.DetailPembelianUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DetailPembelianPayload>
+        }
+        aggregate: {
+          args: Prisma.DetailPembelianAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDetailPembelian>
+        }
+        groupBy: {
+          args: Prisma.DetailPembelianGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DetailPembelianGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DetailPembelianCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DetailPembelianCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1597,7 +1747,8 @@ export const UserScalarFieldEnum = {
   nama: 'nama',
   roleId: 'roleId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -1607,7 +1758,8 @@ export const SupplierScalarFieldEnum = {
   idSupplier: 'idSupplier',
   namaSupplier: 'namaSupplier',
   alamatSupplier: 'alamatSupplier',
-  kontakSupplier: 'kontakSupplier'
+  kontakSupplier: 'kontakSupplier',
+  deletedAt: 'deletedAt'
 } as const
 
 export type SupplierScalarFieldEnum = (typeof SupplierScalarFieldEnum)[keyof typeof SupplierScalarFieldEnum]
@@ -1635,7 +1787,8 @@ export const CustomerScalarFieldEnum = {
   idCustomer: 'idCustomer',
   namaCustomer: 'namaCustomer',
   alamatCustomer: 'alamatCustomer',
-  kontakCustomer: 'kontakCustomer'
+  kontakCustomer: 'kontakCustomer',
+  deletedAt: 'deletedAt'
 } as const
 
 export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
@@ -1653,7 +1806,8 @@ export const StokLogScalarFieldEnum = {
   statusLog: 'statusLog',
   suplier: 'suplier',
   harga: 'harga',
-  tanggalMasuk: 'tanggalMasuk'
+  tanggalMasuk: 'tanggalMasuk',
+  deletedAt: 'deletedAt'
 } as const
 
 export type StokLogScalarFieldEnum = (typeof StokLogScalarFieldEnum)[keyof typeof StokLogScalarFieldEnum]
@@ -1663,10 +1817,26 @@ export const TransaksiPembelianScalarFieldEnum = {
   idPembelian: 'idPembelian',
   idSupplier: 'idSupplier',
   idUser: 'idUser',
-  tanggalBeli: 'tanggalBeli'
+  tanggalBeli: 'tanggalBeli',
+  statusVerifikasi: 'statusVerifikasi',
+  statusPembelian: 'statusPembelian',
+  deletedAt: 'deletedAt'
 } as const
 
 export type TransaksiPembelianScalarFieldEnum = (typeof TransaksiPembelianScalarFieldEnum)[keyof typeof TransaksiPembelianScalarFieldEnum]
+
+
+export const ApprovalScalarFieldEnum = {
+  idApproval: 'idApproval',
+  idUserManager: 'idUserManager',
+  idPembelian: 'idPembelian',
+  idPenjualan: 'idPenjualan',
+  status: 'status',
+  keteranganCatatan: 'keteranganCatatan',
+  tanggalApprove: 'tanggalApprove'
+} as const
+
+export type ApprovalScalarFieldEnum = (typeof ApprovalScalarFieldEnum)[keyof typeof ApprovalScalarFieldEnum]
 
 
 export const ProsesSawmillScalarFieldEnum = {
@@ -1674,6 +1844,7 @@ export const ProsesSawmillScalarFieldEnum = {
   kodeSawmill: 'kodeSawmill',
   idLog: 'idLog',
   idUserInput: 'idUserInput',
+  deletedAt: 'deletedAt',
   tanggalProses: 'tanggalProses',
   statusSawmill: 'statusSawmill'
 } as const
@@ -1692,7 +1863,8 @@ export const PlankScalarFieldEnum = {
   lebar: 'lebar',
   panjang: 'panjang',
   volumePlank: 'volumePlank',
-  stage: 'stage'
+  stage: 'stage',
+  deletedAt: 'deletedAt'
 } as const
 
 export type PlankScalarFieldEnum = (typeof PlankScalarFieldEnum)[keyof typeof PlankScalarFieldEnum]
@@ -1701,7 +1873,8 @@ export type PlankScalarFieldEnum = (typeof PlankScalarFieldEnum)[keyof typeof Pl
 export const PaletScalarFieldEnum = {
   idPalet: 'idPalet',
   tanggalSticking: 'tanggalSticking',
-  statusPalet: 'statusPalet'
+  statusPalet: 'statusPalet',
+  deletedAt: 'deletedAt'
 } as const
 
 export type PaletScalarFieldEnum = (typeof PaletScalarFieldEnum)[keyof typeof PaletScalarFieldEnum]
@@ -1710,7 +1883,8 @@ export type PaletScalarFieldEnum = (typeof PaletScalarFieldEnum)[keyof typeof Pa
 export const DetailPaletScalarFieldEnum = {
   idDetailPalet: 'idDetailPalet',
   idPalet: 'idPalet',
-  idPlank: 'idPlank'
+  idPlank: 'idPlank',
+  deletedAt: 'deletedAt'
 } as const
 
 export type DetailPaletScalarFieldEnum = (typeof DetailPaletScalarFieldEnum)[keyof typeof DetailPaletScalarFieldEnum]
@@ -1719,7 +1893,6 @@ export type DetailPaletScalarFieldEnum = (typeof DetailPaletScalarFieldEnum)[key
 export const DryKilnScalarFieldEnum = {
   idOven: 'idOven',
   idPalet: 'idPalet',
-  idPlank: 'idPlank',
   kodeOven: 'kodeOven',
   sortimen: 'sortimen',
   grade: 'grade',
@@ -1729,6 +1902,7 @@ export const DryKilnScalarFieldEnum = {
   volume: 'volume',
   tanggalMasuk: 'tanggalMasuk',
   tanggalKeluar: 'tanggalKeluar',
+  deletedAt: 'deletedAt',
   statusPengeringan: 'statusPengeringan',
   stage: 'stage',
   kodeLog: 'kodeLog',
@@ -1745,6 +1919,7 @@ export const HasilDryKilnScalarFieldEnum = {
   gradeAkhir: 'gradeAkhir',
   volumeAkhir: 'volumeAkhir',
   kadarAirAkhir: 'kadarAirAkhir',
+  deletedAt: 'deletedAt',
   statusKelayakan: 'statusKelayakan'
 } as const
 
@@ -1756,7 +1931,9 @@ export const TransaksiPenjualanScalarFieldEnum = {
   idCustomer: 'idCustomer',
   idUserInput: 'idUserInput',
   tanggalJual: 'tanggalJual',
-  statusVerifikasi: 'statusVerifikasi'
+  statusVerifikasi: 'statusVerifikasi',
+  statusPenjualan: 'statusPenjualan',
+  deletedAt: 'deletedAt'
 } as const
 
 export type TransaksiPenjualanScalarFieldEnum = (typeof TransaksiPenjualanScalarFieldEnum)[keyof typeof TransaksiPenjualanScalarFieldEnum]
@@ -1768,11 +1945,27 @@ export const DetailPenjualanScalarFieldEnum = {
   referensiBarang: 'referensiBarang',
   idLog: 'idLog',
   idPlank: 'idPlank',
+  deletedAt: 'deletedAt',
   kuantitasTerjual: 'kuantitasTerjual',
   hargaSatuan: 'hargaSatuan'
 } as const
 
 export type DetailPenjualanScalarFieldEnum = (typeof DetailPenjualanScalarFieldEnum)[keyof typeof DetailPenjualanScalarFieldEnum]
+
+
+export const DetailPembelianScalarFieldEnum = {
+  idDetailPembelian: 'idDetailPembelian',
+  idPembelian: 'idPembelian',
+  asalSortimen: 'asalSortimen',
+  panjang: 'panjang',
+  diameter: 'diameter',
+  dimensiLog: 'dimensiLog',
+  jumlahDipesan: 'jumlahDipesan',
+  hargaPerLog: 'hargaPerLog',
+  createdAt: 'createdAt'
+} as const
+
+export type DetailPembelianScalarFieldEnum = (typeof DetailPembelianScalarFieldEnum)[keyof typeof DetailPembelianScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1890,6 +2083,34 @@ export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMo
 
 
 /**
+ * Reference to a field of type 'StatusVerifikasi'
+ */
+export type EnumStatusVerifikasiFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusVerifikasi'>
+    
+
+
+/**
+ * Reference to a field of type 'StatusVerifikasi[]'
+ */
+export type ListEnumStatusVerifikasiFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusVerifikasi[]'>
+    
+
+
+/**
+ * Reference to a field of type 'StatusPembelian'
+ */
+export type EnumStatusPembelianFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusPembelian'>
+    
+
+
+/**
+ * Reference to a field of type 'StatusPembelian[]'
+ */
+export type ListEnumStatusPembelianFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusPembelian[]'>
+    
+
+
+/**
  * Reference to a field of type 'StatusKelayakanKayu'
  */
 export type EnumStatusKelayakanKayuFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusKelayakanKayu'>
@@ -1904,16 +2125,16 @@ export type ListEnumStatusKelayakanKayuFieldRefInput<$PrismaModel> = FieldRefInp
 
 
 /**
- * Reference to a field of type 'StatusVerifikasi'
+ * Reference to a field of type 'StatusPenjualan'
  */
-export type EnumStatusVerifikasiFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusVerifikasi'>
+export type EnumStatusPenjualanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusPenjualan'>
     
 
 
 /**
- * Reference to a field of type 'StatusVerifikasi[]'
+ * Reference to a field of type 'StatusPenjualan[]'
  */
-export type ListEnumStatusVerifikasiFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusVerifikasi[]'>
+export type ListEnumStatusPenjualanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusPenjualan[]'>
     
 
 
@@ -2088,6 +2309,7 @@ export type GlobalOmitConfig = {
   customer?: Prisma.CustomerOmit
   stokLog?: Prisma.StokLogOmit
   transaksiPembelian?: Prisma.TransaksiPembelianOmit
+  approval?: Prisma.ApprovalOmit
   prosesSawmill?: Prisma.ProsesSawmillOmit
   plank?: Prisma.PlankOmit
   palet?: Prisma.PaletOmit
@@ -2096,6 +2318,7 @@ export type GlobalOmitConfig = {
   hasilDryKiln?: Prisma.HasilDryKilnOmit
   transaksiPenjualan?: Prisma.TransaksiPenjualanOmit
   detailPenjualan?: Prisma.DetailPenjualanOmit
+  detailPembelian?: Prisma.DetailPembelianOmit
 }
 
 /* Types for Logging */

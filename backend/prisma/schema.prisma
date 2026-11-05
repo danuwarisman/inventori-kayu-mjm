@@ -26,8 +26,7 @@ model User {
   updatedAt          DateTime             @updatedAt
   deletedAt          DateTime?
 
-  approvalPembelian ApprovalPembelian[]
-  approvalPenjualan ApprovalPenjualan[]
+  approvals Approval[]
   transaksiPembelian TransaksiPembelian[]
   prosesSawmill      ProsesSawmill[]
   transaksiPenjualan TransaksiPenjualan[]
@@ -120,48 +119,26 @@ model TransaksiPembelian {
   supplier Supplier @relation(fields: [idSupplier], references: [idSupplier])
   user     User     @relation(fields: [idUser], references: [id])
   stokLogs StokLog[]
-  approvals ApprovalPembelian[]
+  approvals Approval[]
   detailPembelian DetailPembelian[]
 
   @@map("transaksi_pembelian")
 }
 
-model StatusApprove {
-  idStatusApprove Int        @id @default(autoincrement()) @map("id_status_approve")
-  namaStatus      String     @unique @db.VarChar(20) @map("nama_status")
+model Approval {
+  idApproval        Int              @id @default(autoincrement()) @map("id_approval")
+  idUserManager     Int              @map("id_user_manager")
+  idPembelian       Int?             @map("id_pembelian")
+  idPenjualan       Int?             @map("id_penjualan")
+  status            StatusVerifikasi @map("status")
+  keteranganCatatan String?          @db.VarChar(100) @map("keterangan_catatan")
+  tanggalApprove    DateTime         @default(now()) @map("tanggal_approve")
 
-  approvals ApprovalPembelian[]
+  manager   User                 @relation(fields: [idUserManager], references: [id])
+  pembelian TransaksiPembelian?  @relation(fields: [idPembelian], references: [idPembelian])
+  penjualan TransaksiPenjualan?  @relation(fields: [idPenjualan], references: [idPenjualan])
 
-  @@map("status_approve")
-}
-
-model ApprovalPembelian {
-  idApprovalPembelian Int      @id @default(autoincrement()) @map("id_approval_pembelian")
-  idUserManager       Int      @map("id_user_manager")
-  idPembelian         Int      @map("id_pembelian")
-  idStatusApprove     Int      @map("id_status_approve")
-  keteranganCatatan   String?  @db.VarChar(100) @map("keterangan_catatan")
-  tanggalApprove      DateTime @default(now()) @map("tanggal_approve")
-
-  manager       User              @relation(fields: [idUserManager], references: [id])
-  pembelian     TransaksiPembelian @relation(fields: [idPembelian], references: [idPembelian])
-  statusApprove StatusApprove     @relation(fields: [idStatusApprove], references: [idStatusApprove])
-
-  @@map("approval_pembelian")
-}
-
-model ApprovalPenjualan {
-  idApprovalPenjualan Int      @id @default(autoincrement()) @map("id_approval_penjualan")
-  idUserManager       Int      @map("id_user_manager")
-  idPenjualan         Int      @map("id_penjualan")
-  status              StatusVerifikasi @map("status")
-  keteranganCatatan   String?  @db.VarChar(100) @map("keterangan_catatan")
-  tanggalApprove      DateTime @default(now()) @map("tanggal_approve")
-
-  manager User @relation(fields: [idUserManager], references: [id])
-  penjualan TransaksiPenjualan @relation(fields: [idPenjualan], references: [idPenjualan])
-
-  @@map("approval_penjualan")
+  @@map("approval")
 }
 
 model ProsesSawmill {
@@ -314,7 +291,7 @@ model TransaksiPenjualan {
   statusPenjualan  StatusPenjualan  @default(MENUNGGU) @map("status_penjualan")
   deletedAt        DateTime?        @map("deleted_at")
 
-  approvals ApprovalPenjualan[]
+  approvals Approval[]
   detailPenjualan DetailPenjualan[]
   customer        Customer @relation(fields: [idCustomer], references: [idCustomer])
   user            User     @relation(fields: [idUserInput], references: [id])

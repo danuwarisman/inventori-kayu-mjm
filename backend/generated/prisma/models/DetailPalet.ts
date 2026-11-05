@@ -42,18 +42,21 @@ export type DetailPaletMinAggregateOutputType = {
   idDetailPalet: number | null
   idPalet: number | null
   idPlank: number | null
+  deletedAt: Date | null
 }
 
 export type DetailPaletMaxAggregateOutputType = {
   idDetailPalet: number | null
   idPalet: number | null
   idPlank: number | null
+  deletedAt: Date | null
 }
 
 export type DetailPaletCountAggregateOutputType = {
   idDetailPalet: number
   idPalet: number
   idPlank: number
+  deletedAt: number
   _all: number
 }
 
@@ -74,18 +77,21 @@ export type DetailPaletMinAggregateInputType = {
   idDetailPalet?: true
   idPalet?: true
   idPlank?: true
+  deletedAt?: true
 }
 
 export type DetailPaletMaxAggregateInputType = {
   idDetailPalet?: true
   idPalet?: true
   idPlank?: true
+  deletedAt?: true
 }
 
 export type DetailPaletCountAggregateInputType = {
   idDetailPalet?: true
   idPalet?: true
   idPlank?: true
+  deletedAt?: true
   _all?: true
 }
 
@@ -179,6 +185,7 @@ export type DetailPaletGroupByOutputType = {
   idDetailPalet: number
   idPalet: number
   idPlank: number
+  deletedAt: Date | null
   _count: DetailPaletCountAggregateOutputType | null
   _avg: DetailPaletAvgAggregateOutputType | null
   _sum: DetailPaletSumAggregateOutputType | null
@@ -208,6 +215,7 @@ export type DetailPaletWhereInput = {
   idDetailPalet?: Prisma.IntFilter<"DetailPalet"> | number
   idPalet?: Prisma.IntFilter<"DetailPalet"> | number
   idPlank?: Prisma.IntFilter<"DetailPalet"> | number
+  deletedAt?: Prisma.DateTimeNullableFilter<"DetailPalet"> | Date | string | null
   palet?: Prisma.XOR<Prisma.PaletScalarRelationFilter, Prisma.PaletWhereInput>
   plank?: Prisma.XOR<Prisma.PlankScalarRelationFilter, Prisma.PlankWhereInput>
 }
@@ -216,6 +224,7 @@ export type DetailPaletOrderByWithRelationInput = {
   idDetailPalet?: Prisma.SortOrder
   idPalet?: Prisma.SortOrder
   idPlank?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   palet?: Prisma.PaletOrderByWithRelationInput
   plank?: Prisma.PlankOrderByWithRelationInput
 }
@@ -227,6 +236,7 @@ export type DetailPaletWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.DetailPaletWhereInput | Prisma.DetailPaletWhereInput[]
   idPalet?: Prisma.IntFilter<"DetailPalet"> | number
   idPlank?: Prisma.IntFilter<"DetailPalet"> | number
+  deletedAt?: Prisma.DateTimeNullableFilter<"DetailPalet"> | Date | string | null
   palet?: Prisma.XOR<Prisma.PaletScalarRelationFilter, Prisma.PaletWhereInput>
   plank?: Prisma.XOR<Prisma.PlankScalarRelationFilter, Prisma.PlankWhereInput>
 }, "idDetailPalet">
@@ -235,6 +245,7 @@ export type DetailPaletOrderByWithAggregationInput = {
   idDetailPalet?: Prisma.SortOrder
   idPalet?: Prisma.SortOrder
   idPlank?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.DetailPaletCountOrderByAggregateInput
   _avg?: Prisma.DetailPaletAvgOrderByAggregateInput
   _max?: Prisma.DetailPaletMaxOrderByAggregateInput
@@ -249,9 +260,11 @@ export type DetailPaletScalarWhereWithAggregatesInput = {
   idDetailPalet?: Prisma.IntWithAggregatesFilter<"DetailPalet"> | number
   idPalet?: Prisma.IntWithAggregatesFilter<"DetailPalet"> | number
   idPlank?: Prisma.IntWithAggregatesFilter<"DetailPalet"> | number
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"DetailPalet"> | Date | string | null
 }
 
 export type DetailPaletCreateInput = {
+  deletedAt?: Date | string | null
   palet: Prisma.PaletCreateNestedOneWithoutDetailPaletInput
   plank: Prisma.PlankCreateNestedOneWithoutDetailPaletInput
 }
@@ -260,9 +273,11 @@ export type DetailPaletUncheckedCreateInput = {
   idDetailPalet?: number
   idPalet: number
   idPlank: number
+  deletedAt?: Date | string | null
 }
 
 export type DetailPaletUpdateInput = {
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   palet?: Prisma.PaletUpdateOneRequiredWithoutDetailPaletNestedInput
   plank?: Prisma.PlankUpdateOneRequiredWithoutDetailPaletNestedInput
 }
@@ -271,22 +286,25 @@ export type DetailPaletUncheckedUpdateInput = {
   idDetailPalet?: Prisma.IntFieldUpdateOperationsInput | number
   idPalet?: Prisma.IntFieldUpdateOperationsInput | number
   idPlank?: Prisma.IntFieldUpdateOperationsInput | number
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type DetailPaletCreateManyInput = {
   idDetailPalet?: number
   idPalet: number
   idPlank: number
+  deletedAt?: Date | string | null
 }
 
 export type DetailPaletUpdateManyMutationInput = {
-
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type DetailPaletUncheckedUpdateManyInput = {
   idDetailPalet?: Prisma.IntFieldUpdateOperationsInput | number
   idPalet?: Prisma.IntFieldUpdateOperationsInput | number
   idPlank?: Prisma.IntFieldUpdateOperationsInput | number
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type DetailPaletListRelationFilter = {
@@ -303,6 +321,7 @@ export type DetailPaletCountOrderByAggregateInput = {
   idDetailPalet?: Prisma.SortOrder
   idPalet?: Prisma.SortOrder
   idPlank?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type DetailPaletAvgOrderByAggregateInput = {
@@ -315,12 +334,14 @@ export type DetailPaletMaxOrderByAggregateInput = {
   idDetailPalet?: Prisma.SortOrder
   idPalet?: Prisma.SortOrder
   idPlank?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type DetailPaletMinOrderByAggregateInput = {
   idDetailPalet?: Prisma.SortOrder
   idPalet?: Prisma.SortOrder
   idPlank?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type DetailPaletSumOrderByAggregateInput = {
@@ -414,12 +435,14 @@ export type DetailPaletUncheckedUpdateManyWithoutPaletNestedInput = {
 }
 
 export type DetailPaletCreateWithoutPlankInput = {
+  deletedAt?: Date | string | null
   palet: Prisma.PaletCreateNestedOneWithoutDetailPaletInput
 }
 
 export type DetailPaletUncheckedCreateWithoutPlankInput = {
   idDetailPalet?: number
   idPalet: number
+  deletedAt?: Date | string | null
 }
 
 export type DetailPaletCreateOrConnectWithoutPlankInput = {
@@ -455,15 +478,18 @@ export type DetailPaletScalarWhereInput = {
   idDetailPalet?: Prisma.IntFilter<"DetailPalet"> | number
   idPalet?: Prisma.IntFilter<"DetailPalet"> | number
   idPlank?: Prisma.IntFilter<"DetailPalet"> | number
+  deletedAt?: Prisma.DateTimeNullableFilter<"DetailPalet"> | Date | string | null
 }
 
 export type DetailPaletCreateWithoutPaletInput = {
+  deletedAt?: Date | string | null
   plank: Prisma.PlankCreateNestedOneWithoutDetailPaletInput
 }
 
 export type DetailPaletUncheckedCreateWithoutPaletInput = {
   idDetailPalet?: number
   idPlank: number
+  deletedAt?: Date | string | null
 }
 
 export type DetailPaletCreateOrConnectWithoutPaletInput = {
@@ -495,39 +521,47 @@ export type DetailPaletUpdateManyWithWhereWithoutPaletInput = {
 export type DetailPaletCreateManyPlankInput = {
   idDetailPalet?: number
   idPalet: number
+  deletedAt?: Date | string | null
 }
 
 export type DetailPaletUpdateWithoutPlankInput = {
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   palet?: Prisma.PaletUpdateOneRequiredWithoutDetailPaletNestedInput
 }
 
 export type DetailPaletUncheckedUpdateWithoutPlankInput = {
   idDetailPalet?: Prisma.IntFieldUpdateOperationsInput | number
   idPalet?: Prisma.IntFieldUpdateOperationsInput | number
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type DetailPaletUncheckedUpdateManyWithoutPlankInput = {
   idDetailPalet?: Prisma.IntFieldUpdateOperationsInput | number
   idPalet?: Prisma.IntFieldUpdateOperationsInput | number
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type DetailPaletCreateManyPaletInput = {
   idDetailPalet?: number
   idPlank: number
+  deletedAt?: Date | string | null
 }
 
 export type DetailPaletUpdateWithoutPaletInput = {
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   plank?: Prisma.PlankUpdateOneRequiredWithoutDetailPaletNestedInput
 }
 
 export type DetailPaletUncheckedUpdateWithoutPaletInput = {
   idDetailPalet?: Prisma.IntFieldUpdateOperationsInput | number
   idPlank?: Prisma.IntFieldUpdateOperationsInput | number
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type DetailPaletUncheckedUpdateManyWithoutPaletInput = {
   idDetailPalet?: Prisma.IntFieldUpdateOperationsInput | number
   idPlank?: Prisma.IntFieldUpdateOperationsInput | number
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -536,6 +570,7 @@ export type DetailPaletSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   idDetailPalet?: boolean
   idPalet?: boolean
   idPlank?: boolean
+  deletedAt?: boolean
   palet?: boolean | Prisma.PaletDefaultArgs<ExtArgs>
   plank?: boolean | Prisma.PlankDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["detailPalet"]>
@@ -544,6 +579,7 @@ export type DetailPaletSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   idDetailPalet?: boolean
   idPalet?: boolean
   idPlank?: boolean
+  deletedAt?: boolean
   palet?: boolean | Prisma.PaletDefaultArgs<ExtArgs>
   plank?: boolean | Prisma.PlankDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["detailPalet"]>
@@ -552,6 +588,7 @@ export type DetailPaletSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   idDetailPalet?: boolean
   idPalet?: boolean
   idPlank?: boolean
+  deletedAt?: boolean
   palet?: boolean | Prisma.PaletDefaultArgs<ExtArgs>
   plank?: boolean | Prisma.PlankDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["detailPalet"]>
@@ -560,9 +597,10 @@ export type DetailPaletSelectScalar = {
   idDetailPalet?: boolean
   idPalet?: boolean
   idPlank?: boolean
+  deletedAt?: boolean
 }
 
-export type DetailPaletOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idDetailPalet" | "idPalet" | "idPlank", ExtArgs["result"]["detailPalet"]>
+export type DetailPaletOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idDetailPalet" | "idPalet" | "idPlank" | "deletedAt", ExtArgs["result"]["detailPalet"]>
 export type DetailPaletInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   palet?: boolean | Prisma.PaletDefaultArgs<ExtArgs>
   plank?: boolean | Prisma.PlankDefaultArgs<ExtArgs>
@@ -586,6 +624,7 @@ export type $DetailPaletPayload<ExtArgs extends runtime.Types.Extensions.Interna
     idDetailPalet: number
     idPalet: number
     idPlank: number
+    deletedAt: Date | null
   }, ExtArgs["result"]["detailPalet"]>
   composites: {}
 }
@@ -1014,6 +1053,7 @@ export interface DetailPaletFieldRefs {
   readonly idDetailPalet: Prisma.FieldRef<"DetailPalet", 'Int'>
   readonly idPalet: Prisma.FieldRef<"DetailPalet", 'Int'>
   readonly idPlank: Prisma.FieldRef<"DetailPalet", 'Int'>
+  readonly deletedAt: Prisma.FieldRef<"DetailPalet", 'DateTime'>
 }
     
 

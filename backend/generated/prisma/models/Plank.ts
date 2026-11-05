@@ -58,6 +58,7 @@ export type PlankMinAggregateOutputType = {
   panjang: runtime.Decimal | null
   volumePlank: runtime.Decimal | null
   stage: string | null
+  deletedAt: Date | null
 }
 
 export type PlankMaxAggregateOutputType = {
@@ -72,6 +73,7 @@ export type PlankMaxAggregateOutputType = {
   panjang: runtime.Decimal | null
   volumePlank: runtime.Decimal | null
   stage: string | null
+  deletedAt: Date | null
 }
 
 export type PlankCountAggregateOutputType = {
@@ -86,6 +88,7 @@ export type PlankCountAggregateOutputType = {
   panjang: number
   volumePlank: number
   stage: number
+  deletedAt: number
   _all: number
 }
 
@@ -122,6 +125,7 @@ export type PlankMinAggregateInputType = {
   panjang?: true
   volumePlank?: true
   stage?: true
+  deletedAt?: true
 }
 
 export type PlankMaxAggregateInputType = {
@@ -136,6 +140,7 @@ export type PlankMaxAggregateInputType = {
   panjang?: true
   volumePlank?: true
   stage?: true
+  deletedAt?: true
 }
 
 export type PlankCountAggregateInputType = {
@@ -150,6 +155,7 @@ export type PlankCountAggregateInputType = {
   panjang?: true
   volumePlank?: true
   stage?: true
+  deletedAt?: true
   _all?: true
 }
 
@@ -251,6 +257,7 @@ export type PlankGroupByOutputType = {
   panjang: runtime.Decimal | null
   volumePlank: runtime.Decimal
   stage: string | null
+  deletedAt: Date | null
   _count: PlankCountAggregateOutputType | null
   _avg: PlankAvgAggregateOutputType | null
   _sum: PlankSumAggregateOutputType | null
@@ -288,6 +295,7 @@ export type PlankWhereInput = {
   panjang?: Prisma.DecimalNullableFilter<"Plank"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFilter<"Plank"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.StringNullableFilter<"Plank"> | string | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"Plank"> | Date | string | null
   detailPalet?: Prisma.DetailPaletListRelationFilter
   hasilDryKiln?: Prisma.HasilDryKilnListRelationFilter
   detailPenjualan?: Prisma.DetailPenjualanListRelationFilter
@@ -307,6 +315,7 @@ export type PlankOrderByWithRelationInput = {
   panjang?: Prisma.SortOrderInput | Prisma.SortOrder
   volumePlank?: Prisma.SortOrder
   stage?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   detailPalet?: Prisma.DetailPaletOrderByRelationAggregateInput
   hasilDryKiln?: Prisma.HasilDryKilnOrderByRelationAggregateInput
   detailPenjualan?: Prisma.DetailPenjualanOrderByRelationAggregateInput
@@ -329,6 +338,7 @@ export type PlankWhereUniqueInput = Prisma.AtLeast<{
   panjang?: Prisma.DecimalNullableFilter<"Plank"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFilter<"Plank"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.StringNullableFilter<"Plank"> | string | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"Plank"> | Date | string | null
   detailPalet?: Prisma.DetailPaletListRelationFilter
   hasilDryKiln?: Prisma.HasilDryKilnListRelationFilter
   detailPenjualan?: Prisma.DetailPenjualanListRelationFilter
@@ -348,6 +358,7 @@ export type PlankOrderByWithAggregationInput = {
   panjang?: Prisma.SortOrderInput | Prisma.SortOrder
   volumePlank?: Prisma.SortOrder
   stage?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PlankCountOrderByAggregateInput
   _avg?: Prisma.PlankAvgOrderByAggregateInput
   _max?: Prisma.PlankMaxOrderByAggregateInput
@@ -370,6 +381,7 @@ export type PlankScalarWhereWithAggregatesInput = {
   panjang?: Prisma.DecimalNullableWithAggregatesFilter<"Plank"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalWithAggregatesFilter<"Plank"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.StringNullableWithAggregatesFilter<"Plank"> | string | null
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Plank"> | Date | string | null
 }
 
 export type PlankCreateInput = {
@@ -381,6 +393,7 @@ export type PlankCreateInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletCreateNestedManyWithoutPlankInput
   hasilDryKiln?: Prisma.HasilDryKilnCreateNestedManyWithoutPlankInput
   detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutPlankInput
@@ -400,6 +413,7 @@ export type PlankUncheckedCreateInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedCreateNestedManyWithoutPlankInput
   hasilDryKiln?: Prisma.HasilDryKilnUncheckedCreateNestedManyWithoutPlankInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutPlankInput
@@ -414,6 +428,7 @@ export type PlankUpdateInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUpdateManyWithoutPlankNestedInput
   hasilDryKiln?: Prisma.HasilDryKilnUpdateManyWithoutPlankNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutPlankNestedInput
@@ -433,6 +448,7 @@ export type PlankUncheckedUpdateInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedUpdateManyWithoutPlankNestedInput
   hasilDryKiln?: Prisma.HasilDryKilnUncheckedUpdateManyWithoutPlankNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutPlankNestedInput
@@ -450,6 +466,7 @@ export type PlankCreateManyInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
 }
 
 export type PlankUpdateManyMutationInput = {
@@ -461,6 +478,7 @@ export type PlankUpdateManyMutationInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type PlankUncheckedUpdateManyInput = {
@@ -475,6 +493,7 @@ export type PlankUncheckedUpdateManyInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type PlankListRelationFilter = {
@@ -499,6 +518,7 @@ export type PlankCountOrderByAggregateInput = {
   panjang?: Prisma.SortOrder
   volumePlank?: Prisma.SortOrder
   stage?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type PlankAvgOrderByAggregateInput = {
@@ -523,6 +543,7 @@ export type PlankMaxOrderByAggregateInput = {
   panjang?: Prisma.SortOrder
   volumePlank?: Prisma.SortOrder
   stage?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type PlankMinOrderByAggregateInput = {
@@ -537,6 +558,7 @@ export type PlankMinOrderByAggregateInput = {
   panjang?: Prisma.SortOrder
   volumePlank?: Prisma.SortOrder
   stage?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type PlankSumOrderByAggregateInput = {
@@ -696,6 +718,7 @@ export type PlankCreateWithoutStokLogInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletCreateNestedManyWithoutPlankInput
   hasilDryKiln?: Prisma.HasilDryKilnCreateNestedManyWithoutPlankInput
   detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutPlankInput
@@ -713,6 +736,7 @@ export type PlankUncheckedCreateWithoutStokLogInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedCreateNestedManyWithoutPlankInput
   hasilDryKiln?: Prisma.HasilDryKilnUncheckedCreateNestedManyWithoutPlankInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutPlankInput
@@ -759,6 +783,7 @@ export type PlankScalarWhereInput = {
   panjang?: Prisma.DecimalNullableFilter<"Plank"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFilter<"Plank"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.StringNullableFilter<"Plank"> | string | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"Plank"> | Date | string | null
 }
 
 export type PlankCreateWithoutSawmillInput = {
@@ -770,6 +795,7 @@ export type PlankCreateWithoutSawmillInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletCreateNestedManyWithoutPlankInput
   hasilDryKiln?: Prisma.HasilDryKilnCreateNestedManyWithoutPlankInput
   detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutPlankInput
@@ -787,6 +813,7 @@ export type PlankUncheckedCreateWithoutSawmillInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedCreateNestedManyWithoutPlankInput
   hasilDryKiln?: Prisma.HasilDryKilnUncheckedCreateNestedManyWithoutPlankInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutPlankInput
@@ -827,6 +854,7 @@ export type PlankCreateWithoutDetailPaletInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
   hasilDryKiln?: Prisma.HasilDryKilnCreateNestedManyWithoutPlankInput
   detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutPlankInput
   sawmill?: Prisma.ProsesSawmillCreateNestedOneWithoutPlanksInput
@@ -845,6 +873,7 @@ export type PlankUncheckedCreateWithoutDetailPaletInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
   hasilDryKiln?: Prisma.HasilDryKilnUncheckedCreateNestedManyWithoutPlankInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutPlankInput
 }
@@ -874,6 +903,7 @@ export type PlankUpdateWithoutDetailPaletInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasilDryKiln?: Prisma.HasilDryKilnUpdateManyWithoutPlankNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutPlankNestedInput
   sawmill?: Prisma.ProsesSawmillUpdateOneWithoutPlanksNestedInput
@@ -892,6 +922,7 @@ export type PlankUncheckedUpdateWithoutDetailPaletInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasilDryKiln?: Prisma.HasilDryKilnUncheckedUpdateManyWithoutPlankNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutPlankNestedInput
 }
@@ -905,6 +936,7 @@ export type PlankCreateWithoutHasilDryKilnInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletCreateNestedManyWithoutPlankInput
   detailPenjualan?: Prisma.DetailPenjualanCreateNestedManyWithoutPlankInput
   sawmill?: Prisma.ProsesSawmillCreateNestedOneWithoutPlanksInput
@@ -923,6 +955,7 @@ export type PlankUncheckedCreateWithoutHasilDryKilnInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedCreateNestedManyWithoutPlankInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedCreateNestedManyWithoutPlankInput
 }
@@ -952,6 +985,7 @@ export type PlankUpdateWithoutHasilDryKilnInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUpdateManyWithoutPlankNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutPlankNestedInput
   sawmill?: Prisma.ProsesSawmillUpdateOneWithoutPlanksNestedInput
@@ -970,6 +1004,7 @@ export type PlankUncheckedUpdateWithoutHasilDryKilnInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedUpdateManyWithoutPlankNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutPlankNestedInput
 }
@@ -983,6 +1018,7 @@ export type PlankCreateWithoutDetailPenjualanInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletCreateNestedManyWithoutPlankInput
   hasilDryKiln?: Prisma.HasilDryKilnCreateNestedManyWithoutPlankInput
   sawmill?: Prisma.ProsesSawmillCreateNestedOneWithoutPlanksInput
@@ -1001,6 +1037,7 @@ export type PlankUncheckedCreateWithoutDetailPenjualanInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedCreateNestedManyWithoutPlankInput
   hasilDryKiln?: Prisma.HasilDryKilnUncheckedCreateNestedManyWithoutPlankInput
 }
@@ -1030,6 +1067,7 @@ export type PlankUpdateWithoutDetailPenjualanInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUpdateManyWithoutPlankNestedInput
   hasilDryKiln?: Prisma.HasilDryKilnUpdateManyWithoutPlankNestedInput
   sawmill?: Prisma.ProsesSawmillUpdateOneWithoutPlanksNestedInput
@@ -1048,6 +1086,7 @@ export type PlankUncheckedUpdateWithoutDetailPenjualanInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedUpdateManyWithoutPlankNestedInput
   hasilDryKiln?: Prisma.HasilDryKilnUncheckedUpdateManyWithoutPlankNestedInput
 }
@@ -1063,6 +1102,7 @@ export type PlankCreateManyStokLogInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
 }
 
 export type PlankUpdateWithoutStokLogInput = {
@@ -1074,6 +1114,7 @@ export type PlankUpdateWithoutStokLogInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUpdateManyWithoutPlankNestedInput
   hasilDryKiln?: Prisma.HasilDryKilnUpdateManyWithoutPlankNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutPlankNestedInput
@@ -1091,6 +1132,7 @@ export type PlankUncheckedUpdateWithoutStokLogInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedUpdateManyWithoutPlankNestedInput
   hasilDryKiln?: Prisma.HasilDryKilnUncheckedUpdateManyWithoutPlankNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutPlankNestedInput
@@ -1107,6 +1149,7 @@ export type PlankUncheckedUpdateManyWithoutStokLogInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type PlankCreateManySawmillInput = {
@@ -1120,6 +1163,7 @@ export type PlankCreateManySawmillInput = {
   panjang?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank: runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: string | null
+  deletedAt?: Date | string | null
 }
 
 export type PlankUpdateWithoutSawmillInput = {
@@ -1131,6 +1175,7 @@ export type PlankUpdateWithoutSawmillInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUpdateManyWithoutPlankNestedInput
   hasilDryKiln?: Prisma.HasilDryKilnUpdateManyWithoutPlankNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUpdateManyWithoutPlankNestedInput
@@ -1148,6 +1193,7 @@ export type PlankUncheckedUpdateWithoutSawmillInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedUpdateManyWithoutPlankNestedInput
   hasilDryKiln?: Prisma.HasilDryKilnUncheckedUpdateManyWithoutPlankNestedInput
   detailPenjualan?: Prisma.DetailPenjualanUncheckedUpdateManyWithoutPlankNestedInput
@@ -1164,6 +1210,7 @@ export type PlankUncheckedUpdateManyWithoutSawmillInput = {
   panjang?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   volumePlank?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -1227,6 +1274,7 @@ export type PlankSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   panjang?: boolean
   volumePlank?: boolean
   stage?: boolean
+  deletedAt?: boolean
   detailPalet?: boolean | Prisma.Plank$detailPaletArgs<ExtArgs>
   hasilDryKiln?: boolean | Prisma.Plank$hasilDryKilnArgs<ExtArgs>
   detailPenjualan?: boolean | Prisma.Plank$detailPenjualanArgs<ExtArgs>
@@ -1247,6 +1295,7 @@ export type PlankSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   panjang?: boolean
   volumePlank?: boolean
   stage?: boolean
+  deletedAt?: boolean
   sawmill?: boolean | Prisma.Plank$sawmillArgs<ExtArgs>
   stokLog?: boolean | Prisma.StokLogDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["plank"]>
@@ -1263,6 +1312,7 @@ export type PlankSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   panjang?: boolean
   volumePlank?: boolean
   stage?: boolean
+  deletedAt?: boolean
   sawmill?: boolean | Prisma.Plank$sawmillArgs<ExtArgs>
   stokLog?: boolean | Prisma.StokLogDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["plank"]>
@@ -1279,9 +1329,10 @@ export type PlankSelectScalar = {
   panjang?: boolean
   volumePlank?: boolean
   stage?: boolean
+  deletedAt?: boolean
 }
 
-export type PlankOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idPlank" | "kodePlank" | "idSawmill" | "idLogAsal" | "gradePapan" | "dimensiPlank" | "tinggi" | "lebar" | "panjang" | "volumePlank" | "stage", ExtArgs["result"]["plank"]>
+export type PlankOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idPlank" | "kodePlank" | "idSawmill" | "idLogAsal" | "gradePapan" | "dimensiPlank" | "tinggi" | "lebar" | "panjang" | "volumePlank" | "stage" | "deletedAt", ExtArgs["result"]["plank"]>
 export type PlankInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   detailPalet?: boolean | Prisma.Plank$detailPaletArgs<ExtArgs>
   hasilDryKiln?: boolean | Prisma.Plank$hasilDryKilnArgs<ExtArgs>
@@ -1320,6 +1371,7 @@ export type $PlankPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     panjang: runtime.Decimal | null
     volumePlank: runtime.Decimal
     stage: string | null
+    deletedAt: Date | null
   }, ExtArgs["result"]["plank"]>
   composites: {}
 }
@@ -1759,6 +1811,7 @@ export interface PlankFieldRefs {
   readonly panjang: Prisma.FieldRef<"Plank", 'Decimal'>
   readonly volumePlank: Prisma.FieldRef<"Plank", 'Decimal'>
   readonly stage: Prisma.FieldRef<"Plank", 'String'>
+  readonly deletedAt: Prisma.FieldRef<"Plank", 'DateTime'>
 }
     
 

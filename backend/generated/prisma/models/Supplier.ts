@@ -39,6 +39,7 @@ export type SupplierMinAggregateOutputType = {
   namaSupplier: string | null
   alamatSupplier: string | null
   kontakSupplier: string | null
+  deletedAt: Date | null
 }
 
 export type SupplierMaxAggregateOutputType = {
@@ -46,6 +47,7 @@ export type SupplierMaxAggregateOutputType = {
   namaSupplier: string | null
   alamatSupplier: string | null
   kontakSupplier: string | null
+  deletedAt: Date | null
 }
 
 export type SupplierCountAggregateOutputType = {
@@ -53,6 +55,7 @@ export type SupplierCountAggregateOutputType = {
   namaSupplier: number
   alamatSupplier: number
   kontakSupplier: number
+  deletedAt: number
   _all: number
 }
 
@@ -70,6 +73,7 @@ export type SupplierMinAggregateInputType = {
   namaSupplier?: true
   alamatSupplier?: true
   kontakSupplier?: true
+  deletedAt?: true
 }
 
 export type SupplierMaxAggregateInputType = {
@@ -77,6 +81,7 @@ export type SupplierMaxAggregateInputType = {
   namaSupplier?: true
   alamatSupplier?: true
   kontakSupplier?: true
+  deletedAt?: true
 }
 
 export type SupplierCountAggregateInputType = {
@@ -84,6 +89,7 @@ export type SupplierCountAggregateInputType = {
   namaSupplier?: true
   alamatSupplier?: true
   kontakSupplier?: true
+  deletedAt?: true
   _all?: true
 }
 
@@ -178,6 +184,7 @@ export type SupplierGroupByOutputType = {
   namaSupplier: string
   alamatSupplier: string
   kontakSupplier: string
+  deletedAt: Date | null
   _count: SupplierCountAggregateOutputType | null
   _avg: SupplierAvgAggregateOutputType | null
   _sum: SupplierSumAggregateOutputType | null
@@ -208,6 +215,7 @@ export type SupplierWhereInput = {
   namaSupplier?: Prisma.StringFilter<"Supplier"> | string
   alamatSupplier?: Prisma.StringFilter<"Supplier"> | string
   kontakSupplier?: Prisma.StringFilter<"Supplier"> | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"Supplier"> | Date | string | null
   transaksiPembelian?: Prisma.TransaksiPembelianListRelationFilter
   pengajuanPerubahan?: Prisma.PengajuanPerubahanSupplierListRelationFilter
 }
@@ -217,6 +225,7 @@ export type SupplierOrderByWithRelationInput = {
   namaSupplier?: Prisma.SortOrder
   alamatSupplier?: Prisma.SortOrder
   kontakSupplier?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   transaksiPembelian?: Prisma.TransaksiPembelianOrderByRelationAggregateInput
   pengajuanPerubahan?: Prisma.PengajuanPerubahanSupplierOrderByRelationAggregateInput
 }
@@ -229,6 +238,7 @@ export type SupplierWhereUniqueInput = Prisma.AtLeast<{
   namaSupplier?: Prisma.StringFilter<"Supplier"> | string
   alamatSupplier?: Prisma.StringFilter<"Supplier"> | string
   kontakSupplier?: Prisma.StringFilter<"Supplier"> | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"Supplier"> | Date | string | null
   transaksiPembelian?: Prisma.TransaksiPembelianListRelationFilter
   pengajuanPerubahan?: Prisma.PengajuanPerubahanSupplierListRelationFilter
 }, "idSupplier">
@@ -238,6 +248,7 @@ export type SupplierOrderByWithAggregationInput = {
   namaSupplier?: Prisma.SortOrder
   alamatSupplier?: Prisma.SortOrder
   kontakSupplier?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.SupplierCountOrderByAggregateInput
   _avg?: Prisma.SupplierAvgOrderByAggregateInput
   _max?: Prisma.SupplierMaxOrderByAggregateInput
@@ -253,12 +264,14 @@ export type SupplierScalarWhereWithAggregatesInput = {
   namaSupplier?: Prisma.StringWithAggregatesFilter<"Supplier"> | string
   alamatSupplier?: Prisma.StringWithAggregatesFilter<"Supplier"> | string
   kontakSupplier?: Prisma.StringWithAggregatesFilter<"Supplier"> | string
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Supplier"> | Date | string | null
 }
 
 export type SupplierCreateInput = {
   namaSupplier: string
   alamatSupplier: string
   kontakSupplier: string
+  deletedAt?: Date | string | null
   transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedManyWithoutSupplierInput
   pengajuanPerubahan?: Prisma.PengajuanPerubahanSupplierCreateNestedManyWithoutSupplierInput
 }
@@ -268,6 +281,7 @@ export type SupplierUncheckedCreateInput = {
   namaSupplier: string
   alamatSupplier: string
   kontakSupplier: string
+  deletedAt?: Date | string | null
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedCreateNestedManyWithoutSupplierInput
   pengajuanPerubahan?: Prisma.PengajuanPerubahanSupplierUncheckedCreateNestedManyWithoutSupplierInput
 }
@@ -276,6 +290,7 @@ export type SupplierUpdateInput = {
   namaSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   alamatSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   kontakSupplier?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   transaksiPembelian?: Prisma.TransaksiPembelianUpdateManyWithoutSupplierNestedInput
   pengajuanPerubahan?: Prisma.PengajuanPerubahanSupplierUpdateManyWithoutSupplierNestedInput
 }
@@ -285,6 +300,7 @@ export type SupplierUncheckedUpdateInput = {
   namaSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   alamatSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   kontakSupplier?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedUpdateManyWithoutSupplierNestedInput
   pengajuanPerubahan?: Prisma.PengajuanPerubahanSupplierUncheckedUpdateManyWithoutSupplierNestedInput
 }
@@ -294,12 +310,14 @@ export type SupplierCreateManyInput = {
   namaSupplier: string
   alamatSupplier: string
   kontakSupplier: string
+  deletedAt?: Date | string | null
 }
 
 export type SupplierUpdateManyMutationInput = {
   namaSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   alamatSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   kontakSupplier?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type SupplierUncheckedUpdateManyInput = {
@@ -307,6 +325,7 @@ export type SupplierUncheckedUpdateManyInput = {
   namaSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   alamatSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   kontakSupplier?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type SupplierCountOrderByAggregateInput = {
@@ -314,6 +333,7 @@ export type SupplierCountOrderByAggregateInput = {
   namaSupplier?: Prisma.SortOrder
   alamatSupplier?: Prisma.SortOrder
   kontakSupplier?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type SupplierAvgOrderByAggregateInput = {
@@ -325,6 +345,7 @@ export type SupplierMaxOrderByAggregateInput = {
   namaSupplier?: Prisma.SortOrder
   alamatSupplier?: Prisma.SortOrder
   kontakSupplier?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type SupplierMinOrderByAggregateInput = {
@@ -332,6 +353,7 @@ export type SupplierMinOrderByAggregateInput = {
   namaSupplier?: Prisma.SortOrder
   alamatSupplier?: Prisma.SortOrder
   kontakSupplier?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type SupplierSumOrderByAggregateInput = {
@@ -382,6 +404,7 @@ export type SupplierCreateWithoutPengajuanPerubahanInput = {
   namaSupplier: string
   alamatSupplier: string
   kontakSupplier: string
+  deletedAt?: Date | string | null
   transaksiPembelian?: Prisma.TransaksiPembelianCreateNestedManyWithoutSupplierInput
 }
 
@@ -390,6 +413,7 @@ export type SupplierUncheckedCreateWithoutPengajuanPerubahanInput = {
   namaSupplier: string
   alamatSupplier: string
   kontakSupplier: string
+  deletedAt?: Date | string | null
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedCreateNestedManyWithoutSupplierInput
 }
 
@@ -413,6 +437,7 @@ export type SupplierUpdateWithoutPengajuanPerubahanInput = {
   namaSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   alamatSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   kontakSupplier?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   transaksiPembelian?: Prisma.TransaksiPembelianUpdateManyWithoutSupplierNestedInput
 }
 
@@ -421,6 +446,7 @@ export type SupplierUncheckedUpdateWithoutPengajuanPerubahanInput = {
   namaSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   alamatSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   kontakSupplier?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   transaksiPembelian?: Prisma.TransaksiPembelianUncheckedUpdateManyWithoutSupplierNestedInput
 }
 
@@ -428,6 +454,7 @@ export type SupplierCreateWithoutTransaksiPembelianInput = {
   namaSupplier: string
   alamatSupplier: string
   kontakSupplier: string
+  deletedAt?: Date | string | null
   pengajuanPerubahan?: Prisma.PengajuanPerubahanSupplierCreateNestedManyWithoutSupplierInput
 }
 
@@ -436,6 +463,7 @@ export type SupplierUncheckedCreateWithoutTransaksiPembelianInput = {
   namaSupplier: string
   alamatSupplier: string
   kontakSupplier: string
+  deletedAt?: Date | string | null
   pengajuanPerubahan?: Prisma.PengajuanPerubahanSupplierUncheckedCreateNestedManyWithoutSupplierInput
 }
 
@@ -459,6 +487,7 @@ export type SupplierUpdateWithoutTransaksiPembelianInput = {
   namaSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   alamatSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   kontakSupplier?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   pengajuanPerubahan?: Prisma.PengajuanPerubahanSupplierUpdateManyWithoutSupplierNestedInput
 }
 
@@ -467,6 +496,7 @@ export type SupplierUncheckedUpdateWithoutTransaksiPembelianInput = {
   namaSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   alamatSupplier?: Prisma.StringFieldUpdateOperationsInput | string
   kontakSupplier?: Prisma.StringFieldUpdateOperationsInput | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   pengajuanPerubahan?: Prisma.PengajuanPerubahanSupplierUncheckedUpdateManyWithoutSupplierNestedInput
 }
 
@@ -515,6 +545,7 @@ export type SupplierSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   namaSupplier?: boolean
   alamatSupplier?: boolean
   kontakSupplier?: boolean
+  deletedAt?: boolean
   transaksiPembelian?: boolean | Prisma.Supplier$transaksiPembelianArgs<ExtArgs>
   pengajuanPerubahan?: boolean | Prisma.Supplier$pengajuanPerubahanArgs<ExtArgs>
   _count?: boolean | Prisma.SupplierCountOutputTypeDefaultArgs<ExtArgs>
@@ -525,6 +556,7 @@ export type SupplierSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   namaSupplier?: boolean
   alamatSupplier?: boolean
   kontakSupplier?: boolean
+  deletedAt?: boolean
 }, ExtArgs["result"]["supplier"]>
 
 export type SupplierSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -532,6 +564,7 @@ export type SupplierSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   namaSupplier?: boolean
   alamatSupplier?: boolean
   kontakSupplier?: boolean
+  deletedAt?: boolean
 }, ExtArgs["result"]["supplier"]>
 
 export type SupplierSelectScalar = {
@@ -539,9 +572,10 @@ export type SupplierSelectScalar = {
   namaSupplier?: boolean
   alamatSupplier?: boolean
   kontakSupplier?: boolean
+  deletedAt?: boolean
 }
 
-export type SupplierOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idSupplier" | "namaSupplier" | "alamatSupplier" | "kontakSupplier", ExtArgs["result"]["supplier"]>
+export type SupplierOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idSupplier" | "namaSupplier" | "alamatSupplier" | "kontakSupplier" | "deletedAt", ExtArgs["result"]["supplier"]>
 export type SupplierInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   transaksiPembelian?: boolean | Prisma.Supplier$transaksiPembelianArgs<ExtArgs>
   pengajuanPerubahan?: boolean | Prisma.Supplier$pengajuanPerubahanArgs<ExtArgs>
@@ -561,6 +595,7 @@ export type $SupplierPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     namaSupplier: string
     alamatSupplier: string
     kontakSupplier: string
+    deletedAt: Date | null
   }, ExtArgs["result"]["supplier"]>
   composites: {}
 }
@@ -990,6 +1025,7 @@ export interface SupplierFieldRefs {
   readonly namaSupplier: Prisma.FieldRef<"Supplier", 'String'>
   readonly alamatSupplier: Prisma.FieldRef<"Supplier", 'String'>
   readonly kontakSupplier: Prisma.FieldRef<"Supplier", 'String'>
+  readonly deletedAt: Prisma.FieldRef<"Supplier", 'DateTime'>
 }
     
 

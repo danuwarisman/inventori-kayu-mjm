@@ -29,7 +29,6 @@ export type AggregateDryKiln = {
 export type DryKilnAvgAggregateOutputType = {
   idOven: number | null
   idPalet: number | null
-  idPlank: number | null
   panjang: runtime.Decimal | null
   lebar: runtime.Decimal | null
   tinggi: runtime.Decimal | null
@@ -39,7 +38,6 @@ export type DryKilnAvgAggregateOutputType = {
 export type DryKilnSumAggregateOutputType = {
   idOven: number | null
   idPalet: number | null
-  idPlank: number | null
   panjang: runtime.Decimal | null
   lebar: runtime.Decimal | null
   tinggi: runtime.Decimal | null
@@ -49,7 +47,6 @@ export type DryKilnSumAggregateOutputType = {
 export type DryKilnMinAggregateOutputType = {
   idOven: number | null
   idPalet: number | null
-  idPlank: number | null
   kodeOven: string | null
   sortimen: string | null
   grade: string | null
@@ -59,6 +56,7 @@ export type DryKilnMinAggregateOutputType = {
   volume: runtime.Decimal | null
   tanggalMasuk: Date | null
   tanggalKeluar: Date | null
+  deletedAt: Date | null
   statusPengeringan: string | null
   stage: string | null
   kodeLog: string | null
@@ -68,7 +66,6 @@ export type DryKilnMinAggregateOutputType = {
 export type DryKilnMaxAggregateOutputType = {
   idOven: number | null
   idPalet: number | null
-  idPlank: number | null
   kodeOven: string | null
   sortimen: string | null
   grade: string | null
@@ -78,6 +75,7 @@ export type DryKilnMaxAggregateOutputType = {
   volume: runtime.Decimal | null
   tanggalMasuk: Date | null
   tanggalKeluar: Date | null
+  deletedAt: Date | null
   statusPengeringan: string | null
   stage: string | null
   kodeLog: string | null
@@ -87,7 +85,6 @@ export type DryKilnMaxAggregateOutputType = {
 export type DryKilnCountAggregateOutputType = {
   idOven: number
   idPalet: number
-  idPlank: number
   kodeOven: number
   sortimen: number
   grade: number
@@ -97,6 +94,7 @@ export type DryKilnCountAggregateOutputType = {
   volume: number
   tanggalMasuk: number
   tanggalKeluar: number
+  deletedAt: number
   statusPengeringan: number
   stage: number
   kodeLog: number
@@ -108,7 +106,6 @@ export type DryKilnCountAggregateOutputType = {
 export type DryKilnAvgAggregateInputType = {
   idOven?: true
   idPalet?: true
-  idPlank?: true
   panjang?: true
   lebar?: true
   tinggi?: true
@@ -118,7 +115,6 @@ export type DryKilnAvgAggregateInputType = {
 export type DryKilnSumAggregateInputType = {
   idOven?: true
   idPalet?: true
-  idPlank?: true
   panjang?: true
   lebar?: true
   tinggi?: true
@@ -128,7 +124,6 @@ export type DryKilnSumAggregateInputType = {
 export type DryKilnMinAggregateInputType = {
   idOven?: true
   idPalet?: true
-  idPlank?: true
   kodeOven?: true
   sortimen?: true
   grade?: true
@@ -138,6 +133,7 @@ export type DryKilnMinAggregateInputType = {
   volume?: true
   tanggalMasuk?: true
   tanggalKeluar?: true
+  deletedAt?: true
   statusPengeringan?: true
   stage?: true
   kodeLog?: true
@@ -147,7 +143,6 @@ export type DryKilnMinAggregateInputType = {
 export type DryKilnMaxAggregateInputType = {
   idOven?: true
   idPalet?: true
-  idPlank?: true
   kodeOven?: true
   sortimen?: true
   grade?: true
@@ -157,6 +152,7 @@ export type DryKilnMaxAggregateInputType = {
   volume?: true
   tanggalMasuk?: true
   tanggalKeluar?: true
+  deletedAt?: true
   statusPengeringan?: true
   stage?: true
   kodeLog?: true
@@ -166,7 +162,6 @@ export type DryKilnMaxAggregateInputType = {
 export type DryKilnCountAggregateInputType = {
   idOven?: true
   idPalet?: true
-  idPlank?: true
   kodeOven?: true
   sortimen?: true
   grade?: true
@@ -176,6 +171,7 @@ export type DryKilnCountAggregateInputType = {
   volume?: true
   tanggalMasuk?: true
   tanggalKeluar?: true
+  deletedAt?: true
   statusPengeringan?: true
   stage?: true
   kodeLog?: true
@@ -272,7 +268,6 @@ export type DryKilnGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
 export type DryKilnGroupByOutputType = {
   idOven: number
   idPalet: number | null
-  idPlank: number | null
   kodeOven: string | null
   sortimen: string | null
   grade: string | null
@@ -282,6 +277,7 @@ export type DryKilnGroupByOutputType = {
   volume: runtime.Decimal | null
   tanggalMasuk: Date | null
   tanggalKeluar: Date | null
+  deletedAt: Date | null
   statusPengeringan: string
   stage: string | null
   kodeLog: string | null
@@ -314,7 +310,6 @@ export type DryKilnWhereInput = {
   NOT?: Prisma.DryKilnWhereInput | Prisma.DryKilnWhereInput[]
   idOven?: Prisma.IntFilter<"DryKiln"> | number
   idPalet?: Prisma.IntNullableFilter<"DryKiln"> | number | null
-  idPlank?: Prisma.IntNullableFilter<"DryKiln"> | number | null
   kodeOven?: Prisma.StringNullableFilter<"DryKiln"> | string | null
   sortimen?: Prisma.StringNullableFilter<"DryKiln"> | string | null
   grade?: Prisma.StringNullableFilter<"DryKiln"> | string | null
@@ -324,6 +319,7 @@ export type DryKilnWhereInput = {
   volume?: Prisma.DecimalNullableFilter<"DryKiln"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.DateTimeNullableFilter<"DryKiln"> | Date | string | null
   tanggalKeluar?: Prisma.DateTimeNullableFilter<"DryKiln"> | Date | string | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"DryKiln"> | Date | string | null
   statusPengeringan?: Prisma.StringFilter<"DryKiln"> | string
   stage?: Prisma.StringNullableFilter<"DryKiln"> | string | null
   kodeLog?: Prisma.StringNullableFilter<"DryKiln"> | string | null
@@ -335,7 +331,6 @@ export type DryKilnWhereInput = {
 export type DryKilnOrderByWithRelationInput = {
   idOven?: Prisma.SortOrder
   idPalet?: Prisma.SortOrderInput | Prisma.SortOrder
-  idPlank?: Prisma.SortOrderInput | Prisma.SortOrder
   kodeOven?: Prisma.SortOrderInput | Prisma.SortOrder
   sortimen?: Prisma.SortOrderInput | Prisma.SortOrder
   grade?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -345,6 +340,7 @@ export type DryKilnOrderByWithRelationInput = {
   volume?: Prisma.SortOrderInput | Prisma.SortOrder
   tanggalMasuk?: Prisma.SortOrderInput | Prisma.SortOrder
   tanggalKeluar?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   statusPengeringan?: Prisma.SortOrder
   stage?: Prisma.SortOrderInput | Prisma.SortOrder
   kodeLog?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -359,7 +355,6 @@ export type DryKilnWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.DryKilnWhereInput[]
   NOT?: Prisma.DryKilnWhereInput | Prisma.DryKilnWhereInput[]
   idPalet?: Prisma.IntNullableFilter<"DryKiln"> | number | null
-  idPlank?: Prisma.IntNullableFilter<"DryKiln"> | number | null
   kodeOven?: Prisma.StringNullableFilter<"DryKiln"> | string | null
   sortimen?: Prisma.StringNullableFilter<"DryKiln"> | string | null
   grade?: Prisma.StringNullableFilter<"DryKiln"> | string | null
@@ -369,6 +364,7 @@ export type DryKilnWhereUniqueInput = Prisma.AtLeast<{
   volume?: Prisma.DecimalNullableFilter<"DryKiln"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.DateTimeNullableFilter<"DryKiln"> | Date | string | null
   tanggalKeluar?: Prisma.DateTimeNullableFilter<"DryKiln"> | Date | string | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"DryKiln"> | Date | string | null
   statusPengeringan?: Prisma.StringFilter<"DryKiln"> | string
   stage?: Prisma.StringNullableFilter<"DryKiln"> | string | null
   kodeLog?: Prisma.StringNullableFilter<"DryKiln"> | string | null
@@ -380,7 +376,6 @@ export type DryKilnWhereUniqueInput = Prisma.AtLeast<{
 export type DryKilnOrderByWithAggregationInput = {
   idOven?: Prisma.SortOrder
   idPalet?: Prisma.SortOrderInput | Prisma.SortOrder
-  idPlank?: Prisma.SortOrderInput | Prisma.SortOrder
   kodeOven?: Prisma.SortOrderInput | Prisma.SortOrder
   sortimen?: Prisma.SortOrderInput | Prisma.SortOrder
   grade?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -390,6 +385,7 @@ export type DryKilnOrderByWithAggregationInput = {
   volume?: Prisma.SortOrderInput | Prisma.SortOrder
   tanggalMasuk?: Prisma.SortOrderInput | Prisma.SortOrder
   tanggalKeluar?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   statusPengeringan?: Prisma.SortOrder
   stage?: Prisma.SortOrderInput | Prisma.SortOrder
   kodeLog?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -407,7 +403,6 @@ export type DryKilnScalarWhereWithAggregatesInput = {
   NOT?: Prisma.DryKilnScalarWhereWithAggregatesInput | Prisma.DryKilnScalarWhereWithAggregatesInput[]
   idOven?: Prisma.IntWithAggregatesFilter<"DryKiln"> | number
   idPalet?: Prisma.IntNullableWithAggregatesFilter<"DryKiln"> | number | null
-  idPlank?: Prisma.IntNullableWithAggregatesFilter<"DryKiln"> | number | null
   kodeOven?: Prisma.StringNullableWithAggregatesFilter<"DryKiln"> | string | null
   sortimen?: Prisma.StringNullableWithAggregatesFilter<"DryKiln"> | string | null
   grade?: Prisma.StringNullableWithAggregatesFilter<"DryKiln"> | string | null
@@ -417,6 +412,7 @@ export type DryKilnScalarWhereWithAggregatesInput = {
   volume?: Prisma.DecimalNullableWithAggregatesFilter<"DryKiln"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.DateTimeNullableWithAggregatesFilter<"DryKiln"> | Date | string | null
   tanggalKeluar?: Prisma.DateTimeNullableWithAggregatesFilter<"DryKiln"> | Date | string | null
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"DryKiln"> | Date | string | null
   statusPengeringan?: Prisma.StringWithAggregatesFilter<"DryKiln"> | string
   stage?: Prisma.StringNullableWithAggregatesFilter<"DryKiln"> | string | null
   kodeLog?: Prisma.StringNullableWithAggregatesFilter<"DryKiln"> | string | null
@@ -424,7 +420,6 @@ export type DryKilnScalarWhereWithAggregatesInput = {
 }
 
 export type DryKilnCreateInput = {
-  idPlank?: number | null
   kodeOven?: string | null
   sortimen?: string | null
   grade?: string | null
@@ -434,6 +429,7 @@ export type DryKilnCreateInput = {
   volume?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
   tanggalKeluar?: Date | string | null
+  deletedAt?: Date | string | null
   statusPengeringan?: string
   stage?: string | null
   kodeLog?: string | null
@@ -445,7 +441,6 @@ export type DryKilnCreateInput = {
 export type DryKilnUncheckedCreateInput = {
   idOven?: number
   idPalet?: number | null
-  idPlank?: number | null
   kodeOven?: string | null
   sortimen?: string | null
   grade?: string | null
@@ -455,6 +450,7 @@ export type DryKilnUncheckedCreateInput = {
   volume?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
   tanggalKeluar?: Date | string | null
+  deletedAt?: Date | string | null
   statusPengeringan?: string
   stage?: string | null
   kodeLog?: string | null
@@ -463,7 +459,6 @@ export type DryKilnUncheckedCreateInput = {
 }
 
 export type DryKilnUpdateInput = {
-  idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   kodeOven?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortimen?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -473,6 +468,7 @@ export type DryKilnUpdateInput = {
   volume?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalKeluar?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusPengeringan?: Prisma.StringFieldUpdateOperationsInput | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   kodeLog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -484,7 +480,6 @@ export type DryKilnUpdateInput = {
 export type DryKilnUncheckedUpdateInput = {
   idOven?: Prisma.IntFieldUpdateOperationsInput | number
   idPalet?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   kodeOven?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortimen?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -494,6 +489,7 @@ export type DryKilnUncheckedUpdateInput = {
   volume?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalKeluar?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusPengeringan?: Prisma.StringFieldUpdateOperationsInput | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   kodeLog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -504,7 +500,6 @@ export type DryKilnUncheckedUpdateInput = {
 export type DryKilnCreateManyInput = {
   idOven?: number
   idPalet?: number | null
-  idPlank?: number | null
   kodeOven?: string | null
   sortimen?: string | null
   grade?: string | null
@@ -514,6 +509,7 @@ export type DryKilnCreateManyInput = {
   volume?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
   tanggalKeluar?: Date | string | null
+  deletedAt?: Date | string | null
   statusPengeringan?: string
   stage?: string | null
   kodeLog?: string | null
@@ -521,7 +517,6 @@ export type DryKilnCreateManyInput = {
 }
 
 export type DryKilnUpdateManyMutationInput = {
-  idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   kodeOven?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortimen?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -531,6 +526,7 @@ export type DryKilnUpdateManyMutationInput = {
   volume?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalKeluar?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusPengeringan?: Prisma.StringFieldUpdateOperationsInput | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   kodeLog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -540,7 +536,6 @@ export type DryKilnUpdateManyMutationInput = {
 export type DryKilnUncheckedUpdateManyInput = {
   idOven?: Prisma.IntFieldUpdateOperationsInput | number
   idPalet?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   kodeOven?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortimen?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -550,6 +545,7 @@ export type DryKilnUncheckedUpdateManyInput = {
   volume?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalKeluar?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusPengeringan?: Prisma.StringFieldUpdateOperationsInput | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   kodeLog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -569,7 +565,6 @@ export type DryKilnOrderByRelationAggregateInput = {
 export type DryKilnCountOrderByAggregateInput = {
   idOven?: Prisma.SortOrder
   idPalet?: Prisma.SortOrder
-  idPlank?: Prisma.SortOrder
   kodeOven?: Prisma.SortOrder
   sortimen?: Prisma.SortOrder
   grade?: Prisma.SortOrder
@@ -579,6 +574,7 @@ export type DryKilnCountOrderByAggregateInput = {
   volume?: Prisma.SortOrder
   tanggalMasuk?: Prisma.SortOrder
   tanggalKeluar?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   statusPengeringan?: Prisma.SortOrder
   stage?: Prisma.SortOrder
   kodeLog?: Prisma.SortOrder
@@ -588,7 +584,6 @@ export type DryKilnCountOrderByAggregateInput = {
 export type DryKilnAvgOrderByAggregateInput = {
   idOven?: Prisma.SortOrder
   idPalet?: Prisma.SortOrder
-  idPlank?: Prisma.SortOrder
   panjang?: Prisma.SortOrder
   lebar?: Prisma.SortOrder
   tinggi?: Prisma.SortOrder
@@ -598,7 +593,6 @@ export type DryKilnAvgOrderByAggregateInput = {
 export type DryKilnMaxOrderByAggregateInput = {
   idOven?: Prisma.SortOrder
   idPalet?: Prisma.SortOrder
-  idPlank?: Prisma.SortOrder
   kodeOven?: Prisma.SortOrder
   sortimen?: Prisma.SortOrder
   grade?: Prisma.SortOrder
@@ -608,6 +602,7 @@ export type DryKilnMaxOrderByAggregateInput = {
   volume?: Prisma.SortOrder
   tanggalMasuk?: Prisma.SortOrder
   tanggalKeluar?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   statusPengeringan?: Prisma.SortOrder
   stage?: Prisma.SortOrder
   kodeLog?: Prisma.SortOrder
@@ -617,7 +612,6 @@ export type DryKilnMaxOrderByAggregateInput = {
 export type DryKilnMinOrderByAggregateInput = {
   idOven?: Prisma.SortOrder
   idPalet?: Prisma.SortOrder
-  idPlank?: Prisma.SortOrder
   kodeOven?: Prisma.SortOrder
   sortimen?: Prisma.SortOrder
   grade?: Prisma.SortOrder
@@ -627,6 +621,7 @@ export type DryKilnMinOrderByAggregateInput = {
   volume?: Prisma.SortOrder
   tanggalMasuk?: Prisma.SortOrder
   tanggalKeluar?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   statusPengeringan?: Prisma.SortOrder
   stage?: Prisma.SortOrder
   kodeLog?: Prisma.SortOrder
@@ -636,7 +631,6 @@ export type DryKilnMinOrderByAggregateInput = {
 export type DryKilnSumOrderByAggregateInput = {
   idOven?: Prisma.SortOrder
   idPalet?: Prisma.SortOrder
-  idPlank?: Prisma.SortOrder
   panjang?: Prisma.SortOrder
   lebar?: Prisma.SortOrder
   tinggi?: Prisma.SortOrder
@@ -705,7 +699,6 @@ export type DryKilnUpdateOneRequiredWithoutHasilDryKilnNestedInput = {
 }
 
 export type DryKilnCreateWithoutPaletInput = {
-  idPlank?: number | null
   kodeOven?: string | null
   sortimen?: string | null
   grade?: string | null
@@ -715,6 +708,7 @@ export type DryKilnCreateWithoutPaletInput = {
   volume?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
   tanggalKeluar?: Date | string | null
+  deletedAt?: Date | string | null
   statusPengeringan?: string
   stage?: string | null
   kodeLog?: string | null
@@ -724,7 +718,6 @@ export type DryKilnCreateWithoutPaletInput = {
 
 export type DryKilnUncheckedCreateWithoutPaletInput = {
   idOven?: number
-  idPlank?: number | null
   kodeOven?: string | null
   sortimen?: string | null
   grade?: string | null
@@ -734,6 +727,7 @@ export type DryKilnUncheckedCreateWithoutPaletInput = {
   volume?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
   tanggalKeluar?: Date | string | null
+  deletedAt?: Date | string | null
   statusPengeringan?: string
   stage?: string | null
   kodeLog?: string | null
@@ -773,7 +767,6 @@ export type DryKilnScalarWhereInput = {
   NOT?: Prisma.DryKilnScalarWhereInput | Prisma.DryKilnScalarWhereInput[]
   idOven?: Prisma.IntFilter<"DryKiln"> | number
   idPalet?: Prisma.IntNullableFilter<"DryKiln"> | number | null
-  idPlank?: Prisma.IntNullableFilter<"DryKiln"> | number | null
   kodeOven?: Prisma.StringNullableFilter<"DryKiln"> | string | null
   sortimen?: Prisma.StringNullableFilter<"DryKiln"> | string | null
   grade?: Prisma.StringNullableFilter<"DryKiln"> | string | null
@@ -783,6 +776,7 @@ export type DryKilnScalarWhereInput = {
   volume?: Prisma.DecimalNullableFilter<"DryKiln"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.DateTimeNullableFilter<"DryKiln"> | Date | string | null
   tanggalKeluar?: Prisma.DateTimeNullableFilter<"DryKiln"> | Date | string | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"DryKiln"> | Date | string | null
   statusPengeringan?: Prisma.StringFilter<"DryKiln"> | string
   stage?: Prisma.StringNullableFilter<"DryKiln"> | string | null
   kodeLog?: Prisma.StringNullableFilter<"DryKiln"> | string | null
@@ -790,7 +784,6 @@ export type DryKilnScalarWhereInput = {
 }
 
 export type DryKilnCreateWithoutHasilDryKilnInput = {
-  idPlank?: number | null
   kodeOven?: string | null
   sortimen?: string | null
   grade?: string | null
@@ -800,6 +793,7 @@ export type DryKilnCreateWithoutHasilDryKilnInput = {
   volume?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
   tanggalKeluar?: Date | string | null
+  deletedAt?: Date | string | null
   statusPengeringan?: string
   stage?: string | null
   kodeLog?: string | null
@@ -810,7 +804,6 @@ export type DryKilnCreateWithoutHasilDryKilnInput = {
 export type DryKilnUncheckedCreateWithoutHasilDryKilnInput = {
   idOven?: number
   idPalet?: number | null
-  idPlank?: number | null
   kodeOven?: string | null
   sortimen?: string | null
   grade?: string | null
@@ -820,6 +813,7 @@ export type DryKilnUncheckedCreateWithoutHasilDryKilnInput = {
   volume?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
   tanggalKeluar?: Date | string | null
+  deletedAt?: Date | string | null
   statusPengeringan?: string
   stage?: string | null
   kodeLog?: string | null
@@ -843,7 +837,6 @@ export type DryKilnUpdateToOneWithWhereWithoutHasilDryKilnInput = {
 }
 
 export type DryKilnUpdateWithoutHasilDryKilnInput = {
-  idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   kodeOven?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortimen?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -853,6 +846,7 @@ export type DryKilnUpdateWithoutHasilDryKilnInput = {
   volume?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalKeluar?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusPengeringan?: Prisma.StringFieldUpdateOperationsInput | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   kodeLog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -863,7 +857,6 @@ export type DryKilnUpdateWithoutHasilDryKilnInput = {
 export type DryKilnUncheckedUpdateWithoutHasilDryKilnInput = {
   idOven?: Prisma.IntFieldUpdateOperationsInput | number
   idPalet?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   kodeOven?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortimen?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -873,6 +866,7 @@ export type DryKilnUncheckedUpdateWithoutHasilDryKilnInput = {
   volume?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalKeluar?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusPengeringan?: Prisma.StringFieldUpdateOperationsInput | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   kodeLog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -881,7 +875,6 @@ export type DryKilnUncheckedUpdateWithoutHasilDryKilnInput = {
 
 export type DryKilnCreateManyPaletInput = {
   idOven?: number
-  idPlank?: number | null
   kodeOven?: string | null
   sortimen?: string | null
   grade?: string | null
@@ -891,6 +884,7 @@ export type DryKilnCreateManyPaletInput = {
   volume?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Date | string | null
   tanggalKeluar?: Date | string | null
+  deletedAt?: Date | string | null
   statusPengeringan?: string
   stage?: string | null
   kodeLog?: string | null
@@ -898,7 +892,6 @@ export type DryKilnCreateManyPaletInput = {
 }
 
 export type DryKilnUpdateWithoutPaletInput = {
-  idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   kodeOven?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortimen?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -908,6 +901,7 @@ export type DryKilnUpdateWithoutPaletInput = {
   volume?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalKeluar?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusPengeringan?: Prisma.StringFieldUpdateOperationsInput | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   kodeLog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -917,7 +911,6 @@ export type DryKilnUpdateWithoutPaletInput = {
 
 export type DryKilnUncheckedUpdateWithoutPaletInput = {
   idOven?: Prisma.IntFieldUpdateOperationsInput | number
-  idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   kodeOven?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortimen?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -927,6 +920,7 @@ export type DryKilnUncheckedUpdateWithoutPaletInput = {
   volume?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalKeluar?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusPengeringan?: Prisma.StringFieldUpdateOperationsInput | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   kodeLog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -936,7 +930,6 @@ export type DryKilnUncheckedUpdateWithoutPaletInput = {
 
 export type DryKilnUncheckedUpdateManyWithoutPaletInput = {
   idOven?: Prisma.IntFieldUpdateOperationsInput | number
-  idPlank?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   kodeOven?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortimen?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -946,6 +939,7 @@ export type DryKilnUncheckedUpdateManyWithoutPaletInput = {
   volume?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tanggalMasuk?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tanggalKeluar?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusPengeringan?: Prisma.StringFieldUpdateOperationsInput | string
   stage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   kodeLog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -986,7 +980,6 @@ export type DryKilnCountOutputTypeCountHasilDryKilnArgs<ExtArgs extends runtime.
 export type DryKilnSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   idOven?: boolean
   idPalet?: boolean
-  idPlank?: boolean
   kodeOven?: boolean
   sortimen?: boolean
   grade?: boolean
@@ -996,6 +989,7 @@ export type DryKilnSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   volume?: boolean
   tanggalMasuk?: boolean
   tanggalKeluar?: boolean
+  deletedAt?: boolean
   statusPengeringan?: boolean
   stage?: boolean
   kodeLog?: boolean
@@ -1008,7 +1002,6 @@ export type DryKilnSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 export type DryKilnSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   idOven?: boolean
   idPalet?: boolean
-  idPlank?: boolean
   kodeOven?: boolean
   sortimen?: boolean
   grade?: boolean
@@ -1018,6 +1011,7 @@ export type DryKilnSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   volume?: boolean
   tanggalMasuk?: boolean
   tanggalKeluar?: boolean
+  deletedAt?: boolean
   statusPengeringan?: boolean
   stage?: boolean
   kodeLog?: boolean
@@ -1028,7 +1022,6 @@ export type DryKilnSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type DryKilnSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   idOven?: boolean
   idPalet?: boolean
-  idPlank?: boolean
   kodeOven?: boolean
   sortimen?: boolean
   grade?: boolean
@@ -1038,6 +1031,7 @@ export type DryKilnSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   volume?: boolean
   tanggalMasuk?: boolean
   tanggalKeluar?: boolean
+  deletedAt?: boolean
   statusPengeringan?: boolean
   stage?: boolean
   kodeLog?: boolean
@@ -1048,7 +1042,6 @@ export type DryKilnSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type DryKilnSelectScalar = {
   idOven?: boolean
   idPalet?: boolean
-  idPlank?: boolean
   kodeOven?: boolean
   sortimen?: boolean
   grade?: boolean
@@ -1058,13 +1051,14 @@ export type DryKilnSelectScalar = {
   volume?: boolean
   tanggalMasuk?: boolean
   tanggalKeluar?: boolean
+  deletedAt?: boolean
   statusPengeringan?: boolean
   stage?: boolean
   kodeLog?: boolean
   kodePlank?: boolean
 }
 
-export type DryKilnOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idOven" | "idPalet" | "idPlank" | "kodeOven" | "sortimen" | "grade" | "panjang" | "lebar" | "tinggi" | "volume" | "tanggalMasuk" | "tanggalKeluar" | "statusPengeringan" | "stage" | "kodeLog" | "kodePlank", ExtArgs["result"]["dryKiln"]>
+export type DryKilnOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idOven" | "idPalet" | "kodeOven" | "sortimen" | "grade" | "panjang" | "lebar" | "tinggi" | "volume" | "tanggalMasuk" | "tanggalKeluar" | "deletedAt" | "statusPengeringan" | "stage" | "kodeLog" | "kodePlank", ExtArgs["result"]["dryKiln"]>
 export type DryKilnInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   hasilDryKiln?: boolean | Prisma.DryKiln$hasilDryKilnArgs<ExtArgs>
   palet?: boolean | Prisma.DryKiln$paletArgs<ExtArgs>
@@ -1086,7 +1080,6 @@ export type $DryKilnPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     idOven: number
     idPalet: number | null
-    idPlank: number | null
     kodeOven: string | null
     sortimen: string | null
     grade: string | null
@@ -1096,6 +1089,7 @@ export type $DryKilnPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     volume: runtime.Decimal | null
     tanggalMasuk: Date | null
     tanggalKeluar: Date | null
+    deletedAt: Date | null
     statusPengeringan: string
     stage: string | null
     kodeLog: string | null
@@ -1527,7 +1521,6 @@ export interface Prisma__DryKilnClient<T, Null = never, ExtArgs extends runtime.
 export interface DryKilnFieldRefs {
   readonly idOven: Prisma.FieldRef<"DryKiln", 'Int'>
   readonly idPalet: Prisma.FieldRef<"DryKiln", 'Int'>
-  readonly idPlank: Prisma.FieldRef<"DryKiln", 'Int'>
   readonly kodeOven: Prisma.FieldRef<"DryKiln", 'String'>
   readonly sortimen: Prisma.FieldRef<"DryKiln", 'String'>
   readonly grade: Prisma.FieldRef<"DryKiln", 'String'>
@@ -1537,6 +1530,7 @@ export interface DryKilnFieldRefs {
   readonly volume: Prisma.FieldRef<"DryKiln", 'Decimal'>
   readonly tanggalMasuk: Prisma.FieldRef<"DryKiln", 'DateTime'>
   readonly tanggalKeluar: Prisma.FieldRef<"DryKiln", 'DateTime'>
+  readonly deletedAt: Prisma.FieldRef<"DryKiln", 'DateTime'>
   readonly statusPengeringan: Prisma.FieldRef<"DryKiln", 'String'>
   readonly stage: Prisma.FieldRef<"DryKiln", 'String'>
   readonly kodeLog: Prisma.FieldRef<"DryKiln", 'String'>
