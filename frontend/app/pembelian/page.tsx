@@ -17,6 +17,10 @@ export default function PembelianPage() {
   const canCreate = can(user?.role, 'purchase:create');
   const canUpdate = can(user?.role, 'purchase:update');
   const canDelete = can(user?.role, 'purchase:delete');
+  const canVerify = can(user?.role, 'purchase:verify');
+  const canApprove = can(user?.role, 'purchase:approve');
+  const canReject = can(user?.role, 'purchase:reject');
+  const canReceive = can(user?.role, 'purchase:receive');
 
   // State data utama
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
@@ -178,6 +182,128 @@ export default function PembelianPage() {
     }
   };
 
+  // Verifikasi Pembelian — Admin Kantor meneruskan ke Manager (POST /pembelian/:id/verify)
+  const handleVerify = async (item: PurchaseOrder) => {
+    if (!canVerify) return;
+
+    if (!window.confirm(`Apakah Anda yakin ingin melakukan verifikasi terhadap ${item.idPembelian}?`)) {
+      return;
+    }
+
+    setIsSaving(true);
+    setModalError(null);
+    setError(null);
+
+    try {
+      const updated = await purchaseApi.verify(item.idPembelian);
+      setOrders((prev) =>
+        prev.map((o) => (o.idPembelian === updated.idPembelian ? updated : o))
+      );
+      setError(null);
+    } catch (err: unknown) {
+      setError(
+        getApiErrorMessage(
+          err,
+          'Verifikasi gagal. Silakan coba lagi.'
+        )
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Approval Pembelian — Manager setuju (POST /pembelian/:id/approve)
+  const handleApprove = async (item: PurchaseOrder) => {
+    if (!canApprove) return;
+
+    if (!window.confirm(`Apakah Anda yakin ingin mengesetujui ${item.idPembelian}?`)) {
+      return;
+    }
+
+    setIsSaving(true);
+    setModalError(null);
+    setError(null);
+
+    try {
+      const updated = await purchaseApi.approve(item.idPembelian);
+      setOrders((prev) =>
+        prev.map((o) => (o.idPembelian === updated.idPembelian ? updated : o))
+      );
+      setError(null);
+    } catch (err: unknown) {
+      setError(
+        getApiErrorMessage(
+          err,
+          'Persetujuan gagal. Silakan coba lagi.'
+        )
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Tolak Pembelian — Admin Kantor (POST /pembelian/:id/reject)
+  const handleReject = async (item: PurchaseOrder) => {
+    if (!canReject) return;
+
+    const reason = window.prompt('Alasan penolakan (wajib diisi):');
+    if (reason === null || reason.trim() === '') {
+      return;
+    }
+
+    setIsSaving(true);
+    setModalError(null);
+    setError(null);
+
+    try {
+      const updated = await purchaseApi.reject(item.idPembelian, { catatan: reason.trim() });
+      setOrders((prev) =>
+        prev.map((o) => (o.idPembelian === updated.idPembelian ? updated : o))
+      );
+      setError(null);
+    } catch (err: unknown) {
+      setError(
+        getApiErrorMessage(
+          err,
+          'Penolakan gagal. Silakan coba lagi.'
+        )
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Terima Barang — buat StokLog (POST /pembelian/:id/receive)
+  const handleReceive = async (item: PurchaseOrder) => {
+    if (!canReceive) return;
+
+    const poNumber = `PO-${String(item.idPembelian).padStart(4, '0')}`;
+    if (!window.confirm(`Apakah Anda yakin ingin menerima pesanan ${poNumber} dan membuat Stok Log?`)) {
+      return;
+    }
+
+    setIsSaving(true);
+    setModalError(null);
+    setError(null);
+
+    try {
+      const updated = await purchaseApi.receive(item.idPembelian);
+      setOrders((prev) =>
+        prev.map((o) => (o.idPembelian === updated.idPembelian ? updated : o))
+      );
+      setError(null);
+    } catch (err: unknown) {
+      setError(
+        getApiErrorMessage(
+          err,
+          'Penerimaan barang gagal. Silakan coba lagi.'
+        )
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // Filter data sesuai pencarian & status
   const filteredOrders = orders.filter((order) => {
     const poNumber = `PO-${String(order.idPembelian).padStart(4, '0')}`;
@@ -287,9 +413,17 @@ export default function PembelianPage() {
         isLoading={isLoading}
         canEdit={canUpdate}
         canDelete={canDelete}
+        canVerify={canVerify}
+        canApprove={canApprove}
+        canReject={canReject}
+        canReceive={canReceive}
         onView={handleViewDetail}
         onEdit={handleOpenEdit}
         onDelete={handleDelete}
+        onVerify={handleVerify}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        onReceive={handleReceive}
       />
 
       {/* Modal Input & Edit */}
@@ -304,15 +438,20 @@ export default function PembelianPage() {
         errorMessage={modalError}
       />
 
-      {/* Modal Detail Pembelian */}
-      <PurchaseDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setDetailOrder(null);
-        }}
-        order={detailOrder}
-      />
+      {detailOrder && (
+        <PurchaseDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setDetailOrder(null);
+          }}
+          order={detailOrder}
+          onVerify={handleVerify}
+          onApprove={handleApprove}
+          onReject={handleReject}
+          onReceive={handleReceive}
+        />
+      )}
     </div>
   );
 }

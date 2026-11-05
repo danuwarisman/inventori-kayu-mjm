@@ -57,9 +57,16 @@ import {
 } from '@/types/pra-dry-kiln';
 import { clearSession, getAccessToken, getCurrentUserId } from '@/lib/session';
 
-/** Base URL backend, di-set via NEXT_PUBLIC_API_URL (lihat .env.local). */
+/**
+ * Base URL backend.
+ *
+ * Default `/api-proxy` = same-origin lewat rewrite Next.js (lihat
+ * next.config.ts), sehingga aplikasi tetap jalan di host/port apa pun
+ * (Tailscale, tunnel, localhost). Bisa dioverride lewat NEXT_PUBLIC_API_URL
+ * saat build bila ingin menembak backend secara langsung.
+ */
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  process.env.NEXT_PUBLIC_API_URL || '/api-proxy';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 

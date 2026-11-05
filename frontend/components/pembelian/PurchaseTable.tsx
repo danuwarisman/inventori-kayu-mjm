@@ -1,7 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Eye, Pencil, Trash2, ShoppingBag, Loader2 } from 'lucide-react';
+import {
+  Eye, Pencil, Trash2, Loader2, ShoppingBag,
+  CheckCircle2, Clock, XCircle, Box,
+  Package,
+} from 'lucide-react';
 import { PurchaseOrder } from '@/types/purchase';
 import Pagination from '@/components/Pagination';
 import { formatDateID } from '@/lib/dates';
@@ -10,11 +14,20 @@ interface PurchaseTableProps {
   items: PurchaseOrder[];
   totalCount: number;
   isLoading?: boolean;
+  canView?: boolean;
   canEdit?: boolean;
   canDelete?: boolean;
+  canVerify?: boolean;
+  canApprove?: boolean;
+  canReject?: boolean;
+  canReceive?: boolean;
   onView: (item: PurchaseOrder) => void;
   onEdit?: (item: PurchaseOrder) => void;
   onDelete?: (item: PurchaseOrder) => void;
+  onVerify?: (item: PurchaseOrder) => void;
+  onApprove?: (item: PurchaseOrder) => void;
+  onReject?: (item: PurchaseOrder) => void;
+  onReceive?: (item: PurchaseOrder) => void;
 }
 
 function renderStatusBadge(status: string) {
@@ -60,9 +73,17 @@ export default function PurchaseTable({
   isLoading = false,
   canEdit = false,
   canDelete = false,
+  canVerify = false,
+  canApprove = false,
+  canReject = false,
+  canReceive = false,
   onView,
   onEdit,
   onDelete,
+  onVerify,
+  onApprove,
+  onReject,
+  onReceive,
 }: PurchaseTableProps) {
   const pageSize = 10;
   const [page, setPage] = useState(1);
@@ -175,6 +196,46 @@ export default function PurchaseTable({
                             title="Edit Draft Pembelian"
                           >
                             <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {canVerify && onVerify && (
+                          <button
+                            type="button"
+                            onClick={() => onVerify(item)}
+                            className="p-1 text-blue-700 hover:bg-blue-50 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                            title="Verifikasi oleh Admin Kantor"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {canApprove && onApprove && (
+                          <button
+                            type="button"
+                            onClick={() => onApprove(item)}
+                            className="p-1 text-emerald-700 hover:bg-emerald-50 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                            title="Approval oleh Manager"
+                          >
+                            <Box className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {canReject && onReject && (
+                          <button
+                            type="button"
+                            onClick={() => onReject(item)}
+                            className="p-1 text-amber-700 hover:bg-amber-50 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                            title="Tolak Pembelian"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {canReceive && onReceive && (
+                          <button
+                            type="button"
+                            onClick={() => onReceive(item)}
+                            className="p-1 text-teal-700 hover:bg-teal-50 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                            title="Terima Barang"
+                          >
+                            <Package className="w-3.5 h-3.5" />
                           </button>
                         )}
                         {canDelete && onDelete && (

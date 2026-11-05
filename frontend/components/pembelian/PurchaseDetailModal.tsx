@@ -1,7 +1,10 @@
 'use client';
 
-import React from 'react';
-import { X, Building2, User, Calendar, FileText, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  X, Building2, User, Calendar, FileText,
+  CheckCircle2, Clock, XCircle, Box, Package,
+} from 'lucide-react';
 import { PurchaseOrder } from '@/types/purchase';
 import { formatDateID } from '@/lib/dates';
 
@@ -9,13 +12,23 @@ interface PurchaseDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   order: PurchaseOrder | null;
+  onVerify?: (order: PurchaseOrder) => void;
+  onApprove?: (order: PurchaseOrder) => void;
+  onReject?: (order: PurchaseOrder) => void;
+  onReceive?: (order: PurchaseOrder) => void;
 }
 
 export default function PurchaseDetailModal({
   isOpen,
   onClose,
   order,
+  onVerify,
+  onApprove,
+  onReject,
+  onReceive,
 }: PurchaseDetailModalProps) {
+  const [confirmReject, setConfirmReject] = useState(false);
+
   if (!isOpen || !order) return null;
 
   const poNumber = `PO-${String(order.idPembelian).padStart(4, '0')}`;
@@ -222,16 +235,103 @@ export default function PurchaseDetailModal({
             </div>
           )}
 
-          {/* Footer Close Button */}
-          <div className="flex justify-end pt-2">
+          {/* Footer Actions */}
+          <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-stone-100">
             <button
               type="button"
               onClick={onClose}
-              className="h-9 px-5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold rounded transition-colors cursor-pointer"
+              className="h-9 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold rounded transition-colors cursor-pointer"
             >
               Tutup
             </button>
+            {order.statusVerifikasi === 'PENDING' && (
+              <>
+                {onVerify && (
+                  <button
+                    type="button"
+                    onClick={() => onVerify(order)}
+                    className="inline-flex items-center gap-1.5 h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded transition-colors cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Verifikasi
+                  </button>
+                )}
+                {onReject && (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmReject(true)}
+                    className="inline-flex items-center gap-1.5 h-9 px-4 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded transition-colors cursor-pointer"
+                  >
+                    <XCircle className="w-3.5 h-3.5" />
+                    Tolak
+                  </button>
+                )}
+              </>
+            )}
+            {order.statusVerifikasi === 'DISETUJUI' && onApprove && (
+              <button
+                type="button"
+                onClick={() => onApprove(order)}
+                className="inline-flex items-center gap-1.5 h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded transition-colors cursor-pointer"
+              >
+                <Box className="w-3.5 h-3.5" />
+                Approve
+              </button>
+            )}
+            {order.statusPembelian === 'DITERIMA' ? (
+              <div className="h-9 px-4 bg-stone-100 text-stone-500 text-xs font-semibold rounded transition-colors cursor-pointer select-none">
+                Sudah Diterima
+              </div>
+            ) : order.statusPembelian === 'DIBATALKAN' ? (
+              <div className="h-9 px-4 bg-stone-100 text-stone-500 text-xs font-semibold rounded transition-colors cursor-pointer select-none">
+                Dibatalkan
+              </div>
+            ) : onReceive && (
+              <button
+                type="button"
+                onClick={() => onReceive(order)}
+                className="inline-flex items-center gap-1.5 h-9 px-4 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded transition-colors cursor-pointer"
+              >
+                <Package className="w-3.5 h-3.5" />
+                Terima
+              </button>
+            )}
           </div>
+          {confirmReject && onReject && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+              <div className="bg-white rounded-lg shadow-xl border border-stone-200 w-full max-w-sm p-5">
+                <div className="flex items-start gap-3">
+                  <XCircle className="w-5 h-5 text-rose-600 shrink-0" />
+                  <p className="text-stone-800 text-sm font-medium">
+                    Konfirmasi penolakan
+                  </p>
+                </div>
+                <p className="text-stone-600 text-xs mt-2">
+                  Apakah Anda yakin ingin menolak pembelian {order.idPembelian}?
+                  Stakeholder akan melihat alasan ini.
+                </p>
+                <div className="flex justify-end gap-2 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmReject(false)}
+                    className="h-8 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold rounded text-xs transition-colors cursor-pointer"
+                  >
+                    Batalkan
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmReject(false);
+                      onReject(order);
+                    }}
+                    className="h-8 px-4 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded transition-colors cursor-pointer"
+                  >
+                    Ya, Tolak
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

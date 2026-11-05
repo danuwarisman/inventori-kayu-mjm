@@ -12,11 +12,10 @@ frontend/out/
 dist/
 backend/dist/
 
-# Environment variables
-*.env
-*.env.local
+# Environment variables (jangan pernah commit nilai asli)
 .env
-.env.local
+.env.*
+!.env.example
 
 # Logs & scratch
 *.log
@@ -24,3 +23,6 @@ backend/dist/
 mock-rbac-test.js
 .agents/
 sdd/
+
+# Backup file hasil edit manual
+*.bak
