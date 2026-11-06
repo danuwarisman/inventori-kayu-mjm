@@ -11,8 +11,9 @@ import { CustomerModule } from './customer/customer.module';
 import { PembelianModule } from './pembelian/pembelian.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { RolesGuard } from './auth/roles.guard';
 
-// TODO(auth): daftarkan APP_GUARD AuthGuard('jwt') di providers agar seluruh
+// TODO(auth): daftarkan APP_GUARD AuthGuard('jwt') di providers agar seluruh (DONE MAS)
 // endpoint terlindungi, lalu pakai @Public() untuk route publik seperti login.
 // Lihat catatan lengkap di src/auth/auth.module.ts.
 @Module({
@@ -32,6 +33,10 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })
