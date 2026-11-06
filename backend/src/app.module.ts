@@ -9,6 +9,8 @@ import { DryKilnModule } from './dry-kiln/dry-kiln.module';
 import { AuthModule } from './auth/auth.module';
 import { CustomerModule } from './customer/customer.module';
 import { PembelianModule } from './pembelian/pembelian.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 // TODO(auth): daftarkan APP_GUARD AuthGuard('jwt') di providers agar seluruh
 // endpoint terlindungi, lalu pakai @Public() untuk route publik seperti login.
@@ -25,6 +27,12 @@ import { PembelianModule } from './pembelian/pembelian.module';
     PembelianModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}
