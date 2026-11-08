@@ -13,7 +13,7 @@ import {
   Users,
   DollarSign,
 } from 'lucide-react';
-import { dryKilnApi, getApiErrorMessage, logApi, sawmillApi } from '@/lib/api';
+import { customerApi, dryKilnApi, getApiErrorMessage, logApi, sawmillApi } from '@/lib/api';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 import FormError from '@/components/FormError';
@@ -42,7 +42,7 @@ export default function OperationalDashboardPage() {
   const [logCount, setLogCount] = useState<number>(0);
   const [plankCount, setPlankCount] = useState<number>(0);
   const [kilnCount, setKilnCount] = useState<number>(0);
-  const [totalCustomers] = useState<number>(0);
+  const [totalCustomers, setTotalCustomers] = useState<number>(0);
   const [totalSales] = useState<number>(0);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [quickError, setQuickError] = useState<string | null>(null);
@@ -408,7 +408,7 @@ export default function OperationalDashboardPage() {
             ) : (
               <div className="flex flex-col gap-2 text-xs text-stone-500">
                 <p>
-                  Quick Entry hanya tersedia untuk Admin Lapangan. Anda tetap
+                  Quick Entry hanya tersedia untuk Admin. Anda tetap
                   dapat melihat data operasional di dashboard ini.
                 </p>
                 <Link
