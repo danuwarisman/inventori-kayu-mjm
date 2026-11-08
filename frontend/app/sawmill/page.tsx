@@ -13,11 +13,12 @@ import {
   Layers,
 } from 'lucide-react';
 import { toISODate, formatDateID } from '@/lib/dates';
-import { getApiErrorMessage, sawmillApi } from '@/lib/api';
+import { getApiErrorMessage, sawmillApi, logApi } from '@/lib/api';
 import { exportToPdf } from '@/lib/export';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 import { PlankItem, SawmillItem } from '@/types/sawmill';
+import { LogItem } from '@/types/log';
 import FormError from '@/components/FormError';
 import ErrorBanner from '@/components/ErrorBanner';
 import Pagination from '@/components/Pagination';
@@ -35,10 +36,10 @@ const PAGE_SIZE = 10;
 export default function DataSawmillPage() {
   const user = useSessionUser();
   const isManager = user?.role === 'manager';
-  const canCreate = can(user?.role, 'sawmill:create');
-  const canUpdate = can(user?.role, 'sawmill:update');
-  const canCreatePlank = can(user?.role, 'plank:create');
-  const canUpdatePlank = can(user?.role, 'plank:update');
+  const canCreate = can(user?.role, 'sawmill:create') || isManager;
+  const canUpdate = can(user?.role, 'sawmill:update') || isManager;
+  const canCreatePlank = can(user?.role, 'plank:create') || isManager;
+  const canUpdatePlank = can(user?.role, 'plank:update') || isManager;
   const canManagePlanks = canCreatePlank || canUpdatePlank;
 
   // State data utama
@@ -73,6 +74,15 @@ export default function DataSawmillPage() {
         }
       });
 
+    logApi
+      .list()
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) {
+          setAvailableLogs(data.filter((l) => l.stage === 'Log' || l.statusLog === 'Log'));
+        }
+      })
+      .catch(() => {});
+
     return () => {
       cancelled = true;
     };
@@ -95,6 +105,7 @@ export default function DataSawmillPage() {
   const [formPanjang, setFormPanjang] = useState<number | ''>('');
   const [formDiameter, setFormDiameter] = useState<number | ''>('');
   const [formSuplier, setFormSuplier] = useState('PT. Suplier');
+  const [availableLogs, setAvailableLogs] = useState<LogItem[]>([]);
 
   // Form Hasil Plank
   const [formIdPlank, setFormIdPlank] = useState('');
@@ -120,11 +131,20 @@ export default function DataSawmillPage() {
 
   // 1. Handler Buka Modal Sawmill
   const handleOpenInputSawmill = () => {
-    setFormIdLog(`L-${new Date().getFullYear()}-${sawmillItems.length + 1}`);
+    logApi
+      .list()
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setAvailableLogs(data.filter((l) => l.stage === 'Log' || l.statusLog === 'Log'));
+        }
+      })
+      .catch(() => {});
+
+    setFormIdLog('');
     setFormSortimen('Sortimen A');
     setFormPanjang('');
     setFormDiameter('');
-    setFormSuplier('PT. Suplier');
+    setFormSuplier('');
     setSelectedSawmill(null);
     setFormError(null);
     setModalType('input-sawmill');
@@ -168,7 +188,9 @@ export default function DataSawmillPage() {
     setPageError(null);
 
     if (modalType === 'input-sawmill') {
+      const chosenLog = availableLogs.find((l) => l.id_log === idLog);
       const newItemPayload: Partial<SawmillItem> = {
+        idLog: chosenLog?.idLog,
         id_sawmill: `SM-${new Date().getFullYear()}-${sawmillItems.length + 1}`,
         id_log_asal: idLog,
         sortimen: formSortimen,
@@ -178,13 +200,14 @@ export default function DataSawmillPage() {
         stage: 'Sawmill',
         tanggal: toISODate(),
         suplier,
-        harga: 1000000,
+        harga: chosenLog?.harga || 1000000,
         planks: [],
       };
 
       try {
         const saved = await sawmillApi.create(newItemPayload);
         setSawmillItems((prev) => [saved, ...prev]);
+        setAvailableLogs((prev) => prev.filter((l) => l.id_log !== idLog));
         setPage(1);
       } catch (err) {
         setFormError(
@@ -740,16 +763,52 @@ export default function DataSawmillPage() {
               className="p-4 bg-white/80 rounded-[10px] border border-stone-800/80 flex flex-col gap-3 text-xs"
             >
               <div className="flex flex-col gap-1">
-                <label className="font-semibold text-green-700">ID LOG ASAL</label>
-                <input
-                  type="text"
-                  required
-                  maxLength={50}
-                  placeholder="L-2026-X-X-X"
-                  value={formIdLog}
-                  onChange={(e) => setFormIdLog(e.target.value)}
-                  className="w-full h-10 px-3 bg-white border border-stone-800 rounded font-mono text-green-700 focus:outline-none focus:border-green-700"
-                />
+                <label className="font-semibold text-green-700 flex justify-between items-center">
+                  <span>ID LOG ASAL</span>
+                  {modalType === 'input-sawmill' && availableLogs.length > 0 && (
+                    <span className="text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded font-normal">
+                      {availableLogs.length} Log Siap Olah
+                    </span>
+                  )}
+                </label>
+                {modalType === 'input-sawmill' && availableLogs.length > 0 ? (
+                  <div className="relative">
+                    <select
+                      value={formIdLog}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormIdLog(val);
+                        const chosen = availableLogs.find((l) => l.id_log === val);
+                        if (chosen) {
+                          setFormSortimen(chosen.sortimen);
+                          setFormPanjang(chosen.panjang);
+                          setFormDiameter(chosen.diameter);
+                          setFormSuplier(chosen.suplier);
+                        }
+                      }}
+                      className="w-full h-10 pl-3 pr-8 bg-white border border-stone-800 rounded font-mono text-green-700 text-xs focus:outline-none focus:border-green-700 cursor-pointer"
+                      required
+                    >
+                      <option value="">-- Pilih Log dari Stok Kayu Log --</option>
+                      {availableLogs.map((l) => (
+                        <option key={l.id_log} value={l.id_log}>
+                          {l.id_log} - {l.sortimen} ({l.panjang}x{l.diameter} cm, Vol: {l.volume} m³) - {l.suplier}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    required
+                    maxLength={50}
+                    placeholder="L-2026-X-X-X"
+                    value={formIdLog}
+                    onChange={(e) => setFormIdLog(e.target.value)}
+                    className="w-full h-10 px-3 bg-white border border-stone-800 rounded font-mono text-green-700 focus:outline-none focus:border-green-700"
+                  />
+                )}
               </div>
 
               <div className="flex flex-col gap-1">

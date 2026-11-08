@@ -10,6 +10,94 @@ import { exportToPdf } from '@/lib/export';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 
+// Data contoh palet pra dry kiln aktif (Sample Data)
+const INITIAL_PRA_DRY_KILN: PraDryKilnItem[] = [
+  {
+    id_plank: 'P-2026-004-A1',
+    id_log: 'L-2026-004',
+    sortimen: 'Sortimen A',
+    panjang: 250,
+    lebar: 20,
+    tinggi: 5,
+    volume: 0.025,
+    grade: 'Grade A',
+    stage: 'pra-drykiln',
+    date: '2026-11-05',
+  },
+  {
+    id_plank: 'P-2026-004-A2',
+    id_log: 'L-2026-004',
+    sortimen: 'Sortimen A',
+    panjang: 250,
+    lebar: 18,
+    tinggi: 5,
+    volume: 0.023,
+    grade: 'Grade A',
+    stage: 'pra-drykiln',
+    date: '2026-11-05',
+  },
+  {
+    id_plank: 'P-2026-005-B1',
+    id_log: 'L-2026-005',
+    sortimen: 'Sortimen A',
+    panjang: 300,
+    lebar: 25,
+    tinggi: 5,
+    volume: 0.038,
+    grade: 'Grade A',
+    stage: 'finish pra-drykiln',
+    date: '2026-11-06',
+  },
+  {
+    id_plank: 'P-2026-006-A1',
+    id_log: 'L-2026-006',
+    sortimen: 'Sortimen B',
+    panjang: 220,
+    lebar: 15,
+    tinggi: 4,
+    volume: 0.013,
+    grade: 'Grade B',
+    stage: 'pra-drykiln',
+    date: '2026-11-06',
+  },
+  {
+    id_plank: 'P-2026-007-B1',
+    id_log: 'L-2026-007',
+    sortimen: 'Sortimen B',
+    panjang: 260,
+    lebar: 20,
+    tinggi: 4,
+    volume: 0.021,
+    grade: 'Grade B',
+    stage: 'finish pra-drykiln',
+    date: '2026-11-07',
+  },
+  {
+    id_plank: 'P-2026-008-C1',
+    id_log: 'L-2026-008',
+    sortimen: 'Sortimen C',
+    panjang: 200,
+    lebar: 15,
+    tinggi: 3,
+    volume: 0.009,
+    grade: 'Grade C',
+    stage: 'pra-drykiln',
+    date: '2026-11-07',
+  },
+  {
+    id_plank: 'P-2026-010-A1',
+    id_log: 'L-2026-010',
+    sortimen: 'Sortimen A',
+    panjang: 320,
+    lebar: 25,
+    tinggi: 6,
+    volume: 0.048,
+    grade: 'Grade A',
+    stage: 'finish pra-drykiln',
+    date: '2026-11-07',
+  },
+];
+
 export default function PraDryKilnPage() {
   // Role asli dari sesi login (Manager & Admin Kantor read-only)
   const user = useSessionUser();
@@ -18,7 +106,7 @@ export default function PraDryKilnPage() {
   const canUpdate = can(user?.role, 'pra-dry-kiln:update');
 
   // State Data Awal (Zero Dummy Data)
-  const [items, setItems] = useState<PraDryKilnItem[]>([]);
+  const [items, setItems] = useState<PraDryKilnItem[]>(INITIAL_PRA_DRY_KILN);
 
   // Filter States
   const [dateFilter, setDateFilter] = useState('');

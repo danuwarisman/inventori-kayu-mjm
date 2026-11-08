@@ -34,21 +34,21 @@ interface HardcodedAccount {
 
 const HARDCODED_ACCOUNTS: Record<string, HardcodedAccount> = {
   admin: {
-    id: 1,
+    id: 2,
     username: 'admin',
     fullName: 'Admin Kantor',
     role: 'admin_kantor',
     passwords: ['admin', 'admin123', 'password', '123456'],
   },
   admin_kantor: {
-    id: 1,
+    id: 2,
     username: 'admin_kantor',
     fullName: 'Admin Kantor',
     role: 'admin_kantor',
     passwords: ['admin', 'admin123', 'password', '123456'],
   },
   manager: {
-    id: 2,
+    id: 1,
     username: 'manager',
     fullName: 'Manager MJM',
     role: 'manager',

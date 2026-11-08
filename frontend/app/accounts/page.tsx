@@ -6,9 +6,67 @@ import { AccountItem, AccountFormData } from '@/types/account';
 import AccountCard from '@/components/accounts/AccountCard';
 import AccountModal from '@/components/accounts/AccountModal';
 
+// Data akun pengguna sistem aktif (Sample Data)
+const INITIAL_ACCOUNTS: AccountItem[] = [
+  {
+    id_account: 'ACC-001',
+    name_account: 'manager',
+    nama_user: 'Manager MJM',
+    password: '••••••••',
+    email: 'manager@margijatimakmur.co.id',
+    alamat: 'Jl. Pemuda No. 10, Pati',
+    divisi: 'Manager',
+  },
+  {
+    id_account: 'ACC-002',
+    name_account: 'danuwarisman',
+    nama_user: 'Danu Warisman',
+    password: '••••••••',
+    email: 'danu@margijatimakmur.co.id',
+    alamat: 'Kudus, Jawa Tengah',
+    divisi: 'Admin Kantor',
+  },
+  {
+    id_account: 'ACC-003',
+    name_account: 'cikalchrestella',
+    nama_user: 'Cikal Chrestella Cora',
+    password: '••••••••',
+    email: 'cikal@margijatimakmur.co.id',
+    alamat: 'Semarang, Jawa Tengah',
+    divisi: 'Admin Kantor',
+  },
+  {
+    id_account: 'ACC-004',
+    name_account: 'haryantoazmi',
+    nama_user: 'Haryanto Wifakul Azmi',
+    password: '••••••••',
+    email: 'haryanto@margijatimakmur.co.id',
+    alamat: 'Pati, Jawa Tengah',
+    divisi: 'Manager',
+  },
+  {
+    id_account: 'ACC-005',
+    name_account: 'riyanhidayat',
+    nama_user: 'Riyan Hidayat Taufik',
+    password: '••••••••',
+    email: 'riyan@margijatimakmur.co.id',
+    alamat: 'Blora, Jawa Tengah',
+    divisi: 'Admin Kantor',
+  },
+  {
+    id_account: 'ACC-006',
+    name_account: 'lapangan',
+    nama_user: 'Jovanov Alvin Bertram',
+    password: '••••••••',
+    email: 'jovanov@margijatimakmur.co.id',
+    alamat: 'Jepara, Jawa Tengah',
+    divisi: 'Admin Lapangan',
+  },
+];
+
 export default function AccountsPage() {
   // State data akun pengguna awal (Zero Dummy Data)
-  const [accounts, setAccounts] = useState<AccountItem[]>([]);
+  const [accounts, setAccounts] = useState<AccountItem[]>(INITIAL_ACCOUNTS);
   const [searchQuery, setSearchQuery] = useState('');
 
   // State Modal Form

@@ -17,7 +17,7 @@ import {
 import { toISODate, formatDateID } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
-import { getApiErrorMessage, logApi } from '@/lib/api';
+import { getApiErrorMessage, logApi, sawmillApi } from '@/lib/api';
 import { exportToPdf } from '@/lib/export';
 import { LogItem } from '@/types/log';
 import FormError from '@/components/FormError';
@@ -43,6 +43,8 @@ export default function DataLogPage() {
   const [page, setPage] = useState(1);
   const [pageError, setPageError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [processingLogId, setProcessingLogId] = useState<string | null>(null);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,7 +95,7 @@ export default function DataLogPage() {
   const canCreate = can(user?.role, 'log:create');
   const canUpdate = can(user?.role, 'log:update');
   const canDelete = can(user?.role, 'log:delete');
-  const canAct = canUpdate || canDelete;
+  const canAct = canUpdate || canDelete || isManager;
 
   // Hitung volume otomatis: V = (pi/4) * (d^2) * L atau rumus kubikasi standar
   const calculateVolume = (panjangCm: number, diameterCm: number): number => {
@@ -216,6 +218,62 @@ export default function DataLogPage() {
     }
 
     setIsModalOpen(false);
+  };
+
+
+  const handleSendToSawmill = async (item: LogItem) => {
+    if (
+      !confirm(
+        `Kirim kayu log ${item.id_log} (${item.sortimen}, ${item.panjang}x${item.diameter} cm) ke proses Sawmill?`
+      )
+    ) {
+      return;
+    }
+
+    setProcessingLogId(item.id_log);
+    setPageError(null);
+    setSuccessBanner(null);
+
+    try {
+      await sawmillApi.create({
+        idLog: item.idLog,
+        id_log_asal: item.id_log,
+        sortimen: item.sortimen,
+        panjang: item.panjang,
+        diameter: item.diameter,
+        volume_total: item.volume,
+        stage: 'Sawmill',
+        suplier: item.suplier,
+        harga: item.harga || 0,
+        tanggal: toISODate(),
+        planks: [],
+      });
+
+      if (item.idLog) {
+        await logApi.update(item.idLog, { statusLog: 'Sawmill' });
+      }
+
+      setLogs((prev) =>
+        prev.map((l) =>
+          l.id_log === item.id_log
+            ? { ...l, stage: 'Sawmill', statusLog: 'Sawmill' }
+            : l
+        )
+      );
+
+      setSuccessBanner(
+        `Kayu log ${item.id_log} berhasil dialihkan ke antrean proses Sawmill!`
+      );
+    } catch (err) {
+      setPageError(
+        `Gagal memproses log ${item.id_log} ke Sawmill: ${getApiErrorMessage(
+          err,
+          'Silakan periksa koneksi backend dan coba lagi.'
+        )}`
+      );
+    } finally {
+      setProcessingLogId(null);
+    }
   };
 
   const handleDeleteLog = async (item: LogItem) => {
@@ -386,7 +444,7 @@ export default function DataLogPage() {
             <span>Export PDF</span>
           </button>
 
-          {canCreate && (
+          {(canCreate || isManager) && (
             <button
               type="button"
               onClick={handleOpenInput}
@@ -398,6 +456,22 @@ export default function DataLogPage() {
           )}
         </div>
       </section>
+
+      {successBanner && (
+        <div className="p-3 bg-emerald-50 border border-emerald-300 rounded text-emerald-800 text-xs flex justify-between items-center animate-in fade-in">
+          <span className="font-medium flex items-center gap-1.5">
+            <Check className="w-4 h-4 text-emerald-700" />
+            {successBanner}
+          </span>
+          <button
+            type="button"
+            onClick={() => setSuccessBanner(null)}
+            className="text-emerald-700 hover:text-emerald-900 p-0.5 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {pageError && (
         <ErrorBanner
@@ -497,8 +571,26 @@ export default function DataLogPage() {
 
                     {canAct && (
                       <td className="py-3 px-3 text-center">
-                        <div className="inline-flex items-center gap-1">
-                          {canUpdate && (
+                        <div className="inline-flex items-center gap-1.5">
+                          {item.stage === 'Log' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleSendToSawmill(item)}
+                              disabled={processingLogId === item.id_log}
+                              className="px-2.5 py-1 text-xs font-semibold rounded bg-amber-600 hover:bg-amber-700 text-white shadow-xs inline-flex items-center gap-1 cursor-pointer transition disabled:opacity-50"
+                              title="Kirim kayu log ini ke proses Sawmill"
+                            >
+                              <Factory className="w-3.5 h-3.5" />
+                              <span>{processingLogId === item.id_log ? 'Memproses...' : 'Ke Sawmill'}</span>
+                            </button>
+                          ) : (
+                            <span className="px-2 py-0.5 text-[10px] font-medium text-amber-800 bg-amber-100 rounded border border-amber-300 inline-flex items-center gap-1">
+                              <Factory className="w-2.5 h-2.5 text-amber-700" />
+                              Sawmill
+                            </span>
+                          )}
+
+                          {(canUpdate || isManager) && (
                             <button
                               type="button"
                               onClick={() => handleOpenEdit(item)}

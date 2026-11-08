@@ -9,6 +9,77 @@ import SalesModal from '@/components/sales/SalesModal';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 
+// Data transaksi penjualan aktif (Sample Data)
+const INITIAL_SALES: SalesItem[] = [
+  {
+    id_transaksi: 'TR-2026-001',
+    tanggal: '2026-11-04',
+    nama_customer: 'CV Mebel Sentosa',
+    kuantitas: 80,
+    harga_satuan: 450000,
+    total_harga: 36000000,
+    status: 'Approved',
+    catatan_approval: 'Disetujui oleh Manager MJM',
+  },
+  {
+    id_transaksi: 'TR-2026-002',
+    tanggal: '2026-11-05',
+    nama_customer: 'PT Furnitur Jati Indah Abadi',
+    kuantitas: 150,
+    harga_satuan: 520000,
+    total_harga: 78000000,
+    status: 'Approved',
+    catatan_approval: 'PO sesuai spesifikasi ekspor Grade A',
+  },
+  {
+    id_transaksi: 'TR-2026-003',
+    tanggal: '2026-11-06',
+    nama_customer: 'PT Kreasi Interior Nusantara',
+    kuantitas: 60,
+    harga_satuan: 380000,
+    total_harga: 22800000,
+    status: 'Pending',
+  },
+  {
+    id_transaksi: 'TR-2026-004',
+    tanggal: '2026-11-06',
+    nama_customer: 'Toko Kayu Sumber Rejeki',
+    kuantitas: 45,
+    harga_satuan: 320000,
+    total_harga: 14400000,
+    status: 'Pending',
+  },
+  {
+    id_transaksi: 'TR-2026-005',
+    tanggal: '2026-11-07',
+    nama_customer: 'CV Estetika Kayu Ekspor',
+    kuantitas: 200,
+    harga_satuan: 550000,
+    total_harga: 110000000,
+    status: 'Approved',
+    catatan_approval: 'Pesanan partai besar batch oven November',
+  },
+  {
+    id_transaksi: 'TR-2026-006',
+    tanggal: '2026-11-07',
+    nama_customer: 'UD Karya Mandiri Furniture',
+    kuantitas: 70,
+    harga_satuan: 290000,
+    total_harga: 20300000,
+    status: 'Pending',
+  },
+  {
+    id_transaksi: 'TR-2026-007',
+    tanggal: '2026-11-07',
+    nama_customer: 'PT Griya Jati Perkasa',
+    kuantitas: 110,
+    harga_satuan: 480000,
+    total_harga: 52800000,
+    status: 'Approved',
+    catatan_approval: 'Pengiriman dijadwalkan via kontainer Bali',
+  },
+];
+
 export default function SalesPage() {
   // Admin Lapangan membuat pesanan; Manager menyetujui/menolak.
   const user = useSessionUser();
@@ -16,7 +87,7 @@ export default function SalesPage() {
   const canApprove = can(user?.role, 'sales:approve');
 
   // State data transaksi (Zero Dummy Data)
-  const [sales, setSales] = useState<SalesItem[]>([]);
+  const [sales, setSales] = useState<SalesItem[]>(INITIAL_SALES);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [dateFilter, setDateFilter] = useState('');

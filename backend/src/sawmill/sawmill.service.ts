@@ -152,6 +152,14 @@ export class SawmillService {
       });
     }
 
+    // Otomatis sinkronkan status log asal menjadi 'Sawmill'
+    if (logId) {
+      await this.prisma.stokLog.update({
+        where: { idLog: logId },
+        data: { statusLog: 'Sawmill' },
+      });
+    }
+
     // If initial planks provided
     if (dto.planks && Array.isArray(dto.planks) && dto.planks.length > 0) {
       for (const p of dto.planks) {

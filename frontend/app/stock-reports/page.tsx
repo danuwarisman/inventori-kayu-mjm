@@ -29,6 +29,130 @@ import {
 
 const PAGE_SIZE = 10;
 
+// Data stok fisik gudang dan olahan aktif (Sample Data)
+const INITIAL_STOCKS: StockReportItem[] = [
+  {
+    id_log: 'L-2026-004',
+    sortimen: 'Sortimen A',
+    grade: 'Grade A',
+    thickness: 50,
+    width: 200,
+    length: 2500,
+    dimensions: '50 x 200 x 2500',
+    volume: 0.025,
+    status: 'Available',
+    date: '2026-11-04',
+  },
+  {
+    id_log: 'L-2026-005',
+    sortimen: 'Sortimen A',
+    grade: 'Grade A',
+    thickness: 50,
+    width: 250,
+    length: 3000,
+    dimensions: '50 x 250 x 3000',
+    volume: 0.038,
+    status: 'Available',
+    date: '2026-11-04',
+  },
+  {
+    id_log: 'L-2026-006',
+    sortimen: 'Sortimen B',
+    grade: 'Grade B',
+    thickness: 40,
+    width: 180,
+    length: 2200,
+    dimensions: '40 x 180 x 2200',
+    volume: 0.016,
+    status: 'Low Stock',
+    date: '2026-11-05',
+  },
+  {
+    id_log: 'L-2026-007',
+    sortimen: 'Sortimen B',
+    grade: 'Grade B',
+    thickness: 45,
+    width: 200,
+    length: 2600,
+    dimensions: '45 x 200 x 2600',
+    volume: 0.023,
+    status: 'Available',
+    date: '2026-11-05',
+  },
+  {
+    id_log: 'L-2026-008',
+    sortimen: 'Sortimen C',
+    grade: 'Grade C',
+    thickness: 30,
+    width: 150,
+    length: 2000,
+    dimensions: '30 x 150 x 2000',
+    volume: 0.009,
+    status: 'Low Stock',
+    date: '2026-11-06',
+  },
+  {
+    id_log: 'L-2026-009',
+    sortimen: 'Sortimen A',
+    grade: 'Grade A',
+    thickness: 60,
+    width: 220,
+    length: 2800,
+    dimensions: '60 x 220 x 2800',
+    volume: 0.037,
+    status: 'Available',
+    date: '2026-11-06',
+  },
+  {
+    id_log: 'L-2026-010',
+    sortimen: 'Sortimen A',
+    grade: 'Grade A',
+    thickness: 50,
+    width: 250,
+    length: 3200,
+    dimensions: '50 x 250 x 3200',
+    volume: 0.040,
+    status: 'Available',
+    date: '2026-11-06',
+  },
+  {
+    id_log: 'L-2026-011',
+    sortimen: 'Sortimen B',
+    grade: 'Grade A',
+    thickness: 40,
+    width: 200,
+    length: 2400,
+    dimensions: '40 x 200 x 2400',
+    volume: 0.019,
+    status: 'Available',
+    date: '2026-11-07',
+  },
+  {
+    id_log: 'L-2026-012',
+    sortimen: 'Sortimen C',
+    grade: 'Grade C',
+    thickness: 25,
+    width: 120,
+    length: 1900,
+    dimensions: '25 x 120 x 1900',
+    volume: 0.006,
+    status: 'Out of Stock',
+    date: '2026-11-07',
+  },
+  {
+    id_log: 'L-2026-013',
+    sortimen: 'Sortimen A',
+    grade: 'Grade B',
+    thickness: 50,
+    width: 200,
+    length: 2600,
+    dimensions: '50 x 200 x 2600',
+    volume: 0.026,
+    status: 'Available',
+    date: '2026-11-07',
+  },
+];
+
 export default function StockReportsPage() {
   // Input stok dilakukan Admin Lapangan; role lain read-only.
   const user = useSessionUser();
@@ -37,7 +161,7 @@ export default function StockReportsPage() {
   const currentYear = new Date().getFullYear();
 
   // State data inventori (Zero Dummy Data)
-  const [stocks, setStocks] = useState<StockReportItem[]>([]);
+  const [stocks, setStocks] = useState<StockReportItem[]>(INITIAL_STOCKS);
 
   // Filter States
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');

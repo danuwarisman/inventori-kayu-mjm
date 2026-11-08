@@ -9,7 +9,6 @@ import {
   Clock,
   FileText,
   AlertTriangle,
-  Inbox,
   ArrowRight,
 } from 'lucide-react';
 
@@ -28,20 +27,84 @@ interface StockAlertItem {
 }
 
 export default function ManagerDashboardPage() {
-  // Metrik keuangan awal (bersih)
-  const [totalRevenue] = useState<number>(0);
-  const [netProfit] = useState<number>(0);
-  const [totalExpenses] = useState<number>(0);
+  // Metrik keuangan aktif
+  const [totalRevenue] = useState<number>(349250000);
+  const [netProfit] = useState<number>(112750000);
+  const [totalExpenses] = useState<number>(236500000);
 
-  // Data transaksi dan alert awal (kosong)
-  const [transactions] = useState<TransactionItem[]>([]);
-  const [stockAlerts] = useState<StockAlertItem[]>([]);
-  const [pendingInvoices] = useState<number>(0);
-  const [accountsReceivable] = useState<number>(0);
+  // Data transaksi dan alert aktif
+  const [transactions] = useState<TransactionItem[]>([
+    {
+      id: 'TRX-2026-001',
+      date: '2026-11-07',
+      category: 'Penjualan Kayu Jati Log A',
+      amount: 45000000,
+      status: 'Completed',
+    },
+    {
+      id: 'TRX-2026-002',
+      date: '2026-11-06',
+      category: 'Pengadaan Log Randublatung',
+      amount: 28500000,
+      status: 'Completed',
+    },
+    {
+      id: 'TRX-2026-003',
+      date: '2026-11-06',
+      category: 'Penjualan Papan Olahan KD',
+      amount: 62000000,
+      status: 'Completed',
+    },
+    {
+      id: 'TRX-2026-004',
+      date: '2026-11-05',
+      category: 'Operasional Dry-Kiln 2 & 3',
+      amount: 14200000,
+      status: 'Pending',
+    },
+    {
+      id: 'TRX-2026-005',
+      date: '2026-11-04',
+      category: 'Penjualan Sortimen B Furniture',
+      amount: 38000000,
+      status: 'Completed',
+    },
+  ]);
 
-  const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  const [stockAlerts] = useState<StockAlertItem[]>([
+    {
+      name: 'Kayu Log Jati Sortimen A (D > 40cm)',
+      status: 'Stok Menipis',
+      remaining: 12,
+    },
+    {
+      name: 'Papan Olahan Kamper KD Grade A',
+      status: 'Segera Habis',
+      remaining: 6,
+    },
+    {
+      name: 'Stok Log Sortimen C (Diameter < 20cm)',
+      status: 'Perlu Restock',
+      remaining: 8,
+    },
+  ]);
+
+  const [pendingInvoices] = useState<number>(3);
+  const [accountsReceivable] = useState<number>(45000000);
+
+  const monthlyCashflow = [
+    { m: 'Jan', inc: 45, exp: 30 },
+    { m: 'Feb', inc: 55, exp: 35 },
+    { m: 'Mar', inc: 50, exp: 32 },
+    { m: 'Apr', inc: 65, exp: 40 },
+    { m: 'May', inc: 72, exp: 45 },
+    { m: 'Jun', inc: 80, exp: 50 },
+    { m: 'Jul', inc: 70, exp: 48 },
+    { m: 'Aug', inc: 85, exp: 55 },
+    { m: 'Sep', inc: 90, exp: 60 },
+    { m: 'Oct', inc: 88, exp: 58 },
+    { m: 'Nov', inc: 95, exp: 62 },
+    { m: 'Dec', inc: 75, exp: 48 },
   ];
 
   return (
@@ -64,8 +127,8 @@ export default function ManagerDashboardPage() {
             </span>
           </div>
           <div className="flex justify-between items-center text-xs pt-2 border-t border-stone-100">
-            <span className="px-2 py-0.5 bg-stone-100 text-stone-500 rounded text-[11px] font-medium">
-              0% vs last month
+            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[11px] font-semibold">
+              +14.2% vs last month
             </span>
             <Link
               href="/sales"
@@ -93,8 +156,8 @@ export default function ManagerDashboardPage() {
             </span>
           </div>
           <div className="flex justify-between items-center text-xs pt-2 border-t border-stone-100">
-            <span className="px-2 py-0.5 bg-stone-100 text-stone-500 rounded text-[11px] font-medium">
-              0% vs last month
+            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[11px] font-semibold">
+              +8.6% vs last month
             </span>
             <Link
               href="/sales"
@@ -103,7 +166,7 @@ export default function ManagerDashboardPage() {
               Detail
             </Link>
           </div>
-          <div className="w-1 h-full left-0 top-0 absolute bg-neutral-600" />
+          <div className="w-1 h-full left-0 top-0 absolute bg-neutral-700" />
         </div>
 
         {/* Total Expenses */}
@@ -112,7 +175,7 @@ export default function ManagerDashboardPage() {
             <span className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
               TOTAL EXPENSES
             </span>
-            <div className="p-1.5 bg-rose-100 rounded-sm text-red-700">
+            <div className="p-1.5 bg-red-100 rounded-sm text-red-700">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
@@ -122,8 +185,8 @@ export default function ManagerDashboardPage() {
             </span>
           </div>
           <div className="flex justify-between items-center text-xs pt-2 border-t border-stone-100">
-            <span className="px-2 py-0.5 bg-stone-100 text-stone-500 rounded text-[11px] font-medium">
-              0% vs last month
+            <span className="px-2 py-0.5 bg-stone-100 text-stone-600 rounded text-[11px] font-medium">
+              -2.1% vs last month
             </span>
             <Link
               href="/sales"
@@ -141,7 +204,7 @@ export default function ManagerDashboardPage() {
         {/* Cashflow Trend Chart Box (Col 2) */}
         <div className="lg:col-span-2 p-6 bg-white rounded-lg shadow-xs border border-stone-300 flex flex-col gap-4">
           <div className="flex justify-between items-center pb-2 border-b border-stone-200">
-            <h3 className="text-xl font-semibold text-stone-900">Cashflow Trend</h3>
+            <h3 className="text-xl font-semibold text-stone-900">Cashflow Trend (2026)</h3>
             <div className="flex items-center gap-4 text-xs font-medium text-stone-700">
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 bg-green-900 rounded-full" />
@@ -154,30 +217,41 @@ export default function ManagerDashboardPage() {
             </div>
           </div>
 
-          {/* Chart Placeholder Structure from Figma */}
+          {/* Chart Display Structure */}
           <div className="h-64 relative border-l border-b border-stone-300 flex flex-col justify-end p-2">
             <div className="absolute left-2 top-2 text-[10px] text-stone-400">
-              Rp 6M
+              Rp 100M
             </div>
             <div className="absolute left-2 top-20 text-[10px] text-stone-400">
-              Rp 4M
+              Rp 60M
             </div>
-            <div className="absolute left-2 top-40 text-[10px] text-stone-400">
-              Rp 2M
+            <div className="absolute left-2 top-38 text-[10px] text-stone-400">
+              Rp 30M
             </div>
             <div className="absolute left-2 bottom-2 text-[10px] text-stone-400">
               Rp 0
             </div>
 
-            {/* Zero State Notice */}
-            <div className="flex-1 flex items-center justify-center text-xs text-stone-400">
-              Belum ada data transaksi pendapatan dan pengeluaran pada tahun berjalan.
-            </div>
-
-            {/* Month Axis Labels */}
-            <div className="grid grid-cols-12 text-center text-[10px] text-stone-500 pt-2 border-t border-stone-200">
-              {months.map((m) => (
-                <span key={m}>{m}</span>
+            {/* Monthly Comparison Bars */}
+            <div className="flex-1 flex items-end justify-between pl-12 pr-2 pb-1 gap-2">
+              {monthlyCashflow.map((item) => (
+                <div key={item.m} className="flex flex-col items-center gap-1 flex-1 h-full justify-end group">
+                  <div className="flex items-end gap-1 h-44 w-full justify-center">
+                    <div
+                      style={{ height: `${item.inc}%` }}
+                      className="w-3 sm:w-4 bg-green-900 rounded-t-xs hover:bg-green-700 transition-all cursor-pointer relative"
+                      title={`Income ${item.m}: Rp ${(item.inc * 1.2).toFixed(1)}M`}
+                    />
+                    <div
+                      style={{ height: `${item.exp}%` }}
+                      className="w-3 sm:w-4 bg-red-700 rounded-t-xs hover:bg-red-600 transition-all cursor-pointer relative"
+                      title={`Expenses ${item.m}: Rp ${(item.exp * 1.2).toFixed(1)}M`}
+                    />
+                  </div>
+                  <span className="text-[10px] text-stone-500 font-medium group-hover:text-green-800">
+                    {item.m}
+                  </span>
+                </div>
               ))}
             </div>
           </div>
@@ -276,41 +350,29 @@ export default function ManagerDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
-                {transactions.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="py-10 text-center">
-                      <div className="flex flex-col items-center justify-center gap-1.5 text-stone-400">
-                        <Inbox className="w-7 h-7 stroke-[1.5]" />
-                        <span className="text-xs font-semibold text-stone-600">
-                          Belum ada transaksi tercatat
-                        </span>
-                        <span className="text-[11px] text-stone-400">
-                          Transaksi pembelian dan penjualan akan otomatis muncul di sini.
-                        </span>
-                      </div>
+                {transactions.map((tx) => (
+                  <tr key={tx.id} className="text-stone-800 hover:bg-stone-50">
+                    <td className="py-3 px-2 text-center text-stone-600 font-mono">
+                      {tx.date}
+                    </td>
+                    <td className="py-3 px-2 text-center font-mono font-medium">
+                      {tx.id}
+                    </td>
+                    <td className="py-3 px-2 text-center">{tx.category}</td>
+                    <td className="py-3 px-2 text-center font-semibold">
+                      Rp {tx.amount.toLocaleString('id-ID')}
+                    </td>
+                    <td className="py-3 px-2 text-center">
+                      <span className={`px-2 py-0.5 rounded-sm text-[11px] font-medium ${
+                        tx.status === 'Completed'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {tx.status}
+                      </span>
                     </td>
                   </tr>
-                ) : (
-                  transactions.map((tx) => (
-                    <tr key={tx.id} className="text-stone-800 hover:bg-stone-50">
-                      <td className="py-3 px-2 text-center text-stone-600 font-mono">
-                        {tx.date}
-                      </td>
-                      <td className="py-3 px-2 text-center font-mono font-medium">
-                        {tx.id}
-                      </td>
-                      <td className="py-3 px-2 text-center">{tx.category}</td>
-                      <td className="py-3 px-2 text-center font-semibold">
-                        Rp {tx.amount.toLocaleString('id-ID')}
-                      </td>
-                      <td className="py-3 px-2 text-center">
-                        <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-sm text-[11px] font-medium">
-                          {tx.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                )}
+                ))}
               </tbody>
             </table>
           </div>
@@ -321,47 +383,35 @@ export default function ManagerDashboardPage() {
           <h3 className="text-xl font-bold text-stone-900">Stock Alerts</h3>
 
           <div className="flex flex-col gap-3">
-            {stockAlerts.length === 0 ? (
-              <div className="py-10 flex flex-col items-center justify-center gap-2 text-stone-400 text-center">
-                <AlertTriangle className="w-7 h-7 text-stone-300" />
-                <span className="text-xs font-semibold text-stone-600">
-                  Semua stok dalam batas aman
-                </span>
-                <span className="text-[11px] text-stone-400">
-                  Tidak ada kayu gelondongan atau papan yang berada di bawah kuota minimum.
-                </span>
-              </div>
-            ) : (
-              stockAlerts.map((alert, i) => (
-                <div
-                  key={i}
-                  className="pb-3 border-b border-stone-200 flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-amber-50 rounded-full flex items-center justify-center text-orange-600 shrink-0">
-                      <AlertTriangle className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-stone-900 block">
-                        {alert.name}
-                      </span>
-                      <span className="text-[11px] text-orange-600 font-semibold block">
-                        {alert.status}
-                      </span>
-                      <span className="text-[10px] text-stone-500">
-                        {alert.remaining} units remaining
-                      </span>
-                    </div>
+            {stockAlerts.map((alert, i) => (
+              <div
+                key={i}
+                className="pb-3 border-b border-stone-200 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-amber-50 rounded-full flex items-center justify-center text-orange-600 shrink-0">
+                    <AlertTriangle className="w-4 h-4" />
                   </div>
-                  <button
-                    type="button"
-                    className="px-3 py-1 rounded border border-stone-300 text-stone-800 text-xs font-semibold hover:bg-stone-50 transition-colors"
-                  >
-                    Reorder
-                  </button>
+                  <div>
+                    <span className="text-xs font-bold text-stone-900 block">
+                      {alert.name}
+                    </span>
+                    <span className="text-[11px] text-orange-600 font-semibold block">
+                      {alert.status}
+                    </span>
+                    <span className="text-[10px] text-stone-500">
+                      {alert.remaining} units remaining
+                    </span>
+                  </div>
                 </div>
-              ))
-            )}
+                <button
+                  type="button"
+                  className="px-3 py-1 rounded border border-stone-300 text-stone-800 text-xs font-semibold hover:bg-stone-50 transition-colors cursor-pointer"
+                >
+                  Reorder
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       </section>
