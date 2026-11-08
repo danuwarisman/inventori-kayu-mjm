@@ -27,4 +27,3 @@ backend
 npm install  
 (Selebihnya tanya cikal)
 
-https://oven-titanium-cartridge-mentor.trycloudflare.com/
