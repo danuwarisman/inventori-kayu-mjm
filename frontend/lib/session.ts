@@ -6,7 +6,7 @@
  * Idealnya nanti token disimpan di cookie HttpOnly yang di-set backend.
  */
 
-export type AppRole = 'manager' | 'admin_kantor' | 'admin_lapangan';
+export type AppRole = 'admin' | 'manager';
 
 export const SESSION_COOKIE = 'mjm_session';
 export const SESSION_USER_KEY = 'mjm_session_user';
@@ -23,22 +23,21 @@ export interface SessionUser {
 
 /** Label role untuk ditampilkan di Sidebar. */
 export const ROLE_LABELS: Record<AppRole, string> = {
+  admin: 'Admin',
   manager: 'Manager',
-  admin_kantor: 'Office Admin',
-  admin_lapangan: 'Field Admin',
 };
 
 /** Role yang diizinkan untuk membuka halaman tertentu (null = semua role). */
 export const ROLE_ACCESS: Record<string, AppRole[] | null> = {
   '/manager-dashboard': ['manager'],
-  '/dashboard': ['admin_kantor', 'admin_lapangan'],
+  '/dashboard': ['admin'],
   '/master-data': null,
   '/sawmill': null,
   '/pra-dry-kiln': null,
   '/dry-kiln': null,
   '/stock-reports': null,
   '/suppliers': null,
-  '/pembelian': ['admin_kantor', 'manager'],
+  '/pembelian': null,
   '/sales': null,
   '/customers': null,
   '/accounts': ['manager'],
@@ -51,26 +50,21 @@ export function getDashboardPath(role: AppRole): string {
 }
 
 /**
- * Normalisasi nama role dari backend ke `AppRole`.
+ * Normalisasi nama role dari backend/cookie ke `AppRole` ('admin' | 'manager').
  *
- * Backend mengirim `role.nama.toUpperCase()` (contoh: "MANAGER",
- * "ADMIN KANTOR", "ADMIN LAPANGAN"), sedangkan UI memakai bentuk
- * snake_case. Perbandingan mengabaikan spasi, tanda hubung, dan
- * underscore agar "Admin Kantor", "ADMIN_KANTOR", dan "AdminKantor"
- * sama-sama valid.
- *
- * @returns role yang dikenali, atau null bila tidak ada padanannya.
+ * Mendukung fleksibilitas penamaan:
+ * - "ADMIN", "ADMIN KANTOR", "ADMIN LAPANGAN", "LAPANGAN" -> "admin"
+ * - "MANAGER" -> "manager"
  */
 export function normalizeRole(rawRole: string | null | undefined): AppRole | null {
   if (!rawRole) return null;
 
   const key = rawRole.trim().toLowerCase().replace(/[\s-]+/g, '_');
-  const compactKey = key.replace(/_/g, '');
-
-  for (const role of Object.keys(ROLE_LABELS) as AppRole[]) {
-    if (role === key || role.replace(/_/g, '') === compactKey) {
-      return role;
-    }
+  if (key.includes('manager')) {
+    return 'manager';
+  }
+  if (key.includes('admin') || key.includes('lapangan') || key.includes('kantor')) {
+    return 'admin';
   }
 
   return null;
@@ -93,19 +87,21 @@ function encodeSession(user: SessionUser): string {
 
 function decodeSession(raw: string): SessionUser | null {
   try {
-    const parsed = JSON.parse(raw) as SessionUser;
+    const parsed = JSON.parse(raw) as Partial<SessionUser>;
     if (
       parsed &&
       typeof parsed.username === 'string' &&
-      typeof parsed.fullName === 'string' &&
-      parsed.role in ROLE_LABELS
+      typeof parsed.fullName === 'string'
     ) {
-      return {
-        id: typeof parsed.id === 'number' ? parsed.id : undefined,
-        username: parsed.username,
-        fullName: parsed.fullName,
-        role: parsed.role,
-      };
+      const normalized = normalizeRole(parsed.role);
+      if (normalized) {
+        return {
+          id: typeof parsed.id === 'number' ? parsed.id : undefined,
+          username: parsed.username,
+          fullName: parsed.fullName,
+          role: normalized,
+        };
+      }
     }
     return null;
   } catch {

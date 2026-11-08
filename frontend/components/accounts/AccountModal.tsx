@@ -37,7 +37,7 @@ export default function AccountModal({
     password: '',
     email: '',
     alamat: '',
-    divisi: 'Admin Lapangan',
+    divisi: 'Admin',
   });
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -60,7 +60,7 @@ export default function AccountModal({
         password: '',
         email: '',
         alamat: '',
-        divisi: 'Admin Lapangan',
+        divisi: 'Admin',
       });
     }
   }, [initialData, mode, isOpen, nextIndex, currentYear]);

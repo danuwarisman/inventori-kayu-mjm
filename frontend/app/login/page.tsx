@@ -36,15 +36,8 @@ const HARDCODED_ACCOUNTS: Record<string, HardcodedAccount> = {
   admin: {
     id: 2,
     username: 'admin',
-    fullName: 'Admin Kantor',
-    role: 'admin_kantor',
-    passwords: ['admin', 'admin123', 'password', '123456'],
-  },
-  admin_kantor: {
-    id: 2,
-    username: 'admin_kantor',
-    fullName: 'Admin Kantor',
-    role: 'admin_kantor',
+    fullName: 'Admin MJM',
+    role: 'admin',
     passwords: ['admin', 'admin123', 'password', '123456'],
   },
   manager: {
@@ -54,18 +47,26 @@ const HARDCODED_ACCOUNTS: Record<string, HardcodedAccount> = {
     role: 'manager',
     passwords: ['manager', 'admin', 'admin123', 'password', '123456'],
   },
+  // Alias lama untuk kompatibilitas
+  admin_kantor: {
+    id: 2,
+    username: 'admin',
+    fullName: 'Admin MJM',
+    role: 'admin',
+    passwords: ['admin', 'admin123', 'password', '123456'],
+  },
   lapangan: {
-    id: 3,
-    username: 'lapangan',
-    fullName: 'Admin Lapangan',
-    role: 'admin_lapangan',
+    id: 2,
+    username: 'admin',
+    fullName: 'Admin MJM',
+    role: 'admin',
     passwords: ['lapangan', 'admin', 'admin123', 'password', '123456'],
   },
   admin_lapangan: {
-    id: 3,
-    username: 'admin_lapangan',
-    fullName: 'Admin Lapangan',
-    role: 'admin_lapangan',
+    id: 2,
+    username: 'admin',
+    fullName: 'Admin MJM',
+    role: 'admin',
     passwords: ['lapangan', 'admin', 'admin123', 'password', '123456'],
   },
 };
@@ -163,7 +164,7 @@ export default function LoginPage() {
       setError(
         getApiErrorMessage(
           err,
-          'Username atau password salah. Untuk demo gunakan: admin, manager, atau lapangan (password: admin123)'
+          'Username atau password salah. Untuk demo gunakan: admin atau manager (password: admin123)'
         )
       );
       setIsLoading(false);
@@ -233,7 +234,7 @@ export default function LoginPage() {
                     setUsername(e.target.value);
                     if (error) setError('');
                   }}
-                  placeholder="admin / manager / lapangan"
+                  placeholder="admin / manager"
                   className="w-full pl-9 pr-3 py-2.5 bg-transparent border-b border-stone-300 text-stone-900 text-sm focus:border-green-800 focus:outline-none transition-colors placeholder:text-stone-400"
                 />
               </div>
@@ -302,30 +303,24 @@ export default function LoginPage() {
                 </span>
                 <span className="font-mono text-stone-400">Pass: admin123</span>
               </div>
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => fillDemoAccount('admin', 'admin123')}
-                  className="py-1.5 px-2 text-[11px] font-medium rounded border border-stone-200 bg-stone-50 hover:bg-green-50 hover:border-green-300 hover:text-green-800 text-stone-700 transition-colors text-center cursor-pointer"
-                  title="Admin Kantor: Akses Dashboard & Pembelian"
+                  className="py-2 px-3 text-xs font-semibold rounded-md border border-stone-200 bg-stone-50 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 text-stone-700 transition-colors text-center cursor-pointer flex flex-col items-center gap-0.5"
+                  title="Admin: Akses Operasional, Produksi & Pengadaan"
                 >
-                  Admin Kantor
+                  <span className="font-bold">Admin</span>
+                  <span className="text-[10px] text-stone-400 font-normal">Operasional & Produksi</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => fillDemoAccount('manager', 'admin123')}
-                  className="py-1.5 px-2 text-[11px] font-medium rounded border border-stone-200 bg-stone-50 hover:bg-green-50 hover:border-green-300 hover:text-green-800 text-stone-700 transition-colors text-center cursor-pointer"
-                  title="Manager: Akses Manager Dashboard & Approval"
+                  className="py-2 px-3 text-xs font-semibold rounded-md border border-stone-200 bg-stone-50 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 text-stone-700 transition-colors text-center cursor-pointer flex flex-col items-center gap-0.5"
+                  title="Manager: Akses Dashboard Finansial & Approval"
                 >
-                  Manager
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillDemoAccount('lapangan', 'admin123')}
-                  className="py-1.5 px-2 text-[11px] font-medium rounded border border-stone-200 bg-stone-50 hover:bg-green-50 hover:border-green-300 hover:text-green-800 text-stone-700 transition-colors text-center cursor-pointer"
-                  title="Admin Lapangan: Akses Operasional Log & Sawmill"
-                >
-                  Lapangan
+                  <span className="font-bold">Manager</span>
+                  <span className="text-[10px] text-stone-400 font-normal">Finansial & Approval</span>
                 </button>
               </div>
             </div>

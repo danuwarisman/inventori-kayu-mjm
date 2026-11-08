@@ -1,20 +1,11 @@
-import type { AppRole } from '@/lib/session';
+import { type AppRole, normalizeRole } from '@/lib/session';
 
 /**
  * Izin aksi per role (UI-level).
  *
- * Sumber aturan:
- * - SDD `Menginput Data Kayu`: Admin Lapangan.
- * - SDD `Mengubah Data Kayu`: Admin Lapangan + Admin Kantor.
- * - SDD `Input Data Customer`: Admin Lapangan.
- * - SDD `Input/Mengubah Data Supplier`: Admin Kantor.
- * - SDD `Input Data Penjualan`: Admin Lapangan.
- * - SDD `Approval Data Penjualan`: Manager.
- * - SDD `Mengubah Data Admin` / Account Management: Manager.
- *
- * Catatan:
- * - Ini hanya guard UI. Otorisasi final tetap harus di backend.
- * - Manager sengaja read-only untuk data operasional.
+ * Sistem Role Baru:
+ * - Admin: Seluruh aksi operasional (Kayu Log, Sawmill, Dry Kiln, Supplier, Customer, Pembelian PO, Stok).
+ * - Manager: Approval transaksi (Pembelian & Penjualan), Manajemen Akun Staf, Dashboard Finansial & Pengawasan.
  */
 export type Permission =
   | 'log:create'
@@ -62,22 +53,10 @@ const ROLE_PERMISSIONS: Record<AppRole, ReadonlySet<Permission>> = {
     'account:update',
     'settings:manage-data',
   ]),
-  admin_kantor: new Set<Permission>([
-    'log:update',
-    'log:delete',
-    'supplier:create',
-    'supplier:update',
-    'supplier:delete',
-    'purchase:create',
-    'purchase:update',
-    'purchase:delete',
-    'purchase:verify',
-    'purchase:receive',
-    'settings:manage-data',
-  ]),
-  admin_lapangan: new Set<Permission>([
+  admin: new Set<Permission>([
     'log:create',
     'log:update',
+    'log:delete',
     'sawmill:create',
     'sawmill:update',
     'sawmill:delete',
@@ -89,19 +68,30 @@ const ROLE_PERMISSIONS: Record<AppRole, ReadonlySet<Permission>> = {
     'dry-kiln:delete',
     'pra-dry-kiln:create',
     'pra-dry-kiln:update',
+    'supplier:create',
+    'supplier:update',
+    'supplier:delete',
     'customer:create',
     'customer:update',
     'customer:delete',
+    'purchase:create',
+    'purchase:update',
+    'purchase:delete',
+    'purchase:verify',
+    'purchase:receive',
     'sales:create',
     'stock:create',
+    'settings:manage-data',
   ]),
 };
 
 /** Cek apakah role boleh melakukan aksi tertentu. `null`/role tak dikenal = false. */
 export function can(
-  role: AppRole | null | undefined,
+  role: string | null | undefined,
   permission: Permission
 ): boolean {
   if (!role) return false;
-  return ROLE_PERMISSIONS[role]?.has(permission) ?? false;
+  const normalized = normalizeRole(role);
+  if (!normalized) return false;
+  return ROLE_PERMISSIONS[normalized]?.has(permission) ?? false;
 }

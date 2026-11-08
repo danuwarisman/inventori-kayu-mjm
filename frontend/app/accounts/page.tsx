@@ -24,7 +24,7 @@ const INITIAL_ACCOUNTS: AccountItem[] = [
     password: '••••••••',
     email: 'danu@margijatimakmur.co.id',
     alamat: 'Kudus, Jawa Tengah',
-    divisi: 'Admin Kantor',
+    divisi: 'Admin',
   },
   {
     id_account: 'ACC-003',
@@ -33,7 +33,7 @@ const INITIAL_ACCOUNTS: AccountItem[] = [
     password: '••••••••',
     email: 'cikal@margijatimakmur.co.id',
     alamat: 'Semarang, Jawa Tengah',
-    divisi: 'Admin Kantor',
+    divisi: 'Admin',
   },
   {
     id_account: 'ACC-004',
@@ -51,7 +51,7 @@ const INITIAL_ACCOUNTS: AccountItem[] = [
     password: '••••••••',
     email: 'riyan@margijatimakmur.co.id',
     alamat: 'Blora, Jawa Tengah',
-    divisi: 'Admin Kantor',
+    divisi: 'Admin',
   },
   {
     id_account: 'ACC-006',
@@ -60,7 +60,7 @@ const INITIAL_ACCOUNTS: AccountItem[] = [
     password: '••••••••',
     email: 'jovanov@margijatimakmur.co.id',
     alamat: 'Jepara, Jawa Tengah',
-    divisi: 'Admin Lapangan',
+    divisi: 'Admin',
   },
 ];
 

@@ -1,5 +1,5 @@
 // Sesuai Tabel 1 & 2 SDD
-export type UserRole = 'admin_lapangan' | 'admin_kantor' | 'manager';
+export type UserRole = 'admin' | 'manager';
 
 export interface UserAccount {
   id_user: string;

@@ -77,7 +77,7 @@ const navConfig: NavItem[] = [
     label: 'Pembelian',
     href: () => '/pembelian',
     icon: ShoppingBag,
-    allowedRoles: ['admin_kantor', 'manager'],
+    allowedRoles: ['admin', 'manager'],
   },
   {
     label: 'Sales',
@@ -103,8 +103,8 @@ const navConfig: NavItem[] = [
 ];
 
 export default function Sidebar({
-  role = 'admin_lapangan',
-  userName = 'Unknown 123',
+  role = 'admin',
+  userName = 'Admin MJM',
   userRoleLabel,
   isOpenMobile = false,
   onCloseMobile,

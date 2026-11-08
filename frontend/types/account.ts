@@ -1,4 +1,4 @@
-export type AccountDivision = 'Admin Lapangan' | 'Admin Kantor' | 'Manager';
+export type AccountDivision = 'Admin' | 'Manager' | 'Admin Lapangan' | 'Admin Kantor';
 
 export interface AccountItem {
   id_account: string;
@@ -25,7 +25,7 @@ export interface AccountFormData {
 /* ------------------------------------------------------------------ */
 
 /** Role aplikasi dalam bentuk kode frontend. */
-export type AccountRole = 'manager' | 'admin_kantor' | 'admin_lapangan';
+export type AccountRole = 'admin' | 'manager';
 
 /** Respons GET /accounts: user beserta relasi role. */
 export interface AccountUser {
