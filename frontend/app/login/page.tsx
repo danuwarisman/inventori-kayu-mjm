@@ -12,14 +12,78 @@ import {
   ArrowRight,
   LifeBuoy,
   AlertCircle,
+  Sparkles,
 } from 'lucide-react';
 import {
   saveSession,
   saveAccessToken,
   normalizeRole,
   getDashboardPath,
+  AppRole,
 } from '@/lib/session';
 import { authApi, getApiErrorMessage } from '@/lib/api';
+
+/** Akun hardcode sementara untuk keperluan demo dan presentasi progres */
+interface HardcodedAccount {
+  id: number;
+  username: string;
+  fullName: string;
+  role: AppRole;
+  passwords: string[];
+}
+
+const HARDCODED_ACCOUNTS: Record<string, HardcodedAccount> = {
+  admin: {
+    id: 1,
+    username: 'admin',
+    fullName: 'Admin Kantor',
+    role: 'admin_kantor',
+    passwords: ['admin', 'admin123', 'password', '123456'],
+  },
+  admin_kantor: {
+    id: 1,
+    username: 'admin_kantor',
+    fullName: 'Admin Kantor',
+    role: 'admin_kantor',
+    passwords: ['admin', 'admin123', 'password', '123456'],
+  },
+  manager: {
+    id: 2,
+    username: 'manager',
+    fullName: 'Manager MJM',
+    role: 'manager',
+    passwords: ['manager', 'admin', 'admin123', 'password', '123456'],
+  },
+  lapangan: {
+    id: 3,
+    username: 'lapangan',
+    fullName: 'Admin Lapangan',
+    role: 'admin_lapangan',
+    passwords: ['lapangan', 'admin', 'admin123', 'password', '123456'],
+  },
+  admin_lapangan: {
+    id: 3,
+    username: 'admin_lapangan',
+    fullName: 'Admin Lapangan',
+    role: 'admin_lapangan',
+    passwords: ['lapangan', 'admin', 'admin123', 'password', '123456'],
+  },
+};
+
+/** Helper token dummy valid untuk sesi UI demo offline */
+function createMockJwt(id: number, username: string, role: string): string {
+  if (typeof window === 'undefined') return 'mock-jwt-token';
+  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const payload = btoa(
+    JSON.stringify({
+      sub: id,
+      username,
+      role: role.toUpperCase(),
+      exp: Math.floor(Date.now() / 1000) + 8 * 3600,
+    })
+  );
+  return `${header}.${payload}.mock-signature-for-presentation`;
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,6 +93,34 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const completeLogin = (
+    userId: number,
+    uname: string,
+    fullName: string,
+    role: AppRole,
+    token: string
+  ) => {
+    saveAccessToken(token);
+    saveSession({
+      id: userId,
+      username: uname,
+      fullName,
+      role,
+    });
+
+    const redirectCookie = document.cookie
+      .split('; ')
+      .find((c) => c.startsWith('mjm_redirect='))
+      ?.split('=')[1];
+    document.cookie = 'mjm_redirect=; path=/; max-age=0; samesite=lax';
+
+    if (redirectCookie && redirectCookie.startsWith('/') && !redirectCookie.startsWith('/login')) {
+      router.push(redirectCookie);
+    } else {
+      router.push(getDashboardPath(role));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
@@ -36,49 +128,52 @@ export default function LoginPage() {
     setError('');
     setIsLoading(true);
 
-    try {
-      // Autentikasi ke backend NestJS (POST /auth/login).
-      const data = await authApi.login(username.trim(), password);
+    const cleanUsername = username.trim();
+    const lowerUser = cleanUsername.toLowerCase();
+    const demoUser = HARDCODED_ACCOUNTS[lowerUser];
 
-      // Backend mengirim nama role uppercase (mis. "ADMIN KANTOR");
-      // UI memakai bentuk snake_case.
+    // 1. Prioritas akun demo hardcode untuk presentasi/offline
+    if (
+      demoUser &&
+      (demoUser.passwords.includes(password) ||
+        password === 'admin' ||
+        password === 'admin123' ||
+        password === lowerUser)
+    ) {
+      const mockToken = createMockJwt(demoUser.id, demoUser.username, demoUser.role);
+      completeLogin(demoUser.id, demoUser.username, demoUser.fullName, demoUser.role, mockToken);
+      return;
+    }
+
+    // 2. Jika bukan akun demo atau ingin autentikasi backend riil
+    try {
+      const data = await authApi.login(cleanUsername, password);
       const role = normalizeRole(data.user.role);
       if (!role) {
         setError(
           `Role akun "${data.user.role}" tidak dikenali oleh aplikasi. ` +
             'Hubungi administrator untuk memperbaiki data role.'
         );
+        setIsLoading(false);
         return;
       }
 
-      // Simpan JWT (dipakai sebagai Bearer token oleh api client) dan sesi UI
-      // (cookie role untuk middleware + profil untuk Sidebar/Header).
-      saveAccessToken(data.accessToken);
-      saveSession({
-        id: data.user.id,
-        username: data.user.username,
-        fullName: data.user.nama,
-        role,
-      });
-
-      // Kembali ke halaman yang sempat dituju sebelum diarahkan ke login
-      const redirectCookie = document.cookie
-        .split('; ')
-        .find((c) => c.startsWith('mjm_redirect='))
-        ?.split('=')[1];
-      document.cookie = 'mjm_redirect=; path=/; max-age=0; samesite=lax';
-
-      if (redirectCookie && redirectCookie.startsWith('/') && !redirectCookie.startsWith('/login')) {
-        router.push(redirectCookie);
-      } else {
-        router.push(getDashboardPath(role));
-      }
+      completeLogin(data.user.id, data.user.username, data.user.nama, role, data.accessToken);
     } catch (err) {
-      // 401 dari /auth/login = username/password salah (pesan dari backend).
-      setError(getApiErrorMessage(err, 'Login gagal. Silakan coba lagi.'));
-    } finally {
+      setError(
+        getApiErrorMessage(
+          err,
+          'Username atau password salah. Untuk demo gunakan: admin, manager, atau lapangan (password: admin123)'
+        )
+      );
       setIsLoading(false);
     }
+  };
+
+  const fillDemoAccount = (u: string, p: string) => {
+    setUsername(u);
+    setPassword(p);
+    setError('');
   };
 
   return (
@@ -138,7 +233,7 @@ export default function LoginPage() {
                     setUsername(e.target.value);
                     if (error) setError('');
                   }}
-                  placeholder="Enter your username"
+                  placeholder="admin / manager / lapangan"
                   className="w-full pl-9 pr-3 py-2.5 bg-transparent border-b border-stone-300 text-stone-900 text-sm focus:border-green-800 focus:outline-none transition-colors placeholder:text-stone-400"
                 />
               </div>
@@ -197,6 +292,43 @@ export default function LoginPage() {
               <span>{isLoading ? 'Authenticating...' : 'Authenticate Access'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+
+            {/* Quick Demo Accounts Helper for Presentation */}
+            <div className="mt-2 pt-3 border-t border-stone-200 flex flex-col gap-2">
+              <div className="flex items-center justify-between text-[11px] text-stone-500">
+                <span className="font-semibold flex items-center gap-1 text-stone-700">
+                  <Sparkles className="w-3 h-3 text-amber-600" />
+                  Akun Demo Presentasi:
+                </span>
+                <span className="font-mono text-stone-400">Pass: admin123</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => fillDemoAccount('admin', 'admin123')}
+                  className="py-1.5 px-2 text-[11px] font-medium rounded border border-stone-200 bg-stone-50 hover:bg-green-50 hover:border-green-300 hover:text-green-800 text-stone-700 transition-colors text-center cursor-pointer"
+                  title="Admin Kantor: Akses Dashboard & Pembelian"
+                >
+                  Admin Kantor
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillDemoAccount('manager', 'admin123')}
+                  className="py-1.5 px-2 text-[11px] font-medium rounded border border-stone-200 bg-stone-50 hover:bg-green-50 hover:border-green-300 hover:text-green-800 text-stone-700 transition-colors text-center cursor-pointer"
+                  title="Manager: Akses Manager Dashboard & Approval"
+                >
+                  Manager
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillDemoAccount('lapangan', 'admin123')}
+                  className="py-1.5 px-2 text-[11px] font-medium rounded border border-stone-200 bg-stone-50 hover:bg-green-50 hover:border-green-300 hover:text-green-800 text-stone-700 transition-colors text-center cursor-pointer"
+                  title="Admin Lapangan: Akses Operasional Log & Sawmill"
+                >
+                  Lapangan
+                </button>
+              </div>
+            </div>
           </form>
         </div>
 
