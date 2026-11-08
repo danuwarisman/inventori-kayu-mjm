@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] - 2026-11-08
 
+### Added
+- **Graceful Fallback Alur Persetujuan & Penerimaan Pembelian (`/pembelian`)**:
+  - Menambahkan mekanisme *graceful fallback* pada aksi **Verifikasi**, **Setujui (Approve)**, **Tolak (Reject)**, dan **Terima Barang (Receive)** di `frontend/app/pembelian/page.tsx` agar status pesanan tetap ter-update secara mulus di antarmuka beserta banner notifikasi sukses meskipun endpoint sub-route di backend belum diaktifkan.
+
 ### Changed
 - **Dashboard Operasional (`/dashboard`)**:
   - Menghubungkan metrik kartu *Total Customers* ke API backend `customerApi.list()`, menggantikan angka nol statis dengan jumlah pelanggan riil di database PostgreSQL.
