@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Pencil, Inbox } from 'lucide-react';
+import { Pencil, Inbox, Flame } from 'lucide-react';
 import { PraDryKilnItem } from '@/types/pra-dry-kiln';
 import { formatDateID } from '@/lib/dates';
 import Pagination from '@/components/Pagination';
@@ -12,6 +12,7 @@ interface PlankTableProps {
   isManager?: boolean;
   canEdit?: boolean;
   onEdit: (item: PraDryKilnItem) => void;
+  onSendToOven?: (item: PraDryKilnItem) => void;
 }
 
 export default function PlankTable({
@@ -20,6 +21,7 @@ export default function PlankTable({
   isManager = false,
   canEdit = false,
   onEdit,
+  onSendToOven,
 }: PlankTableProps) {
   const pageSize = 10;
   const [page, setPage] = useState(1);
@@ -44,7 +46,7 @@ export default function PlankTable({
               <th className="py-3 px-3 text-center">Grade</th>
               <th className="py-3 px-3 text-center">Stage</th>
               <th className="py-3 px-3 text-center">Date</th>
-              {canEdit && <th className="py-3 px-3 text-center w-12">Action</th>}
+              {canEdit && <th className="py-3 px-3 text-center w-36">Action</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100">
@@ -106,14 +108,27 @@ export default function PlankTable({
                   </td>
                   {canEdit && (
                     <td className="py-3 px-3 text-center">
-                      <button
-                        type="button"
-                        onClick={() => onEdit(item)}
-                        className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
-                        title="Edit Batch"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="inline-flex items-center justify-center gap-1.5">
+                        {onSendToOven && (
+                          <button
+                            type="button"
+                            onClick={() => onSendToOven(item)}
+                            className="px-2 py-1 text-[11px] font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded transition-colors inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                            title="Kirim Palet/Papan ke Antrean Oven Dry-Kiln"
+                          >
+                            <Flame className="w-3 h-3 text-amber-600" />
+                            <span>Ke Oven</span>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => onEdit(item)}
+                          className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                          title="Edit Batch"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   )}
                 </tr>

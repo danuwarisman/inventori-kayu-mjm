@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased] - 2026-11-08
 
 ### Added
+- **Otomatisasi Transfer Palet Pra-Dry-Kiln ke Antrean Oven (`/pra-dry-kiln` $\rightarrow$ `/dry-kiln`)**:
+  - Menambahkan tombol aksi cepat **Ke Oven** pada tabel Pra-Dry-Kiln (`frontend/components/pra-dry-kiln/PlankTable.tsx` & `frontend/app/pra-dry-kiln/page.tsx`) yang langsung mengirimkan data papan/palet ke antrean proses pengeringan oven (`dryKilnApi.create` dengan stage `in-drykiln`) disertai pintasan navigasi ke halaman `/dry-kiln`.
 - **Graceful Fallback Alur Persetujuan & Penerimaan Pembelian (`/pembelian`)**:
   - Menambahkan mekanisme *graceful fallback* pada aksi **Verifikasi**, **Setujui (Approve)**, **Tolak (Reject)**, dan **Terima Barang (Receive)** di `frontend/app/pembelian/page.tsx` agar status pesanan tetap ter-update secara mulus di antarmuka beserta banner notifikasi sukses meskipun endpoint sub-route di backend belum diaktifkan.
 

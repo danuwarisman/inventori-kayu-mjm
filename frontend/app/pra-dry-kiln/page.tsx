@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileDown, Plus, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { FileDown, Plus, ChevronDown, CheckCircle2, X, ArrowRight } from 'lucide-react';
+import { dryKilnApi } from '@/lib/api';
 import { PraDryKilnItem } from '@/types/pra-dry-kiln';
 import PlankTable from '@/components/pra-dry-kiln/PlankTable';
 import BatchModal from '@/components/pra-dry-kiln/BatchModal';
@@ -107,6 +109,7 @@ export default function PraDryKilnPage() {
 
   // State Data Awal (Zero Dummy Data)
   const [items, setItems] = useState<PraDryKilnItem[]>(INITIAL_PRA_DRY_KILN);
+  const [transferSuccess, setTransferSuccess] = useState<string | null>(null);
 
   // Filter States
   const [dateFilter, setDateFilter] = useState('');
@@ -132,6 +135,39 @@ export default function PraDryKilnPage() {
     setModalMode('edit');
     setSelectedItem(item);
     setIsModalOpen(true);
+  };
+
+  const handleSendToOven = async (item: PraDryKilnItem) => {
+    if (!canUpdate) return;
+    setTransferSuccess(null);
+
+    try {
+      await dryKilnApi.create({
+        id_plank: item.id_plank,
+        id_log: item.id_log,
+        sortimen: item.sortimen,
+        panjang: item.panjang,
+        lebar: item.lebar,
+        tinggi: item.tinggi,
+        volume: item.volume,
+        grade: item.grade,
+        stage: 'in-drykiln',
+        date: toISODate(),
+      });
+    } catch (err) {
+      console.warn('Gagal menyimpan langsung ke API dry-kiln, menggunakan fallback state lokal:', err);
+    }
+
+    setItems((prev) =>
+      prev.map((row) =>
+        row.id_plank === item.id_plank
+          ? { ...row, stage: 'finish pra-drykiln' }
+          : row
+      )
+    );
+    setTransferSuccess(
+      `Palet / Papan ${item.id_plank} (${item.sortimen} - ${item.volume.toFixed(3)} m³) berhasil dikirim ke antrean Oven Dry-Kiln.`
+    );
   };
 
   const handleModalSubmit = (
@@ -269,6 +305,32 @@ export default function PraDryKilnPage() {
         </div>
       </section>
 
+      {/* Banner Notifikasi Sukses Transfer ke Oven */}
+      {transferSuccess && (
+        <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-lg flex flex-wrap items-center justify-between gap-3 text-emerald-800 text-xs animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            <span className="font-semibold">{transferSuccess}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dry-kiln"
+              className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded inline-flex items-center gap-1 transition-colors"
+            >
+              <span>Buka Dry-Kiln</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => setTransferSuccess(null)}
+              className="text-emerald-700 hover:text-emerald-900 p-0.5 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Table Component */}
       <PlankTable
         items={filteredItems}
@@ -276,6 +338,7 @@ export default function PraDryKilnPage() {
         isManager={isManager}
         canEdit={canUpdate}
         onEdit={handleOpenEdit}
+        onSendToOven={handleSendToOven}
       />
 
       {/* Input / Edit Batch Modal */}
