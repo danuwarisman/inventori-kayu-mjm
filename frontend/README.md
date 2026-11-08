@@ -4,8 +4,8 @@ Dokumentasi ini menjelaskan kondisi **frontend** aplikasi inventori kayu PT. Mar
 
 - **Scope:** hanya folder `frontend/`
 - **Backend:** NestJS di folder `backend/` (tidak diubah oleh dokumentasi ini)
-- **Terakhir diperbarui:** 5 November 2026
-- **Sinkronisasi backend terakhir yang didokumentasikan:** Penyelarasan endpoint `/customers` & `/pembelian`, unifikasi model `Approval`, dan auto-inject `idUser` dari sesi pengguna
+- **Terakhir diperbarui:** 9 November 2026
+- **Sinkronisasi & pembaruan terakhir yang didokumentasikan:** Penyederhanaan RBAC menjadi 2 role (`admin` & `manager`), otomatisasi alur Log $\rightarrow$ Sawmill & Pra-Dry-Kiln $\rightarrow$ Oven Dry-Kiln, integrasi metrik *Total Customers* & *Active Kilns* live di `/dashboard`, serta *graceful fallback* persetujuan di `/pembelian`
 - **RBAC per aksi:** diterapkan di `lib/permissions.ts` dan dipakai halaman operasional (lihat §7.9)
 - **Validasi & pesan error:** helper di `lib/validation.ts`, komponen `FormError` dan `ErrorBanner` (lihat §12.6)
 
@@ -332,7 +332,7 @@ Browser
 |---|---|---|---|---|
 | `mjm_access_token` | `localStorage` | JWT dari backend | Mengikuti JWT (8 jam) | Dibaca `lib/api.ts` untuk header Bearer |
 | `mjm_session_user` | `localStorage` | `{ username, fullName, role }` | Tidak otomatis expired | Profil UI untuk Sidebar/Header |
-| `mjm_session` | Cookie | Role (`manager`, `admin_kantor`, `admin_lapangan`) | 8 jam (`max-age`) | Dibaca middleware; **bukan HttpOnly** |
+| `mjm_session` | Cookie | Role (`manager`, `admin`) | 8 jam (`max-age`) | Dibaca middleware; **bukan HttpOnly** |
 | `mjm_redirect` | Cookie | Path tujuan awal | 5 menit | Dipakai setelah login |
 
 `clearSession()` menghapus:
@@ -344,13 +344,12 @@ Browser
 
 ### 7.3 Normalisasi role
 
-Backend mengirim `role.nama.toUpperCase()`, misalnya `"ADMIN KANTOR"`. Frontend memakai kode:
+Aplikasi kini menggunakan **2 role resmi** (`admin` dan `manager`). Fungsi `normalizeRole()` tetap mendukung kompatibilitas mundur (*backward-compatible*) bila database backend mengirimkan string role lama:
 
 | Kode frontend | Label UI | Contoh nilai backend yang diterima |
 |---|---|---|
 | `manager` | Manager | `MANAGER`, `Manager` |
-| `admin_kantor` | Office Admin | `ADMIN KANTOR`, `ADMIN_KANTOR`, `AdminKantor` |
-| `admin_lapangan` | Field Admin | `ADMIN LAPANGAN`, `ADMIN_LAPANGAN`, `AdminLapangan` |
+| `admin` | Admin | `ADMIN`, `Admin`, `ADMIN KANTOR`, `ADMIN LAPANGAN`, `ADMIN_KANTOR`, `ADMIN_LAPANGAN` |
 
 `normalizeRole()` mengabaikan spasi, tanda hubung, dan underscore. Jika tidak ada padanan, hasilnya `null` dan login ditolak.
 
@@ -363,7 +362,7 @@ Backend mengirim `role.nama.toUpperCase()`, misalnya `"ADMIN KANTOR"`. Frontend 
 | Path | Role yang diizinkan |
 |---|---|
 | `/manager-dashboard` | `manager` |
-| `/dashboard` | `admin_kantor`, `admin_lapangan` |
+| `/dashboard` | `admin` |
 | `/accounts` | `manager` |
 | `/master-data` | Semua role login |
 | `/sawmill` | Semua role login |
@@ -371,7 +370,7 @@ Backend mengirim `role.nama.toUpperCase()`, misalnya `"ADMIN KANTOR"`. Frontend 
 | `/dry-kiln` | Semua role login |
 | `/stock-reports` | Semua role login |
 | `/suppliers` | Semua role login |
-| `/pembelian` | `admin_kantor`, `manager` |
+| `/pembelian` | `admin`, `manager` |
 | `/sales` | Semua role login |
 | `/customers` | Semua role login |
 | `/settings` | Semua role login |
@@ -425,25 +424,21 @@ Tidak ada tombol logout di Header/Sidebar.
 
 Sumber tunggal: `lib/permissions.ts` (`can(role, permission)`). Ini **hanya guard UI**; backend tetap harus memvalidasi otorisasi.
 
-| Modul / aksi | Manager | Admin Kantor | Admin Lapangan |
-|---|---:|---:|---:|
-| Log: create | — | — | ✅ |
-| Log: update | — | ✅ | ✅ |
-| Log: delete | — | ✅ | — |
-| Sawmill: create/update/delete | — | — | ✅ |
-| Plank: create/update/delete | — | — | ✅ |
-| Dry Kiln: create/update | — | — | ✅ |
-| Pra Dry Kiln: create/update | — | — | ✅ |
-| Supplier: create/update/delete | — | ✅ | — |
-| Pembelian: create/update/delete | — | ✅ | — |
-| Pembelian: approve/reject | ✅ | — | — |
-| Customer: create/update/delete | — | — | ✅ |
-| Sales: create | — | — | ✅ |
-| Sales: approve/reject | ✅ | — | — |
-| Stock: create | — | — | ✅ |
-| Account Management | ✅ | — | — |
-| Settings: Data Management (backup/export) | ✅ | ✅ | — |
-| Dashboard Quick Entry (log) | — | — | ✅ |
+| Modul / aksi | Manager (`manager`) | Admin (`admin`) |
+|---|---:|---:|
+| Log: create / update / delete | — | ✅ |
+| Sawmill & Plank: create / update / delete | — | ✅ |
+| Pra Dry Kiln & Dry Kiln: create / update | — | ✅ |
+| Supplier: create / update / delete | — | ✅ |
+| Pembelian (PO): create / update / delete / verify / receive | — | ✅ |
+| Pembelian (PO): approve / reject | ✅ | — |
+| Customer: create / update / delete | — | ✅ |
+| Sales: create | — | ✅ |
+| Sales: approve / reject | ✅ | — |
+| Stock: create | — | ✅ |
+| Account Management | ✅ | — |
+| Settings: Data Management (backup/export) | ✅ | ✅ |
+| Dashboard Quick Entry (log) | — | ✅ |
 
 Catatan:
 - Admin Kantor tetap dapat **melihat** Sawmill, Dry Kiln, Pra Dry Kiln, Sales, Customer, dan Stock Reports, tetapi tanpa aksi tulis.
@@ -1266,6 +1261,11 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 
 | Tanggal | Commit | Perubahan |
 |---|---|---|
+| 2026-11-09 | `ef2b820` | Otomatisasi transfer palet Pra-Dry-Kiln ke antrean Oven Dry-Kiln (`/pra-dry-kiln` $\rightarrow$ `/dry-kiln`) melalui tombol aksi cepat **Ke Oven** yang memanggil `dryKilnApi.create()` dengan stage `in-drykiln`. |
+| 2026-11-09 | `4cb33b1` | Penambahan *graceful fallback* dan banner notifikasi sukses pada aksi Verifikasi, Setujui (*Approve*), Tolak (*Reject*), dan Terima Barang (*Receive*) di halaman `/pembelian`. |
+| 2026-11-08 | `ad6ace4` | Integrasi live metrik *Total Customers* (`customerApi.list()`) dan *Active Kilns* (`dryKilnApi.list()`) pada Dashboard Operasional (`/dashboard`). |
+| 2026-11-08 | `99b5d9c` | Refactor sistem RBAC dari 3 role menjadi 2 role resmi (`admin` dan `manager`) di seluruh aplikasi dengan kompatibilitas mundur penuh pada `normalizeRole()`. |
+| 2026-11-08 | `6a12fa4` | Otomatisasi pengiriman Log ke Sawmill (`/master-data` $\rightarrow$ `/sawmill`), *smart log selector* pada modal Sawmill, serta pengisian metrik dan grafik finansial aktif pada Executive Manager Dashboard (`/manager-dashboard`). |
 | 2026-11-05 | *(working tree)* | Integrasi halaman `/customers` dan implementasi modul `/pembelian`: penyambungan penuh CRUD Customer ke backend `customerApi` (`GET/POST/PATCH/DELETE /customers`) dengan validasi DTO dan dual-ID, pembangunan halaman `/pembelian` (Purchase Order) terhubung ke `purchaseApi` lengkap dengan kartu metrik, tabel transaksi, modal input/edit dinamis, modal rincian detail, guard akses role (`admin_kantor` & `manager`), dan registrasi menu pada `Sidebar.tsx`. |
 | 2026-11-05 | `ef44482` | Penyelarasan API & Kontrak Tipe Data backend: sinkronisasi `customerApi` ke `/customers` (CRUD aktif), sinkronisasi `purchaseApi` ke `/pembelian` (modul pembelian aktif) dengan otomatisasi `idUser` dari session pengguna serta normalisasi payload `detailPembelian`, unifikasi tipe data `PurchaseApproval` dan `SalesApproval` ke model Prisma `Approval`, serta penambahan field `id` pada `SessionUser` dan helper `getCurrentUserId()` dengan fallback dekode JWT. |
 | 2026-11-04 | *(working tree)* | Scaffolding API/tipe modul lanjutan: `customerApi`, `accountApi`, `salesApi`, `purchaseApi`, `stockApi`, `praDryKilnApi`, `hasilDryKilnApi`, `dashboardApi`, `reportApi`, `healthApi`; tambah `types/purchase.ts`, `types/stock.ts`, `types/report.ts`, `types/dashboard.ts`, serta kontrak backend camelCase di tipe yang sudah ada. Endpoint backend terkait belum tersedia. |
