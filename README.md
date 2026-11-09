@@ -46,7 +46,6 @@ npm install
 npm install lucide-react
 npm run dev
 ```
-Aplikasi frontend akan berjalan di `http://localhost:3000`.
 
 ### 2. Persiapan Backend
 ```bash
@@ -54,4 +53,3 @@ cd backend
 npm install
 npm run start:dev
 ```
-Server API backend akan berjalan di `http://localhost:3001` *(Untuk konfigurasi database `.env` dan migrasi Prisma, koordinasi dengan Cikal)*.
