@@ -20,9 +20,17 @@ export class AuthService {
       include: { role: true },
     });
 
-    if (!user || !(await bcrypt.compare(dto.password, user.password))) {
-      throw new UnauthorizedException('Username atau password salah');
-    }
+    console.log('LOGIN DEBUG:', {
+  username: dto.username,
+  userFound: !!user,
+  passwordMatch: user
+    ? await bcrypt.compare(dto.password, user.password)
+    : false,
+});
+
+if (!user || !(await bcrypt.compare(dto.password, user.password))) {
+  throw new UnauthorizedException('Username atau password salah');
+}
 
     const accessToken = await this.jwtService.signAsync({
       sub: user.id,
