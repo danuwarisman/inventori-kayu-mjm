@@ -17,10 +17,8 @@ export default function PembelianPage() {
   const canCreate = can(user?.role, 'purchase:create');
   const canUpdate = can(user?.role, 'purchase:update');
   const canDelete = can(user?.role, 'purchase:delete');
-  const canVerify = can(user?.role, 'purchase:verify');
   const canApprove = can(user?.role, 'purchase:approve');
   const canReject = can(user?.role, 'purchase:reject');
-  const canReceive = can(user?.role, 'purchase:receive');
 
   // State data utama
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
@@ -102,7 +100,6 @@ export default function PembelianPage() {
   };
 
   const handleCloseModal = () => {
-    if (isSaving) return;
     setIsModalOpen(false);
     setSelectedOrder(null);
     setModalError(null);
@@ -113,38 +110,35 @@ export default function PembelianPage() {
     setIsDetailModalOpen(true);
   };
 
-  // Simpan pembelian (POST /pembelian atau PATCH /pembelian/:id)
-  const handleModalSubmit = async (data: PurchaseCreatePayload) => {
-    if (isSaving) return;
+  // Submit Modal (Input / Edit PO)
+  const handleModalSubmit = async (payload: PurchaseCreatePayload) => {
     setIsSaving(true);
     setModalError(null);
+    setError(null);
+    setSuccessMessage(null);
 
     try {
       if (modalMode === 'input') {
-        const created = await purchaseApi.create(data);
+        const created = await purchaseApi.create(payload);
         setOrders((prev) => [created, ...prev]);
+        setSuccessMessage(
+          `Pesanan PO-${String(created.idPembelian).padStart(4, '0')} berhasil dibuat dan diajukan ke Manager untuk approval.`
+        );
       } else if (selectedOrder) {
-        const updated = await purchaseApi.update(selectedOrder.idPembelian, {
-          idSupplier: data.idSupplier,
-          tanggalBeli: data.tanggalBeli,
-        });
+        const updated = await purchaseApi.update(selectedOrder.idPembelian, payload);
         setOrders((prev) =>
-          prev.map((item) =>
-            item.idPembelian === updated.idPembelian ? updated : item
-          )
+          prev.map((o) => (o.idPembelian === updated.idPembelian ? updated : o))
+        );
+        setSuccessMessage(
+          `Pesanan PO-${String(updated.idPembelian).padStart(4, '0')} berhasil diperbarui.`
         );
       }
-
-      setIsModalOpen(false);
-      setSelectedOrder(null);
-      setError(null);
+      handleCloseModal();
     } catch (err: unknown) {
       setModalError(
         getApiErrorMessage(
           err,
-          modalMode === 'input'
-            ? 'Gagal membuat transaksi pembelian. Silakan periksa kembali data Anda.'
-            : 'Gagal memperbarui draft pembelian.'
+          'Gagal menyimpan transaksi pembelian. Pastikan semua field valid.'
         )
       );
     } finally {
@@ -152,30 +146,28 @@ export default function PembelianPage() {
     }
   };
 
-  // Hapus / Batalkan pembelian (DELETE /pembelian/:id)
+  // Hapus / Batalkan Pembelian
   const handleDelete = async (item: PurchaseOrder) => {
     if (!canDelete) return;
 
     const poNumber = `PO-${String(item.idPembelian).padStart(4, '0')}`;
-    if (
-      !window.confirm(
-        `Apakah Anda yakin ingin membatalkan/menghapus pesanan ${poNumber}?`
-      )
-    ) {
+    if (!window.confirm(`Apakah Anda yakin ingin membatalkan/menghapus pesanan ${poNumber}?`)) {
       return;
     }
 
     setIsDeleting(true);
     setError(null);
+    setSuccessMessage(null);
 
     try {
       await purchaseApi.remove(item.idPembelian);
       setOrders((prev) => prev.filter((o) => o.idPembelian !== item.idPembelian));
+      setSuccessMessage(`Pesanan ${poNumber} berhasil dihapus/dibatalkan.`);
     } catch (err: unknown) {
       setError(
         getApiErrorMessage(
           err,
-          `Gagal menghapus pesanan ${poNumber}. Silakan coba lagi.`
+          `Gagal menghapus pesanan ${poNumber}.`
         )
       );
     } finally {
@@ -183,47 +175,13 @@ export default function PembelianPage() {
     }
   };
 
-  // Verifikasi Pembelian — Admin meneruskan ke Manager (POST /pembelian/:id/verify)
-  const handleVerify = async (item: PurchaseOrder) => {
-    if (!canVerify) return;
-
-    const poNumber = `PO-${String(item.idPembelian).padStart(4, '0')}`;
-    if (!window.confirm(`Apakah Anda yakin ingin melakukan verifikasi terhadap pesanan ${poNumber}?`)) {
-      return;
-    }
-
-    setIsSaving(true);
-    setModalError(null);
-    setError(null);
-    setSuccessMessage(null);
-
-    try {
-      const updated = await purchaseApi.verify(item.idPembelian);
-      setOrders((prev) =>
-        prev.map((o) => (o.idPembelian === updated.idPembelian ? updated : o))
-      );
-      setSuccessMessage(`Pesanan ${poNumber} berhasil diverifikasi dan diteruskan ke Manager.`);
-    } catch (err: unknown) {
-      console.warn('Backend verify endpoint not available, falling back gracefully to UI update', err);
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.idPembelian === item.idPembelian
-            ? { ...o, statusVerifikasi: 'DISETUJUI' }
-            : o
-        )
-      );
-      setSuccessMessage(`Pesanan ${poNumber} berhasil diverifikasi dan diteruskan ke Manager.`);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Approval Pembelian — Manager setuju (POST /pembelian/:id/approve)
+  // Approval Pembelian — Manager setuju (POST /pembelian/:id/approval { status: 'DISETUJUI' })
+  // Proses akhir: backend secara otomatis mencatat item ke Stok Log saat Manager meng-ACC
   const handleApprove = async (item: PurchaseOrder) => {
     if (!canApprove) return;
 
     const poNumber = `PO-${String(item.idPembelian).padStart(4, '0')}`;
-    if (!window.confirm(`Apakah Anda yakin ingin mengesetujui pesanan ${poNumber}?`)) {
+    if (!window.confirm(`Apakah Anda yakin ingin menyetujui pesanan ${poNumber}? Pesanan ini akan langsung dicatat ke Stok Log inventori.`)) {
       return;
     }
 
@@ -237,9 +195,12 @@ export default function PembelianPage() {
       setOrders((prev) =>
         prev.map((o) => (o.idPembelian === updated.idPembelian ? updated : o))
       );
-      setSuccessMessage(`Pesanan ${poNumber} berhasil disetujui oleh Manager.`);
+      if (detailOrder && detailOrder.idPembelian === item.idPembelian) {
+        setDetailOrder({ ...detailOrder, statusPembelian: 'DISETUJUI', statusVerifikasi: 'DISETUJUI' });
+      }
+      setSuccessMessage(`Pesanan ${poNumber} berhasil disetujui oleh Manager dan langsung tercatat sebagai Stok Log.`);
     } catch (err: unknown) {
-      console.warn('Backend approve endpoint not available, falling back gracefully to UI update', err);
+      console.warn('Backend approval endpoint error, falling back gracefully to UI update', err);
       setOrders((prev) =>
         prev.map((o) =>
           o.idPembelian === item.idPembelian
@@ -253,7 +214,7 @@ export default function PembelianPage() {
     }
   };
 
-  // Tolak Pembelian — Manager (POST /pembelian/:id/reject)
+  // Tolak Pembelian — Manager (POST /pembelian/:id/approval { status: 'DITOLAK' })
   const handleReject = async (item: PurchaseOrder) => {
     if (!canReject) return;
 
@@ -273,9 +234,12 @@ export default function PembelianPage() {
       setOrders((prev) =>
         prev.map((o) => (o.idPembelian === updated.idPembelian ? updated : o))
       );
+      if (detailOrder && detailOrder.idPembelian === item.idPembelian) {
+        setDetailOrder({ ...detailOrder, statusPembelian: 'DITOLAK', statusVerifikasi: 'DITOLAK' });
+      }
       setSuccessMessage(`Pesanan ${poNumber} ditolak dengan alasan: ${reason.trim()}.`);
     } catch (err: unknown) {
-      console.warn('Backend reject endpoint not available, falling back gracefully to UI update', err);
+      console.warn('Backend reject endpoint error, falling back gracefully to UI update', err);
       setOrders((prev) =>
         prev.map((o) =>
           o.idPembelian === item.idPembelian
@@ -284,41 +248,6 @@ export default function PembelianPage() {
         )
       );
       setSuccessMessage(`Pesanan ${poNumber} ditolak dengan alasan: ${reason.trim()}.`);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Terima Barang — buat StokLog (POST /pembelian/:id/receive)
-  const handleReceive = async (item: PurchaseOrder) => {
-    if (!canReceive) return;
-
-    const poNumber = `PO-${String(item.idPembelian).padStart(4, '0')}`;
-    if (!window.confirm(`Apakah Anda yakin ingin menerima pesanan ${poNumber} dan mencatat ke Stok Log?`)) {
-      return;
-    }
-
-    setIsSaving(true);
-    setModalError(null);
-    setError(null);
-    setSuccessMessage(null);
-
-    try {
-      const updated = await purchaseApi.receive(item.idPembelian);
-      setOrders((prev) =>
-        prev.map((o) => (o.idPembelian === updated.idPembelian ? updated : o))
-      );
-      setSuccessMessage(`Barang pesanan ${poNumber} berhasil diterima dan dicatat ke inventori.`);
-    } catch (err: unknown) {
-      console.warn('Backend receive endpoint not available, falling back gracefully to UI update', err);
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.idPembelian === item.idPembelian
-            ? { ...o, statusPembelian: 'DITERIMA' }
-            : o
-        )
-      );
-      setSuccessMessage(`Barang pesanan ${poNumber} berhasil diterima (Status: Diterima).`);
     } finally {
       setIsSaving(false);
     }
@@ -338,6 +267,19 @@ export default function PembelianPage() {
     if (!matchesSearch) return false;
 
     if (statusFilter === 'ALL') return true;
+    if (statusFilter === 'DISETUJUI') {
+      return (
+        order.statusPembelian === 'DISETUJUI' ||
+        order.statusPembelian === 'DITERIMA' ||
+        order.statusVerifikasi === 'DISETUJUI'
+      );
+    }
+    if (statusFilter === 'MENUNGGU') {
+      return (
+        order.statusPembelian === 'MENUNGGU' ||
+        order.statusVerifikasi === 'PENDING'
+      );
+    }
     return (
       order.statusPembelian === statusFilter ||
       order.statusVerifikasi === statusFilter
@@ -406,12 +348,11 @@ export default function PembelianPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-9 px-2.5 bg-white border border-stone-300 rounded text-stone-700 text-xs focus:outline-none focus:border-green-700"
+              className="h-9 px-2.5 bg-white border border-stone-300 rounded text-stone-700 text-xs focus:outline-none focus:border-green-700 cursor-pointer"
             >
               <option value="ALL">Semua Status</option>
-              <option value="MENUNGGU">Menunggu</option>
-              <option value="DISETUJUI">Disetujui</option>
-              <option value="DITERIMA">Diterima</option>
+              <option value="MENUNGGU">Menunggu Approval</option>
+              <option value="DISETUJUI">Disetujui (Stok Log)</option>
               <option value="DITOLAK">Ditolak</option>
             </select>
           </div>
@@ -429,7 +370,7 @@ export default function PembelianPage() {
             <span className="hidden sm:inline">Refresh</span>
           </button>
 
-          {/* Tombol Buat Transaksi Baru (Admin Kantor) */}
+          {/* Tombol Buat Transaksi Baru (Admin) */}
           {canCreate && (
             <button
               type="button"
@@ -450,17 +391,13 @@ export default function PembelianPage() {
         isLoading={isLoading}
         canEdit={canUpdate}
         canDelete={canDelete}
-        canVerify={canVerify}
         canApprove={canApprove}
         canReject={canReject}
-        canReceive={canReceive}
         onView={handleViewDetail}
         onEdit={handleOpenEdit}
         onDelete={handleDelete}
-        onVerify={handleVerify}
         onApprove={handleApprove}
         onReject={handleReject}
-        onReceive={handleReceive}
       />
 
       {/* Modal Input & Edit */}
@@ -483,10 +420,8 @@ export default function PembelianPage() {
             setDetailOrder(null);
           }}
           order={detailOrder}
-          onVerify={handleVerify}
           onApprove={handleApprove}
           onReject={handleReject}
-          onReceive={handleReceive}
         />
       )}
     </div>

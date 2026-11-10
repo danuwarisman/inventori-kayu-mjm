@@ -994,56 +994,52 @@ export const purchaseApi = {
     await request<unknown>(`/pembelian/${id}`, { method: 'DELETE' });
   },
 
-  /** POST /pembelian/:id/verify -> verifikasi oleh Admin Kantor. */
-  verify: async (
-    id: number,
-    data?: PurchaseDecisionPayload
-  ): Promise<PurchaseOrder> => {
-    return normalizePurchaseOrder(
-      await request<PurchaseOrder>(`/pembelian/${id}/verify`, {
-        method: 'POST',
-        body: JSON.stringify(data ?? {}),
-      })
-    );
-  },
-
-  /** POST /pembelian/:id/approve -> approval oleh Manager. */
+  /** POST /pembelian/:id/approval -> approval oleh Manager (status: DISETUJUI -> langsung menjadi Stok Log). */
   approve: async (
     id: number,
     data?: PurchaseDecisionPayload
   ): Promise<PurchaseOrder> => {
     return normalizePurchaseOrder(
-      await request<PurchaseOrder>(`/pembelian/${id}/approve`, {
+      await request<PurchaseOrder>(`/pembelian/${id}/approval`, {
         method: 'POST',
-        body: JSON.stringify(data ?? {}),
+        body: JSON.stringify({
+          status: 'DISETUJUI',
+          ...(data?.catatan ? { keteranganCatatan: data.catatan } : {}),
+        }),
       })
     );
   },
 
-  /** POST /pembelian/:id/reject -> tolak pembelian (alasan wajib). */
+  /** POST /pembelian/:id/approval -> tolak pembelian oleh Manager (status: DITOLAK). */
   reject: async (
     id: number,
     data: PurchaseRejectPayload
   ): Promise<PurchaseOrder> => {
     return normalizePurchaseOrder(
-      await request<PurchaseOrder>(`/pembelian/${id}/reject`, {
+      await request<PurchaseOrder>(`/pembelian/${id}/approval`, {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          status: 'DITOLAK',
+          keteranganCatatan: data.catatan,
+        }),
       })
     );
   },
 
-  /** POST /pembelian/:id/receive -> terima barang & buat StokLog. */
+  /** Verifikasi kompatibilitas (diarahkan ke approval) */
+  verify: async (
+    id: number,
+    data?: PurchaseDecisionPayload
+  ): Promise<PurchaseOrder> => {
+    return purchaseApi.approve(id, data);
+  },
+
+  /** Terima kompatibilitas (mengembalikan detail terkini) */
   receive: async (
     id: number,
-    data?: PurchaseReceivePayload
+    _data?: PurchaseReceivePayload
   ): Promise<PurchaseOrder> => {
-    return normalizePurchaseOrder(
-      await request<PurchaseOrder>(`/pembelian/${id}/receive`, {
-        method: 'POST',
-        body: JSON.stringify(data ?? {}),
-      })
-    );
+    return purchaseApi.get(id);
   },
 };
 
