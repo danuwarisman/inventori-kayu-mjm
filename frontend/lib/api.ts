@@ -106,8 +106,15 @@ function isAuthLikePath(path: string): boolean {
  * lalu paksa kembali ke halaman login. Dipanggil sekali per request gagal.
  */
 function handleUnauthorized(): void {
+  // Jika sedang menggunakan token demo offline (mis. mock presentation),
+  // jangan paksa logout saat endpoint live menolak token tiruan tersebut.
+  const token = getAccessToken();
+  if (token && token.includes('mock-signature')) {
+    console.warn('Endpoint backend menolak token demo offline (401), sesi UI tetap dipertahankan.');
+    return;
+  }
+
   clearSession();
-  // setTimeout agar redirect tidak memotong render/promise yang sedang jalan.
   setTimeout(() => {
     if (
       typeof window !== 'undefined' &&

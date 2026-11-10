@@ -133,20 +133,7 @@ export default function LoginPage() {
     const lowerUser = cleanUsername.toLowerCase();
     const demoUser = HARDCODED_ACCOUNTS[lowerUser];
 
-    // 1. Prioritas akun demo hardcode untuk presentasi/offline
-    if (
-      demoUser &&
-      (demoUser.passwords.includes(password) ||
-        password === 'admin' ||
-        password === 'admin123' ||
-        password === lowerUser)
-    ) {
-      const mockToken = createMockJwt(demoUser.id, demoUser.username, demoUser.role);
-      completeLogin(demoUser.id, demoUser.username, demoUser.fullName, demoUser.role, mockToken);
-      return;
-    }
-
-    // 2. Jika bukan akun demo atau ingin autentikasi backend riil
+    // 1. Prioritas utama: Autentikasi langsung ke backend NestJS agar mendapatkan token JWT riil
     try {
       const data = await authApi.login(cleanUsername, password);
       const role = normalizeRole(data.user.role);
@@ -160,11 +147,33 @@ export default function LoginPage() {
       }
 
       completeLogin(data.user.id, data.user.username, data.user.nama, role, data.accessToken);
-    } catch (err) {
+      return;
+    } catch (err: unknown) {
+      // 2. Fallback offline: jika backend tidak terhubung sama sekali dan akun demo cocok
+      const isConnectionIssue =
+        err instanceof Error &&
+        (err.message.includes('Tidak bisa menghubungi backend') ||
+          err.message.includes('Failed to fetch') ||
+          err.message.includes('NetworkError'));
+
+      if (
+        isConnectionIssue &&
+        demoUser &&
+        (demoUser.passwords.includes(password) ||
+          password === 'admin' ||
+          password === 'admin123' ||
+          password === lowerUser)
+      ) {
+        console.warn('Backend tidak terjangkau, menggunakan sesi demo offline');
+        const mockToken = createMockJwt(demoUser.id, demoUser.username, demoUser.role);
+        completeLogin(demoUser.id, demoUser.username, demoUser.fullName, demoUser.role, mockToken);
+        return;
+      }
+
       setError(
         getApiErrorMessage(
           err,
-          'Username atau password salah. Untuk demo gunakan: admin atau manager (password: admin123)'
+          'Username atau password salah. Gunakan username: admin atau manager (password: admin123)'
         )
       );
       setIsLoading(false);
