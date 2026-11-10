@@ -1039,7 +1039,7 @@ export const purchaseApi = {
     id: number,
     _data?: PurchaseReceivePayload
   ): Promise<PurchaseOrder> => {
-    return purchaseApi.detail(id);
+    return purchaseApi.get(id);
   },
 };
 
