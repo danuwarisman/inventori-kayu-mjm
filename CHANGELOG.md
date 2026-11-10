@@ -4,7 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased] - 2026-11-08
+## [Unreleased] - 2026-11-10
+
+### Added
+- **Panduan Penggunaan Sistem (`GUIDE.md`)**:
+  - Menyusun panduan praktis dan simpel di root repositori mengenai hak akses 2 role (*Admin* & *Manager*), alur operasional kayu dari bahan baku hingga penjualan (*Log* $\rightarrow$ *Sawmill* $\rightarrow$ *Pra-Dry-Kiln* $\rightarrow$ *Dry-Kiln* $\rightarrow$ *Sales*), fitur otomatisasi tombol cepat, serta tata cara akses sistem (Lokal, Tailscale, Cloudflare Tunnel).
+- **Panduan Pengembang Selanjutnya (*Next Developer Guide*) di `frontend/README.md`**:
+  - Memperbarui dokumentasi teknis frontend dengan penjelasan menyeluruh tentang status halaman terkini, arsitektur same-origin `/api-proxy`, kesiapan fungsi API client untuk 4 modul lanjutan (`salesApi`, `stockApi`, `praDryKilnApi`, `accountApi`), serta panduan deployment.
+
+## [0.2.1] - 2026-11-08
 
 ### Added
 - **Otomatisasi Transfer Palet Pra-Dry-Kiln ke Antrean Oven (`/pra-dry-kiln` $\rightarrow$ `/dry-kiln`)**:

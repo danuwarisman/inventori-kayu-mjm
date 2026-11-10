@@ -15,8 +15,9 @@ Proyek ini dikembangkan oleh:
 * **Backend:** NestJS, Prisma ORM, TypeScript, JWT Auth
 * **Database:** PostgreSQL
 
-## Struktur Direktori
-* [`/frontend`](./frontend) - Berisi *source code* antarmuka pengguna (Next.js). Dokumentasi teknis lengkap tersedia di [`frontend/README.md`](./frontend/README.md).
+## Struktur Direktori & Dokumentasi
+* [`GUIDE.md`](./GUIDE.md) - **Panduan Praktis Penggunaan Sistem** (tata cara pakai, alur kerja produksi kayu, otomatisasi, dan akses).
+* [`/frontend`](./frontend) - Berisi *source code* antarmuka pengguna (Next.js). Dokumentasi teknis lengkap pengembang tersedia di [`frontend/README.md`](./frontend/README.md).
 * [`/backend`](./backend) - Berisi *source code* logika server, REST API, dan skema database Prisma (NestJS).
 * [`CHANGELOG.md`](./CHANGELOG.md) - Catatan riwayat perubahan dan fitur terbaru aplikasi.
 

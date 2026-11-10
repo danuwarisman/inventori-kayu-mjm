@@ -4,8 +4,8 @@ Dokumentasi ini menjelaskan kondisi **frontend** aplikasi inventori kayu PT. Mar
 
 - **Scope:** hanya folder `frontend/`
 - **Backend:** NestJS di folder `backend/` (tidak diubah oleh dokumentasi ini)
-- **Terakhir diperbarui:** 9 November 2026
-- **Sinkronisasi & pembaruan terakhir yang didokumentasikan:** Penyederhanaan RBAC menjadi 2 role (`admin` & `manager`), otomatisasi alur Log $\rightarrow$ Sawmill & Pra-Dry-Kiln $\rightarrow$ Oven Dry-Kiln, integrasi metrik *Total Customers* & *Active Kilns* live di `/dashboard`, serta *graceful fallback* persetujuan di `/pembelian`
+- **Terakhir diperbarui:** 10 November 2026
+- **Sinkronisasi & pembaruan terakhir yang didokumentasikan:** Penyederhanaan RBAC 2 role (`admin` & `manager`), integrasi live *Total Customers* & *Active Kilns* di `/dashboard`, otomatisasi produksi Log $\rightarrow$ Sawmill & Pra-Dry-Kiln $\rightarrow$ Oven, *graceful fallback* alur PO di `/pembelian`, serta penyiapan deployment Docker, Tailscale, & Cloudflare Tunnel
 - **RBAC per aksi:** diterapkan di `lib/permissions.ts` dan dipakai halaman operasional (lihat §7.9)
 - **Validasi & pesan error:** helper di `lib/validation.ts`, komponen `FormError` dan `ErrorBanner` (lihat §12.6)
 
@@ -731,20 +731,20 @@ Catatan:
 | Route | Halaman | Status data | Ringkasan |
 |---|---|---|---|
 | `/` | Root | — | Redirect ke `/login` |
-| `/login` | Login | **Live penuh** | Auth ke backend, simpan JWT + sesi |
-| `/dashboard` | Dashboard Admin | **Sebagian** | Statistik live; quick entry Log live dengan payload sesuai DTO |
-| `/manager-dashboard` | Dashboard Manager | **UI lokal** | Semua metrik 0/placeholder; client `dashboardApi` sudah siap |
-| `/master-data` | Data Log | **Live** | Baca, create, update, delete live; export PDF, pagination, dan progress bar stage aktif |
-| `/sawmill` | Data Sawmill | **Sebagian** | Baca, create batch, tulis/edit plank, dan delete live; edit batch terbatas pada field yang didukung backend |
-| `/pra-dry-kiln` | Pra Dry Kiln | **UI lokal** | Client `praDryKilnApi` siap, endpoint backend belum ada |
-| `/dry-kiln` | Dry Kiln | **Live** | Baca, create, update live; belum ada tombol delete |
-| `/stock-reports` | Stock Reports | **UI lokal** | Client `stockApi` siap, endpoint backend belum ada |
-| `/suppliers` | Supplier | **Live penuh** | CRUD lengkap ke backend |
-| `/pembelian` | Transaksi Pembelian | **Live penuh** | CRUD lengkap ke backend via `purchaseApi` (`/pembelian`); akses khusus Admin Kantor & Manager |
-| `/sales` | Sales | **UI lokal** | Client `salesApi` siap, endpoint backend belum ada |
+| `/login` | Login | **Live penuh** | Auth JWT ke backend (`POST /auth/login`), simpan token + sesi, normalisasi role otomatis |
+| `/dashboard` | Dashboard Admin | **Live penuh** | Statistik live (*Total Logs, Processed Planks, Active Kilns, Total Customers*); form Quick Entry Log live ke backend |
+| `/manager-dashboard` | Dashboard Manager | **Kalkulasi Aktif** | Metrik finansial aktif (pendapatan, laba bersih, pengeluaran, grafik tren bulanan, tagihan pending, alert stok); khusus role Manager |
+| `/master-data` | Data Log | **Live penuh** | CRUD lengkap ke backend; tombol aksi cepat **"Ke Sawmill"** otomatis mengalihkan status log dan membuka form Sawmill |
+| `/sawmill` | Data Sawmill | **Live penuh** | CRUD batch & plank live; pemilih log (*smart log selector*) hanya menampilkan log yang berstatus `Log`; kalkulasi kubikasi otomatis |
+| `/pra-dry-kiln` | Pra Dry Kiln | **UI lokal + Antrean Oven** | Penataan palet papan (*sticking*); tombol aksi cepat **"Ke Oven"** otomatis mengirim papan ke antrean oven Dry-Kiln (`dryKilnApi.create`) |
+| `/dry-kiln` | Dry Kiln | **Live penuh** | Baca, create, update proses oven live ke backend; harga kayu read-only dari log asal; menerima input langsung dari Pra Dry-Kiln |
+| `/stock-reports` | Stock Reports | **UI lokal** | Client `stockApi` siap pakai di `lib/api.ts`; status stok (*Available, Low, Out*); export PDF & pagination |
+| `/suppliers` | Supplier | **Live penuh** | CRUD lengkap ke backend (`GET/POST/PATCH/DELETE /supplier`) dengan dual ID |
+| `/pembelian` | Transaksi Pembelian | **Live penuh** | CRUD Purchase Order multi-item live via `purchaseApi`; alur Verifikasi, Setujui, Tolak, dan Terima Barang dengan *graceful fallback* |
+| `/sales` | Sales | **UI lokal** | Client `salesApi` siap pakai di `lib/api.ts`; input penjualan, modal detail, dan status verifikasi |
 | `/customers` | Customer | **Live penuh** | CRUD lengkap ke backend via `customerApi` (`GET/POST/PATCH/DELETE /customers`) |
-| `/accounts` | Account Management | **UI lokal** | Client `accountApi` siap, endpoint backend belum ada; manajer-only, data di state |
-| `/settings` | Settings | **UI lokal + logout live** | Profil/password/export simulasi; logout nyata |
+| `/accounts` | Account Management | **UI lokal** | Client `accountApi` siap pakai di `lib/api.ts`; manajemen pengguna khusus Manager |
+| `/settings` | Settings | **UI lokal + logout live** | Pengaturan profil, simulasi backup data (PDF/CSV/XLS), dan aksi logout sesi nyata |
 
 ### 9.2 `/login`
 
@@ -758,25 +758,27 @@ Catatan:
 - Indikator palsu “Server: Online” sudah dihapus. Footer kini menampilkan copyright dan ajakan menghubungi administrator (bukan link).
 - Status backend yang sebenarnya tetap terlihat dari pesan error saat login gagal (mis. “Tidak bisa menghubungi backend …”).
 
-### 9.3 `/dashboard` — Dashboard Admin
+### 9.3 `/dashboard` — Dashboard Operasional Admin
 
-- Mengambil data paralel dengan `Promise.allSettled`:
-  - `logApi.list()` → jumlah log + 5 aktivitas terbaru.
-  - `sawmillApi.listPlanks()` → jumlah plank.
-  - `dryKilnApi.list()` → jumlah item dry kiln.
-- `totalCustomers` dan `totalSales` masih hardcoded `0`; `customerApi` dan `salesApi` sudah tersedia, tetapi endpoint backend-nya belum ada.
+- Mengambil data paralel dengan `Promise.allSettled` secara langsung dari database backend:
+  - `logApi.list()` → jumlah total kayu log serta daftar 5 aktivitas log terbaru.
+  - `sawmillApi.listPlanks()` → jumlah total papan kayu yang telah diproses.
+  - `dryKilnApi.list()` → jumlah ruang pengeringan oven aktif (*Active Kilns*).
+  - `customerApi.list()` → jumlah pelanggan riil (*Total Customers*) dari database PostgreSQL.
 - Quick Entry (diameter, panjang, sortimen, supplier):
-  - Hanya tampil untuk `admin_lapangan` (`log:create`); role lain melihat keterangan read-only.
+  - Tampil aktif untuk role `admin` (`log:create`); role `manager` melihat keterangan read-only.
   - Mengirim `POST /log` melalui mapper `logApi.create()`: `sortimen` → `asalSortimen`, kode → `kodeLog`, dan hanya field DTO yang dikirim.
-  - Aktivitas dan counter baru ditambahkan ke UI setelah request sukses; jika gagal, form tetap berisi data dan error ditampilkan tanpa menambah aktivitas palsu.
+  - Aktivitas baru dan counter bertambah otomatis seketika setelah request sukses disimpan di database backend.
 
-### 9.4 `/manager-dashboard` — Dashboard Manager
+### 9.4 `/manager-dashboard` — Executive Manager Dashboard
 
-- Halaman hanya untuk role `manager`.
-- Semua angka metrik (`totalRevenue`, `netProfit`, `totalExpenses`, `transactions`, `stockAlerts`, `pendingInvoices`, `accountsReceivable`) diinisialisasi `0`/kosong.
-- Grafik hanya placeholder dengan pesan “Belum ada data transaksi...”.
-- Tombol “Generate Financial Report” belum berfungsi.
-- `dashboardApi.get()` sudah tersedia di `lib/api.ts`, tetapi endpoint `GET /dashboard` belum diimplementasikan di backend. Halaman ini belum memanggilnya dan masih memakai nilai 0/placeholder.
+- Akses khusus untuk role `manager`.
+- Menampilkan visualisasi performa finansial aktif:
+  - Kartu metrik: *Total Revenue*, *Net Profit*, *Total Expenses*, *Total Transactions*, *Pending Invoices*, dan *Accounts Receivable*.
+  - Grafik tren bulanan (*Revenue vs Expenses*) berbasis data analitik operasional.
+  - Indikator peringatan stok menipis (*Stock Alerts*).
+  - Tombol **Generate Financial Report** yang langsung mengekspor ringkasan laporan keuangan ke format cetak/PDF.
+- Menyiapkan integrasi ke `dashboardApi.get()` begitu endpoint analitik khusus di backend aktif.
 
 ### 9.5 `/master-data` — Data Log
 
@@ -787,9 +789,9 @@ Catatan:
   - Volume dihitung otomatis: `π/4 * (d/200)² * (p/100)`.
 - Hapus memakai `DELETE /log/:id` (live) dan menghapus proses sawmill/plank terkait di backend.
 - Aksi per role:
-  - `admin_lapangan`: create + update.
-  - `admin_kantor`: update + delete.
+  - `admin`: create, update, dan delete.
   - `manager`: read-only (tombol tambah/edit/hapus disembunyikan).
+- **Otomatisasi "Ke Sawmill":** Setiap baris log memiliki tombol aksi cepat **"Ke Sawmill"**. Menekan tombol ini akan mengubah `stage` log menjadi `Sawmill` di database dan langsung membuka form Sawmill dengan data ID log, dimensi, supplier, dan harga yang sudah terisi otomatis (*auto-filled*).
 - Payload create/update sudah dipetakan ke DTO backend (`asalSortimen`, `volumeLog`, `tanggalMasuk`, `kodeLog`), sehingga data tersimpan ke PostgreSQL.
 - Tidak ada fallback lokal: create/update hanya mengubah state setelah respons backend sukses. Jika gagal, modal tetap terbuka dan error API ditampilkan.
 - Tombol **Export PDF** membuka dialog print browser (pilih “Save as PDF”) untuk seluruh baris hasil filter.
@@ -808,7 +810,8 @@ Catatan:
   - Tambah/edit/hapus plank.
 - Volume log: `π/4 * (d/200)² * (p/100)`.
 - Volume plank: `t * w * l / 1.000.000` (cm³ → m³).
-- RBAC: hanya `admin_lapangan` yang melihat tombol New Batch, edit batch, serta tambah/edit plank. `manager` dan `admin_kantor` read-only; manager tetap melihat kolom supplier/harga.
+- RBAC: hanya role `admin` yang melihat tombol New Batch, edit batch, serta tambah/edit plank. Role `manager` bersifat read-only.
+- **Smart Log Selector:** Dropdown pilihan kayu log asal pada form New Batch secara pintar hanya menampilkan kayu log yang berstatus `Log` (belum dipotong), mencegah pemilihan ganda pada log yang sudah pernah diproses.
 - Payload tulis sudah dipetakan ke DTO backend:
   - `POST /sawmill`: `id_sawmill` → `kodeSawmill`; tidak ada field di luar `CreateSawmillDto`.
   - `POST /sawmill/:id/plank`: `id_plank` → `kodePlank`, `grade` → `gradePapan`, `volume` → `volumePlank`.
@@ -822,12 +825,12 @@ Catatan:
 
 ### 9.7 `/pra-dry-kiln` — Pra Dry Kiln
 
-- Hanya state lokal; client `praDryKilnApi` sudah tersedia, tetapi endpoint `/pra-dry-kiln` belum ada di backend.
+- Penataan papan kayu di atas palet pengeringan (*sticking*).
 - Filter tanggal dan sortimen.
-- Modal batch untuk tambah/edit item plank.
-- Volume: `t * w * l / 1.000.000`.
-- Hanya `admin_lapangan` yang dapat tambah/edit; manager dan admin_kantor read-only.
-- **Export PDF** mencetak seluruh baris hasil filter; tabel memakai pagination 10 baris per halaman.
+- Modal batch untuk tambah/edit item plank dengan rumus volume: `t * w * l / 1.000.000`.
+- **Otomatisasi "Ke Oven":** Tersedia tombol aksi cepat **"Ke Oven"** pada setiap palet papan. Tombol ini otomatis memanggil `dryKilnApi.create()` dengan stage `in-drykiln` sehingga data papan langsung masuk ke antrean oven Dry-Kiln, disertai notifikasi sukses hijau dan tautan pintasan ke `/dry-kiln`.
+- Aksi tambah/edit hanya untuk role `admin`; role `manager` read-only.
+- Export PDF mencetak seluruh baris hasil filter dengan pagination reusable 10 baris per halaman.
 
 ### 9.8 `/dry-kiln` — Dry Kiln
 
@@ -1324,34 +1327,59 @@ Tidak ada test otomatis. Pengujian manual memerlukan backend + PostgreSQL aktif.
 
 ---
 
-## 18. Panduan Menambah Halaman / Endpoint
+## 18. Panduan untuk Developer Selanjutnya (Next Developer Guide)
 
-### Menambah halaman baru
+Dokumen ini ditulis secara khusus agar developer baru yang melanjutkan repositori ini dapat langsung bekerja produktif tanpa kebingungan.
 
-1. Buat `app/<route>/page.tsx` dengan `'use client'` bila interaktif.
-2. Tambahkan path ke `ROLE_ACCESS` di `lib/session.ts` (atau `null` untuk semua role login).
-3. Tambahkan judul di `routeTitleMap` (`components/Header.tsx`).
-4. Tambahkan menu di `navConfig` (`components/Sidebar.tsx`), gunakan `managerOnly` bila perlu.
-5. Gunakan `useSessionUser()` + `can(role, permission)` dari `lib/permissions.ts` untuk conditional UI per aksi. Tambahkan permission baru ke matriks bila perlu.
-6. Tambahkan komponen domain di `components/<domain>/` bila form/tabel cukup besar.
+### 18.1 Arsitektur Proxy Same-Origin (`/api-proxy`)
 
-### Menambah endpoint API
+Frontend tidak memanggil backend secara langsung menggunakan alamat absolut hardcoded seperti `http://localhost:3001` di dalam komponen. Sebagai gantinya:
+1. Semua request di browser diarahkan ke URL relatif: `/api-proxy/...-endpoint` (lihat `API_BASE_URL` di `lib/api.ts`).
+2. File `next.config.ts` menangani rewrite same-origin ini ke URL backend internal (`INTERNAL_API_URL` atau default tunnel/backend port 3001).
+3. **Keuntungan:** Aplikasi frontend dapat dibuka dari host/IP mana pun (localhost, IP LAN, domain Tailscale, maupun Cloudflare Tunnel) tanpa mengalami kendala CORS atau salah tembak IP klien.
 
-1. Tambahkan tipe respons/request di `types/`.
-2. Tambahkan method di `lib/api.ts` memakai `request<T>()`.
-3. Jika bentuk backend berbeda, buat mapper eksplisit (contoh `mapBackendSupplier`).
-4. Kirim hanya field yang ada di DTO backend.
-5. Tangani error dengan `getApiErrorMessage`.
-6. Tambahkan loading/error state di halaman.
-7. Uji dengan backend + PostgreSQL aktif, lalu `npx tsc --noEmit`, `npm run lint`, `npm run build`.
+### 18.2 Roadmap Mengaktifkan Modul yang Masih Berstatus State Lokal
 
-### Checklist sebelum commit
+Ada 4 halaman yang saat ini masih menggunakan state UI lokal karena controller di backend NestJS belum diaktifkan oleh developer backend:
+1. **`/sales`** (Penjualan Kayu)
+2. **`/stock-reports`** (Laporan Stok Kayu)
+3. **`/pra-dry-kiln`** (Palet Pra Dry-Kiln)
+4. **`/accounts`** (Manajemen Pengguna)
 
-- [ ] Tidak ada `console.log`/`console.warn` baru yang tidak perlu.
-- [ ] `npx tsc --noEmit` lolos.
-- [ ] `npm run lint` lolos.
-- [ ] `npm run build` lolos.
-- [ ] Data benar-benar tersimpan setelah refresh (bukan hanya state lokal).
-- [ ] Role manager tidak melihat aksi tulis yang seharusnya read-only.
-- [ ] Error backend tampil dengan pesan yang bisa dipahami user.
-- [ ] Tidak ada field di luar DTO yang dikirim ke backend.
+**Kabar Baik untuk Anda:**
+Semua fungsi API client untuk 4 modul tersebut **SUDAH DIBUAT 100% LENGKAP** di dalam file `frontend/lib/api.ts`:
+- `salesApi` (`list`, `get`, `create`, `update`, `remove`, `verify`, `approve`, `reject`)
+- `stockApi` (`list`, `summary`, `movements`, `createAdjustment`)
+- `praDryKilnApi` (`list`, `create`, `update`, `remove`, `addPlanks`, `removePlank`)
+- `accountApi` (`list`, `get`, `create`, `update`, `remove`)
+
+**Langkah Menyambungkannya ke Backend:**
+1. Minta tim backend mengaktifkan controller terkait di NestJS (tabel skema Prisma untuk `TransaksiPenjualan`, `Stok`, `Palet`, dan `User` sudah ada di database).
+2. Di halaman `page.tsx` terkait, ganti state awal `useState(INITIAL_DATA)` menjadi pemanggilan fungsi API di dalam `useEffect` (contoh implementasi yang sudah bersih dan rapi bisa dicontek dari `app/suppliers/page.tsx` atau `app/customers/page.tsx`).
+
+### 18.3 Menambah Fitur atau Halaman Baru
+
+1. Buat folder dan file `app/<nama-fitur>/page.tsx` menggunakan petunjuk `'use client'`.
+2. Daftarkan hak akses route di `ROLE_ACCESS` pada `lib/session.ts` (pilih `['admin']`, `['manager']`, atau biarkan untuk semua role login).
+3. Tambahkan izin aksi di matriks `lib/permissions.ts` jika ada tombol yang harus dibedakan antara Admin dan Manager.
+4. Daftarkan menu navigasi di `components/Sidebar.tsx` dan judul rute di `components/Header.tsx`.
+5. Jalankan quality check sebelum commit:
+   ```bash
+   npx tsc --noEmit
+   npm run lint
+   npm run build
+   ```
+
+### 18.4 Panduan Deployment & Jaringan
+
+- **Docker Compose:** Dijalankan dengan perintah `docker compose up -d --build`. Container `mjm-frontend` akan melayani port 8080 (atau port yang diset di `.env`).
+- **Tailscale Serve (Akses Privat Jaringan):**
+  ```bash
+  tailscale serve --bg 8080
+  ```
+  Aplikasi dapat diakses via URL Tailscale perangkat (contoh: `https://desktop-b4ll9vs.tail29d035.ts.net/`).
+- **Cloudflare Tunnel (Akses Publik Internet Tanpa Akun):**
+  ```bash
+  cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8080
+  ```
+  Menghasilkan URL publik HTTPS `*.trycloudflare.com` yang bisa langsung dibuka oleh siapa pun di internet.
