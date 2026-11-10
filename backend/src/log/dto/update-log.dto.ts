@@ -1,4 +1,10 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsPositive,
+  Min,
+} from 'class-validator';
 
 export class UpdateLogDto {
   @IsString()
@@ -15,14 +21,17 @@ export class UpdateLogDto {
 
   @IsNumber()
   @IsOptional()
+  @IsPositive()
   panjang?: number;
 
   @IsNumber()
   @IsOptional()
+  @IsPositive()
   diameter?: number;
 
   @IsNumber()
   @IsOptional()
+  @Min(0)
   volumeLog?: number;
 
   @IsString()
@@ -39,6 +48,7 @@ export class UpdateLogDto {
 
   @IsNumber()
   @IsOptional()
+  @Min(0)
   harga?: number;
 
   @IsOptional()

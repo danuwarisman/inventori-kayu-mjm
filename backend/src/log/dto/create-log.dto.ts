@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsPositive,
+  Min,
+} from 'class-validator';
 
 export class CreateLogDto {
   @IsString()
@@ -11,18 +18,21 @@ export class CreateLogDto {
 
   @IsString()
   @IsNotEmpty()
-  asalSortimen: string;
+  asalSortimen!: string;
 
   @IsNumber()
   @IsNotEmpty()
-  panjang: number;
+  @IsPositive()
+  panjang!: number;
 
   @IsNumber()
   @IsNotEmpty()
-  diameter: number;
+  @IsPositive()
+  diameter!: number;
 
   @IsNumber()
   @IsOptional()
+  @Min(0)
   volumeLog?: number;
 
   @IsString()
@@ -39,6 +49,7 @@ export class CreateLogDto {
 
   @IsNumber()
   @IsOptional()
+  @Min(0)
   harga?: number;
 
   @IsOptional()

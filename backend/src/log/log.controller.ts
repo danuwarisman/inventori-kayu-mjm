@@ -12,6 +12,8 @@ import {
 import { LogService } from './log.service';
 import { CreateLogDto } from './dto/create-log.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/roles.decorator';
 
 @Controller('log')
 export class LogController {
@@ -30,11 +32,13 @@ export class LogController {
     return this.logService.findOne(id);
   }
 
+  @Roles(Role.ADMIN_KANTOR)
   @Post()
   create(@Body() dto: CreateLogDto) {
     return this.logService.create(dto);
   }
 
+  @Roles(Role.ADMIN_KANTOR)
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -43,6 +47,7 @@ export class LogController {
     return this.logService.update(id, dto);
   }
 
+  @Roles(Role.ADMIN_KANTOR)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.logService.remove(id);

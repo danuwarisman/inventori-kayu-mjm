@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLogDto } from './dto/create-log.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
+
 
 @Injectable()
 export class LogService {
@@ -38,31 +43,40 @@ export class LogService {
   }
 
   async findAll(sortimen?: string, stage?: string) {
-    const where: any = {};
-    if (sortimen && sortimen !== 'All Sortimen') {
-      where.asalSortimen = sortimen;
-    }
-    if (stage && stage !== 'All Stage') {
-      where.statusLog = stage;
-    }
+  const where: any = {
+    deletedAt: null,
+  };
 
-    const logs = await this.prisma.stokLog.findMany({
-      where,
-      orderBy: { idLog: 'desc' },
-    });
-
-    return logs.map((log) => this.mapLog(log));
+  if (sortimen && sortimen !== 'All Sortimen') {
+    where.asalSortimen = sortimen;
   }
+
+  if (stage && stage !== 'All Stage') {
+    where.statusLog = stage;
+  }
+
+  const logs = await this.prisma.stokLog.findMany({
+    where,
+    orderBy: { idLog: 'desc' },
+  });
+
+  return logs.map((log) => this.mapLog(log));
+}
 
   async findOne(id: number) {
-    const log = await this.prisma.stokLog.findUnique({
-      where: { idLog: id },
-    });
-    if (!log) {
-      throw new NotFoundException(`Log #${id} tidak ditemukan`);
-    }
-    return this.mapLog(log);
+  const log = await this.prisma.stokLog.findFirst({
+    where: {
+      idLog: id,
+      deletedAt: null,
+    },
+  });
+
+  if (!log) {
+    throw new NotFoundException(`Log #${id} tidak ditemukan`);
   }
+
+  return this.mapLog(log);
+}
 
   async create(dto: CreateLogDto) {
     const p = Number(dto.panjang) || 0;
@@ -109,13 +123,21 @@ export class LogService {
   }
 
   async update(id: number, dto: UpdateLogDto) {
-    const existing = await this.prisma.stokLog.findUnique({
-      where: { idLog: id },
-    });
-    if (!existing) {
-      throw new NotFoundException(`Log #${id} tidak ditemukan`);
-    }
+    const existing = await this.prisma.stokLog.findFirst({
+  where: {
+    idLog: id,
+    deletedAt: null,
+  },
+});
 
+if (!existing) {
+  throw new NotFoundException(`Log #${id} tidak ditemukan`);
+}
+if (existing.idPembelian !== null) {
+  throw new BadRequestException(
+    'Log dari transaksi pembelian tidak dapat diubah',
+  );
+}
     const p = dto.panjang !== undefined ? Number(dto.panjang) : Number(existing.panjang);
     const d = dto.diameter !== undefined ? Number(dto.diameter) : Number(existing.diameter);
 
@@ -145,26 +167,64 @@ export class LogService {
     return this.mapLog(updated);
   }
 
-  async remove(id: number) {
-    const existing = await this.prisma.stokLog.findUnique({
-      where: { idLog: id },
-    });
-    if (!existing) {
-      throw new NotFoundException(`Log #${id} tidak ditemukan`);
-    }
+  
+async remove(id: number) {
+  const existing = await this.prisma.stokLog.findFirst({
+    where: {
+      idLog: id,
+      deletedAt: null,
+    },
+  });
 
-    // Also delete or cascade any related process sawmill if present
-    await this.prisma.plank.deleteMany({
-      where: { idLogAsal: id },
-    });
-    await this.prisma.prosesSawmill.deleteMany({
-      where: { idLog: id },
-    });
-
-    await this.prisma.stokLog.delete({
-      where: { idLog: id },
-    });
-
-    return { success: true, message: `Log #${id} berhasil dihapus` };
+  if (!existing) {
+    throw new NotFoundException(`Log #${id} tidak ditemukan`);
   }
+
+  if (existing.idPembelian !== null) {
+    const prosesSawmill = await this.prisma.prosesSawmill.findFirst({
+  where: {
+    idLog: id,
+    deletedAt: null,
+  },
+});
+
+if (prosesSawmill) {
+  throw new BadRequestException(
+    'Log yang sudah masuk proses Sawmill tidak dapat diubah',
+  );
+}
+  throw new BadRequestException(
+      'Log dari transaksi pembelian tidak dapat dihapus',
+    );
+  }
+  
+  
+  const [prosesSawmill, plank, detailPenjualan] = await Promise.all([
+    this.prisma.prosesSawmill.findFirst({
+      where: { idLog: id, deletedAt: null },
+    }),
+    this.prisma.plank.findFirst({
+      where: { idLogAsal: id, deletedAt: null },
+    }),
+    this.prisma.detailPenjualan.findFirst({
+      where: { idLog: id },
+    }),
+  ]);
+
+  if (prosesSawmill || plank || detailPenjualan) {
+    throw new BadRequestException(
+      'Log yang sudah digunakan dalam proses produksi atau penjualan tidak dapat dihapus',
+    );
+  }
+
+  await this.prisma.stokLog.update({
+    where: { idLog: id },
+    data: { deletedAt: new Date() },
+  });
+
+  return {
+    success: true,
+    message: `Log #${id} berhasil dihapus`,
+  };
+}
 }
