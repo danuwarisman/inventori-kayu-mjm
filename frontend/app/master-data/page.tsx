@@ -17,7 +17,7 @@ import {
 import { toISODate, formatDateID } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
-import { getApiErrorMessage, logApi, sawmillApi } from '@/lib/api';
+import { getApiErrorMessage, logApi, sawmillApi, supplierApi } from '@/lib/api';
 import { exportToPdf } from '@/lib/export';
 import { LogItem } from '@/types/log';
 import FormError from '@/components/FormError';
@@ -82,13 +82,43 @@ export default function DataLogPage() {
   const [modalMode, setModalMode] = useState<'input' | 'edit'>('input');
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
 
+  // Daftar Supplier untuk Dropdown
+  const DEFAULT_SUPPLIERS = [
+    'PT Rimba Jati Makmur',
+    'Perum Perhutani KPH Randublatung',
+    'CV Jati Alam Lestari',
+    'PT Kayu Tropis Nusantara',
+    'UD Sumber Kayu Barokah',
+    'CV Mitra Timber Sejahtera',
+    'PT. Suplier',
+  ];
+  const [suppliersList, setSuppliersList] = useState<string[]>(DEFAULT_SUPPLIERS);
+  const [supplierSelect, setSupplierSelect] = useState<string>(DEFAULT_SUPPLIERS[0]);
+  const [customSupplier, setCustomSupplier] = useState<string>('');
+
   // Form State
   const [formIdLog, setFormIdLog] = useState('');
   const [formSortimen, setFormSortimen] = useState('Sortimen A');
   const [formPanjang, setFormPanjang] = useState<number | ''>('');
   const [formDiameter, setFormDiameter] = useState<number | ''>('');
-  const [formSuplier, setFormSuplier] = useState('PT. Suplier');
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Muat supplier riil dari database backend
+  useEffect(() => {
+    let cancelled = false;
+    supplierApi
+      .list()
+      .then((data) => {
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          const names = data.map((s) => s.namaSupplier).filter(Boolean);
+          setSuppliersList((prev) => Array.from(new Set([...names, ...prev])));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const user = useSessionUser();
   const isManager = user?.role === 'manager';
@@ -112,7 +142,8 @@ export default function DataLogPage() {
     setFormSortimen('Sortimen A');
     setFormPanjang('');
     setFormDiameter('');
-    setFormSuplier('PT. Suplier');
+    setSupplierSelect(suppliersList[0] || 'PT Rimba Jati Makmur');
+    setCustomSupplier('');
     setFormError(null);
     setIsModalOpen(true);
   };
@@ -124,7 +155,16 @@ export default function DataLogPage() {
     setFormSortimen(item.sortimen);
     setFormPanjang(item.panjang);
     setFormDiameter(item.diameter);
-    setFormSuplier(item.suplier);
+    const existing = suppliersList.find(
+      (s) => s.toLowerCase() === (item.suplier || '').toLowerCase()
+    );
+    if (existing) {
+      setSupplierSelect(existing);
+      setCustomSupplier('');
+    } else {
+      setSupplierSelect('__others__');
+      setCustomSupplier(item.suplier || '');
+    }
     setFormError(null);
     setIsModalOpen(true);
   };
@@ -133,7 +173,7 @@ export default function DataLogPage() {
     e.preventDefault();
 
     const idLog = formIdLog.trim();
-    const suplier = formSuplier.trim();
+    const suplier = (supplierSelect === '__others__' ? customSupplier : supplierSelect).trim();
     const validationError = firstError(
       required(idLog, 'ID Log'),
       maxLength(idLog, 'ID Log', 50),
@@ -762,19 +802,25 @@ export default function DataLogPage() {
                 </div>
               </div>
 
-              {/* Suplier & Aksi Submit */}
-              <div className="flex flex-col gap-1">
+              {/* Suplier Dropdown & Aksi Submit */}
+              <div className="flex flex-col gap-1.5">
                 <label className="font-semibold text-green-700">Suplier</label>
                 <div className="flex items-center gap-3">
-                  <input
-                    type="text"
-                    required
-                    maxLength={100}
-                    placeholder="PT. Suplier"
-                    value={formSuplier}
-                    onChange={(e) => setFormSuplier(e.target.value)}
-                    className="flex-1 h-10 px-3 bg-white border border-stone-300 rounded text-green-700 font-semibold focus:outline-none focus:border-green-700"
-                  />
+                  <div className="relative flex-1">
+                    <select
+                      value={supplierSelect}
+                      onChange={(e) => setSupplierSelect(e.target.value)}
+                      className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded text-green-700 font-semibold appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
+                    >
+                      {suppliersList.map((sup) => (
+                        <option key={sup} value={sup}>
+                          {sup}
+                        </option>
+                      ))}
+                      <option value="__others__">Others (Lainnya...)</option>
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
+                  </div>
 
                   <button
                     type="submit"
@@ -793,6 +839,22 @@ export default function DataLogPage() {
                     )}
                   </button>
                 </div>
+
+                {/* Input teks khusus jika memilih Others */}
+                {supplierSelect === '__others__' && (
+                  <div className="mt-1 animate-in fade-in duration-150">
+                    <input
+                      type="text"
+                      required
+                      maxLength={100}
+                      placeholder="Masukkan nama supplier lainnya..."
+                      value={customSupplier}
+                      onChange={(e) => setCustomSupplier(e.target.value)}
+                      className="w-full h-9 px-3 bg-white border border-stone-300 rounded text-green-700 font-semibold focus:outline-none focus:border-green-700"
+                      autoFocus
+                    />
+                  </div>
+                )}
               </div>
 
               <FormError message={formError} />

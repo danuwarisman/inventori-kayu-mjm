@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] - 2026-11-10
 
+### Added
+- **Dropdown Supplier dengan Opsi "Others" pada Input Log (`/master-data` & `/dashboard`)**:
+  - Mengubah kolom input teks supplier pada modal Input & Edit Log (`/master-data`) serta form Quick Entry Log (`/dashboard`) menjadi pilihan dropdown dinamis yang terhubung ke data supplier backend, lengkap dengan opsi **Others (Lainnya...)** di bagian paling akhir yang memunculkan input teks kustom jika dipilih.
+
 ### Changed
 - **Stabilitas Sesi & Perpanjangan Expiration (Anti-Ketendang Keluar)**:
   - Memperpanjang masa berlaku token JWT backend (`expiresIn`) dari 8 jam menjadi 7 hari (dapat disesuaikan via `JWT_EXPIRES_IN`).

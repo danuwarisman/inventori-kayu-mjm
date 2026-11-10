@@ -13,7 +13,7 @@ import {
   Users,
   DollarSign,
 } from 'lucide-react';
-import { customerApi, dryKilnApi, getApiErrorMessage, logApi, sawmillApi } from '@/lib/api';
+import { customerApi, dryKilnApi, getApiErrorMessage, logApi, sawmillApi, supplierApi } from '@/lib/api';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 import FormError from '@/components/FormError';
@@ -102,15 +102,26 @@ export default function OperationalDashboardPage() {
 
   // Quick Entry State
   const [diameter, setDiameter] = useState<string>('');
+  const DEFAULT_SUPPLIERS = [
+    'PT Rimba Jati Makmur',
+    'Perum Perhutani KPH Randublatung',
+    'CV Jati Alam Lestari',
+    'PT Kayu Tropis Nusantara',
+    'UD Sumber Kayu Barokah',
+    'CV Mitra Timber Sejahtera',
+    'PT. Suplier',
+  ];
+  const [suppliersList, setSuppliersList] = useState<string[]>(DEFAULT_SUPPLIERS);
+  const [supplierSelect, setSupplierSelect] = useState<string>(DEFAULT_SUPPLIERS[0]);
+  const [customSupplier, setCustomSupplier] = useState<string>('');
   const [panjang, setPanjang] = useState<string>('');
   const [sortimen, setSortimen] = useState<string>('Sortimen A');
-  const [suplier, setSuplier] = useState<string>('');
 
   const handleQuickRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canCreate) return;
 
-    const supplier = suplier.trim();
+    const supplier = (supplierSelect === '__others__' ? customSupplier : supplierSelect).trim();
     const validationError = firstError(
       positiveNumber(diameter, 'Diameter'),
       positiveNumber(panjang, 'Panjang'),
@@ -155,7 +166,8 @@ export default function OperationalDashboardPage() {
       setLogCount((prev) => prev + 1);
       setDiameter('');
       setPanjang('');
-      setSuplier('');
+      setCustomSupplier('');
+      setSupplierSelect(suppliersList[0] || 'PT Rimba Jati Makmur');
       setLoadError(null);
     } catch (err) {
       setQuickError(
@@ -384,15 +396,32 @@ export default function OperationalDashboardPage() {
 
                 <div className="flex flex-col gap-1">
                   <label className="font-semibold text-stone-700">Suplier</label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={100}
-                    placeholder="Nama PT / CV Supplier"
-                    value={suplier}
-                    onChange={(e) => setSuplier(e.target.value)}
-                    className="w-full h-10 px-3 border border-stone-300 rounded text-stone-900 focus:border-green-700 focus:outline-none"
-                  />
+                  <div className="relative">
+                    <select
+                      value={supplierSelect}
+                      onChange={(e) => setSupplierSelect(e.target.value)}
+                      className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded text-stone-900 font-medium appearance-none focus:border-green-700 focus:outline-none cursor-pointer"
+                    >
+                      {suppliersList.map((sup) => (
+                        <option key={sup} value={sup}>
+                          {sup}
+                        </option>
+                      ))}
+                      <option value="__others__">Others (Lainnya...)</option>
+                    </select>
+                  </div>
+                  {supplierSelect === '__others__' && (
+                    <input
+                      type="text"
+                      required
+                      maxLength={100}
+                      placeholder="Masukkan nama supplier lainnya..."
+                      value={customSupplier}
+                      onChange={(e) => setCustomSupplier(e.target.value)}
+                      className="mt-1 w-full h-9 px-3 border border-stone-300 rounded text-stone-900 focus:border-green-700 focus:outline-none animate-in fade-in duration-150"
+                      autoFocus
+                    />
+                  )}
                 </div>
 
                 <FormError message={quickError} />
