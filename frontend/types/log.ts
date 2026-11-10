@@ -13,4 +13,5 @@ export interface LogItem {
   tanggal_masuk: string;
   suplier: string;
   harga?: number;
+  statusLog?: string;
 }
