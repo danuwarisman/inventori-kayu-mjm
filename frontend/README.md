@@ -740,7 +740,7 @@ Catatan:
 | `/dry-kiln` | Dry Kiln | **Live penuh** | Baca, create, update proses oven live ke backend; harga kayu read-only dari log asal; menerima input langsung dari Pra Dry-Kiln |
 | `/stock-reports` | Stock Reports | **UI lokal** | Client `stockApi` siap pakai di `lib/api.ts`; status stok (*Available, Low, Out*); export PDF & pagination |
 | `/suppliers` | Supplier | **Live penuh** | CRUD lengkap ke backend (`GET/POST/PATCH/DELETE /supplier`) dengan dual ID |
-| `/pembelian` | Transaksi Pembelian | **Live penuh** | CRUD Purchase Order multi-item live via `purchaseApi`; alur Verifikasi, Setujui, Tolak, dan Terima Barang dengan *graceful fallback* |
+| `/pembelian` | Transaksi Pembelian | **Live penuh** | CRUD Purchase Order multi-item live via `purchaseApi`; alur Pengajuan Admin dan Approval Manager langsung menjadi Stok Log |
 | `/sales` | Sales | **UI lokal** | Client `salesApi` siap pakai di `lib/api.ts`; input penjualan, modal detail, dan status verifikasi |
 | `/customers` | Customer | **Live penuh** | CRUD lengkap ke backend via `customerApi` (`GET/POST/PATCH/DELETE /customers`) |
 | `/accounts` | Account Management | **UI lokal** | Client `accountApi` siap pakai di `lib/api.ts`; manajemen pengguna khusus Manager |
@@ -901,7 +901,7 @@ Catatan:
 - **Live Penuh:** Terhubung langsung ke controller backend `@Controller('pembelian')` via `purchaseApi` (`GET /pembelian`, `POST /pembelian`, `PATCH /pembelian/:id`, `DELETE /pembelian/:id`).
 - **Hak Akses & Guard:** Hanya dapat diakses oleh `admin_kantor` (membuat, mengubah, dan membatalkan pesanan draft) dan `manager` (melihat riwayat dan memantau status). Halaman dijaga oleh middleware (`ROLE_ACCESS`), permission guard, dan filter navigasi `Sidebar.tsx`.
 - **Kartu Metrik (`PurchaseStatCards`):** Menampilkan Total Transaksi, Total Nilai Pembelian (akumulasi nominal Rp), Menunggu Approval, dan Pesanan Selesai/Disetujui.
-- **Toolbar:** Pencarian terpadu (No. PO, nama supplier, nama staf), filter status transaksi (`ALL`, `MENUNGGU`, `DISETUJUI`, `DITERIMA`, `DITOLAK`), tombol Refresh data, dan tombol `+ New Purchase Order` (khusus Admin Kantor).
+- **Toolbar:** Pencarian terpadu (No. PO, nama supplier, nama staf), filter status transaksi (`ALL`, `MENUNGGU`, `DISETUJUI`, `DITOLAK`), tombol Refresh data, dan tombol `+ New Purchase Order` (khusus Admin Kantor).
 - **Tabel Transaksi (`PurchaseTable`):** Menampilkan nomor pesanan (`PO-xxxx`), tanggal beli format Indonesia (`dd/mm/yyyy`), nama supplier mitra, staf penginput, jumlah total batang log & varian sortimen, total biaya pesanan (Rp), badge status, serta aksi lihat detail, edit draft, dan hapus/batal.
 - **Modal Input & Edit (`PurchaseModal`):** Form terintegrasi dengan dropdown supplier live (dari `supplierApi.list()`), tanggal beli, dan baris repeater dinamis untuk spesifikasi kayu log (asal sortimen, panjang, diameter, jumlah dipesan, dan harga beli per batang) dengan kalkulasi otomatis subtotal dan total grand estimate.
 - **Modal Detail Pembelian (`PurchaseDetailModal`):** Rincian lengkap pesanan, metadata supplier dan staf pembuat, tabel rincian dimensi kayu log, serta riwayat approval manajer.

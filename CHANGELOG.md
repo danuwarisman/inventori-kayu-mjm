@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] - 2026-11-10
 
+### Changed
+- **Penyederhanaan Alur Pembelian & Otomatisasi Stok Log (`/pembelian`)**:
+  - Menyederhanakan alur transaksi pembelian: Admin input PO dan mengajukan $\rightarrow$ Manager memeriksa lalu meng-ACC (*Approve*), yang merupakan proses akhir.
+  - Begitu Manager menyetujui (ACC), pesanan langsung berstatus final `Disetujui (Stok Log)` dan kayu log pada rincian pesanan otomatis dicatat ke Stok Log inventori pabrik (`stok_log`) tanpa memerlukan langkah "Terima Barang" manual dari Admin.
+  - Menyelaraskan client API `purchaseApi.approve` dan `purchaseApi.reject` langsung ke endpoint backend `POST /pembelian/:id/approval` dengan payload `{ status: 'DISETUJUI' | 'DITOLAK', keteranganCatatan }`.
+  - Menghapus tombol dan langkah "Terima Barang" dari tabel transaksi, modal detail, dan permission guard.
+
 ### Added
 - **Dropdown Supplier dengan Opsi "Others" pada Input Log (`/master-data` & `/dashboard`)**:
   - Mengubah kolom input teks supplier pada modal Input & Edit Log (`/master-data`) serta form Quick Entry Log (`/dashboard`) menjadi pilihan dropdown dinamis yang terhubung ke data supplier backend, lengkap dengan opsi **Others (Lainnya...)** di bagian paling akhir yang memunculkan input teks kustom jika dipilih.

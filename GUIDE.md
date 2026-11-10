@@ -83,18 +83,16 @@ Aplikasi menghubungkan setiap tahapan pengolahan kayu secara terintegrasi:
 
 ## 3. Alur Pengadaan Bahan Baku / Pembelian (`/pembelian`)
 
-Modul Pembelian mengelola *Purchase Order* (PO) dari supplier dengan alur verifikasi dua arah:
+Modul Pembelian mengelola *Purchase Order* (PO) dari supplier dengan alur ramping dua langkah:
 
-1. **Pembuatan PO (Admin):**
-   - Klik **"+ Tambah Pembelian"**, pilih Supplier dan tanggal transaksi.
+1. **Pengajuan PO (Admin):**
+   - Klik **"+ New Purchase Order"**, pilih Supplier dan tanggal transaksi.
    - Tambahkan item pesanan (sortimen, panjang, diameter, jumlah log, dan harga satuan per log). Subtotal dan total nilai PO dihitung seketika.
-2. **Verifikasi Pesanan (Admin):**
-   - Admin memeriksa rincian PO dan menekan tombol centang (**Verifikasi**) untuk meneruskan pesanan ke Manager.
-3. **Persetujuan / Penolakan (Manager):**
-   - Manager dapat menekan **Setujui** (*Approve*) untuk menyetujui pesanan atau **Tolak** (*Reject*) dengan menyertakan alasan penolakan.
-4. **Penerimaan Barang (Admin):**
-   - Ketika fisik kayu tiba dari supplier, Admin menekan tombol **Terima Barang** (*Receive*) untuk mencatat penerimaan ke inventori pabrik.
-   *(Dilengkapi sistem graceful fallback agar status tetap diperbarui mulus di antarmuka).*
+   - Setelah disimpan, status pesanan otomatis menjadi `Menunggu Approval` dan diajukan ke Manager.
+2. **Persetujuan & Pencatatan Otomatis ke Stok Log (Manager - Proses Akhir):**
+   - Manager memeriksa rincian PO.
+   - Manager menekan **Approve (ACC)** untuk menyetujui transaksi, atau **Tolak** dengan alasan penolakan.
+   - **Otomatis Masuk Inventori:** Begitu Manager menyetujui (ACC), pesanan langsung berstatus final `Disetujui (Stok Log)` dan kayu log langsung tercatat sebagai inventori Stok Log pabrik tanpa memerlukan tindakan "Terima Barang" tambahan dari Admin.
 
 ---
 

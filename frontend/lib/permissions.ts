@@ -3,9 +3,14 @@ import { type AppRole, normalizeRole } from '@/lib/session';
 /**
  * Izin aksi per role (UI-level).
  *
- * Sistem Role Baru:
+ * Sistem Role:
  * - Admin: Seluruh aksi operasional (Kayu Log, Sawmill, Dry Kiln, Supplier, Customer, Pembelian PO, Stok).
  * - Manager: Approval transaksi (Pembelian & Penjualan), Manajemen Akun Staf, Dashboard Finansial & Pengawasan.
+ *
+ * Alur Pembelian:
+ * - Admin menginput PO (`purchase:create`, `purchase:update`, `purchase:delete`).
+ * - Manager mereview lalu menyetujui (`purchase:approve`) atau menolak (`purchase:reject`).
+ * - Begitu disetujui, pesanan langsung menjadi Stok Log (proses akhir, tanpa langkah terima barang tambahan).
  */
 export type Permission =
   | 'log:create'
@@ -28,10 +33,8 @@ export type Permission =
   | 'purchase:create'
   | 'purchase:update'
   | 'purchase:delete'
-  | 'purchase:verify'
   | 'purchase:approve'
   | 'purchase:reject'
-  | 'purchase:receive'
   | 'customer:create'
   | 'customer:update'
   | 'customer:delete'
@@ -77,8 +80,6 @@ const ROLE_PERMISSIONS: Record<AppRole, ReadonlySet<Permission>> = {
     'purchase:create',
     'purchase:update',
     'purchase:delete',
-    'purchase:verify',
-    'purchase:receive',
     'sales:create',
     'stock:create',
     'settings:manage-data',
