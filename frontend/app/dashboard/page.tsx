@@ -117,6 +117,22 @@ export default function OperationalDashboardPage() {
   const [panjang, setPanjang] = useState<string>('');
   const [sortimen, setSortimen] = useState<string>('Sortimen A');
 
+  useEffect(() => {
+    let cancelled = false;
+    supplierApi
+      .list()
+      .then((data) => {
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          const names = data.map((s) => s.nama_supplier).filter(Boolean);
+          setSuppliersList((prev) => Array.from(new Set([...names, ...prev])));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleQuickRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canCreate) return;

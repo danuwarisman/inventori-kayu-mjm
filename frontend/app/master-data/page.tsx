@@ -110,7 +110,7 @@ export default function DataLogPage() {
       .list()
       .then((data) => {
         if (!cancelled && Array.isArray(data) && data.length > 0) {
-          const names = data.map((s) => s.namaSupplier).filter(Boolean);
+          const names = data.map((s) => s.nama_supplier).filter(Boolean);
           setSuppliersList((prev) => Array.from(new Set([...names, ...prev])));
         }
       })
