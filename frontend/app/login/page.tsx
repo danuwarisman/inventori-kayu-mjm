@@ -80,7 +80,7 @@ function createMockJwt(id: number, username: string, role: string): string {
       sub: id,
       username,
       role: role.toUpperCase(),
-      exp: Math.floor(Date.now() / 1000) + 8 * 3600,
+      exp: Math.floor(Date.now() / 1000) + 7 * 24 * 3600,
     })
   );
   return `${header}.${payload}.mock-signature-for-presentation`;

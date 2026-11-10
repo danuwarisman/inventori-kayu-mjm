@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] - 2026-11-10
 
+### Changed
+- **Stabilitas Sesi & Perpanjangan Expiration (Anti-Ketendang Keluar)**:
+  - Memperpanjang masa berlaku token JWT backend (`expiresIn`) dari 8 jam menjadi 7 hari (dapat disesuaikan via `JWT_EXPIRES_IN`).
+  - Memperpanjang masa berlaku cookie sesi `mjm_session` dari 8 jam menjadi 7 hari.
+  - Memperpanjang batas waktu *inactivity logout* dari 60 menit menjadi 7 hari (`NEXT_PUBLIC_INACTIVITY_TIMEOUT_MS`) agar sesi pengguna tidak terputus saat aplikasi ditinggal sejenak.
+  - Menambahkan *auto-recovery* sesi di `AppShell.tsx`: jika cookie sesi terhapus oleh browser tetapi profil pengguna di `localStorage` masih aktif, cookie otomatis dipulihkan tanpa memaksa pengguna keluar ke halaman login.
+
 ### Added
 - **Panduan Penggunaan Sistem (`GUIDE.md`)**:
   - Menyusun panduan praktis dan simpel di root repositori mengenai hak akses 2 role (*Admin* & *Manager*), alur operasional kayu dari bahan baku hingga penjualan (*Log* $\rightarrow$ *Sawmill* $\rightarrow$ *Pra-Dry-Kiln* $\rightarrow$ *Dry-Kiln* $\rightarrow$ *Sales*), fitur otomatisasi tombol cepat, serta tata cara akses sistem (Lokal, Tailscale, Cloudflare Tunnel).

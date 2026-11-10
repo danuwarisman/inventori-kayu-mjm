@@ -139,7 +139,7 @@ export function getCurrentUserId(): number | null {
 export function saveSession(user: SessionUser): void {
   // Cookie dibaca middleware: hanya menyimpan role agar tetap ringan.
   // JWT-nya sendiri disimpan terpisah via saveAccessToken (lihat ACCESS_TOKEN_KEY).
-  document.cookie = `${SESSION_COOKIE}=${user.role}; path=/; max-age=${60 * 60 * 8}; samesite=lax`;
+  document.cookie = `${SESSION_COOKIE}=${user.role}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
   localStorage.setItem(SESSION_USER_KEY, encodeSession(user));
   notifySessionChange();
 }

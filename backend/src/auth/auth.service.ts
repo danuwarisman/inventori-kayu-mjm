@@ -40,7 +40,7 @@ if (!user || !(await bcrypt.compare(dto.password, user.password))) {
     return {
       accessToken,
       tokenType: 'Bearer',
-      expiresIn: '8h',
+      expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
       user: {
         id: user.id,
         username: user.username,

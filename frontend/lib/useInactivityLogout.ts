@@ -32,9 +32,9 @@ export default function useInactivityLogout() {
   const router = useRouter();
 
   useEffect(() => {
-    // Durasi timeout diambil dari env agar mudah disesuaikan (default 60 menit).
+    // Durasi timeout diperpanjang ke 7 hari (default) agar sesi kerja tidak sering terputus/ketendang.
     const timeoutMs = Number(
-      process.env.NEXT_PUBLIC_INACTIVITY_TIMEOUT_MS ?? 60 * 60 * 1000
+      process.env.NEXT_PUBLIC_INACTIVITY_TIMEOUT_MS ?? 7 * 24 * 60 * 60 * 1000
     );
 
     let timer: ReturnType<typeof setTimeout> | null = null;

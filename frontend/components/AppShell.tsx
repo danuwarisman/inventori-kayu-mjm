@@ -59,18 +59,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
     if (!freshUser) {
       if (hasSessionCookie) {
-        // Cookie ada tapi profil localStorage hilang -> sesi rusak.
+        // Cookie ada tapi profil localStorage hilang -> bersihkan dan arahkan ke login.
+        clearSession();
         router.replace('/login');
       }
-      // Cookie juga tidak ada: benar-benar belum login;
-      // biarkan middleware yang menangani redirect-nya.
       return;
     }
+
     if (!hasSessionCookie) {
-      // Profil ada tapi cookie kedaluwarsa/terhapus -> sesi tidak valid.
-      clearSession();
-      router.replace('/login');
-      return;
+      // Profil localStorage masih ada tapi cookie terhapus/expired (mis. browser restart):
+      // Pulihkan cookie sesi secara otomatis agar pengguna TIDAK tertendang keluar tiba-tiba.
+      if (freshUser && freshUser.role) {
+        document.cookie = `${SESSION_COOKIE}=${freshUser.role}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
+      } else {
+        clearSession();
+        router.replace('/login');
+        return;
+      }
     }
 
     const allowed = ROLE_ACCESS[pathname] ?? null;
