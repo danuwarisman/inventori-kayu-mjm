@@ -1,4 +1,13 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+
+import {
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class CreatePlankDto {
   @IsString()
@@ -9,31 +18,34 @@ export class CreatePlankDto {
   @IsOptional()
   id_plank?: string;
 
-  @IsNumber()
+  @IsInt()
+  @IsPositive()
   @IsOptional()
   idSawmill?: number;
 
-  @IsNumber()
+  @IsInt()
+  @IsPositive()
   @IsOptional()
   idLogAsal?: number;
 
   @IsString()
   @IsNotEmpty()
-  gradePapan: string;
+  gradePapan!: string;
 
   @IsNumber()
-  @IsNotEmpty()
-  tinggi: number;
+  @IsPositive()
+  tinggi!: number;
 
   @IsNumber()
-  @IsNotEmpty()
-  lebar: number;
+  @IsPositive()
+  lebar!: number;
 
   @IsNumber()
-  @IsNotEmpty()
-  panjang: number;
+  @IsPositive()
+  panjang!: number;
 
   @IsNumber()
+  @Min(0)
   @IsOptional()
   volumePlank?: number;
 

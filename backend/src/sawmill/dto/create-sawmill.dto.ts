@@ -1,11 +1,25 @@
-import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
+
+import {
+  IsArray,
+  IsDateString,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  Min,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreatePlankDto } from './create-plank.dto';
 
 export class CreateSawmillDto {
   @IsString()
   @IsOptional()
   kodeSawmill?: string;
 
-  @IsNumber()
+  @IsInt()
+  @IsPositive()
   @IsOptional()
   idLog?: number;
 
@@ -18,14 +32,17 @@ export class CreateSawmillDto {
   sortimen?: string;
 
   @IsNumber()
+  @IsPositive()
   @IsOptional()
   panjang?: number;
 
   @IsNumber()
+  @IsPositive()
   @IsOptional()
   diameter?: number;
 
   @IsNumber()
+  @Min(0)
   @IsOptional()
   volume_total?: number;
 
@@ -38,13 +55,17 @@ export class CreateSawmillDto {
   suplier?: string;
 
   @IsNumber()
+  @Min(0)
   @IsOptional()
   harga?: number;
 
+  @IsDateString()
   @IsOptional()
-  tanggal?: string | Date;
+  tanggal?: string;
 
   @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreatePlankDto)
   @IsOptional()
-  planks?: any[];
+  planks?: CreatePlankDto[];
 }
