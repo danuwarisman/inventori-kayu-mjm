@@ -90,6 +90,10 @@ export default function AccountModal({
       alamat: formData.alamat.trim(),
     };
 
+    const isUnchangedMaskedPassword =
+      mode === 'edit' &&
+      (payload.password === '' || payload.password === '••••••••');
+
     const validationError = firstError(
       required(payload.id_account, 'ID Account'),
       maxLength(payload.id_account, 'ID Account', 50),
@@ -97,8 +101,10 @@ export default function AccountModal({
       maxLength(payload.name_account, 'Username', 50),
       required(payload.nama_user, 'Nama lengkap'),
       maxLength(payload.nama_user, 'Nama lengkap', 100),
-      required(payload.password, 'Password'),
-      payload.password.length < 8 ? 'Password minimal 8 karakter.' : null,
+      !isUnchangedMaskedPassword ? required(payload.password, 'Password') : null,
+      !isUnchangedMaskedPassword && payload.password.length < 8
+        ? 'Password minimal 8 karakter.'
+        : null,
       email(payload.email),
       maxLength(payload.email, 'Email', 100),
       required(payload.alamat, 'Alamat'),
