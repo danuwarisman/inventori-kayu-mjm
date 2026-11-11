@@ -9,6 +9,8 @@ import PurchaseTable from '@/components/pembelian/PurchaseTable';
 import PurchaseModal from '@/components/pembelian/PurchaseModal';
 import PurchaseDetailModal from '@/components/pembelian/PurchaseDetailModal';
 import { purchaseApi, supplierApi, getApiErrorMessage } from '@/lib/api';
+import { printOfficialDocument } from '@/lib/export';
+import { formatDateID } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 
@@ -108,6 +110,92 @@ export default function PembelianPage() {
   const handleViewDetail = (item: PurchaseOrder) => {
     setDetailOrder(item);
     setIsDetailModalOpen(true);
+  };
+
+  const handlePrintPO = (order: PurchaseOrder) => {
+    const poNumber = `PO-${String(order.idPembelian).padStart(4, '0')}`;
+    const details = order.detailPembelian ?? [];
+    const totalBatang = details.reduce((sum, d) => sum + (d.jumlahDipesan || 0), 0);
+    const grandTotal =
+      order.totalHarga ??
+      details.reduce((sum, d) => sum + (d.jumlahDipesan || 0) * (d.hargaPerLog || 0), 0);
+
+    const statusText =
+      order.statusPembelian === 'DISETUJUI' || order.statusPembelian === 'DITERIMA'
+        ? 'DISETUJUI (TERCATAT STOK LOG)'
+        : order.statusPembelian === 'DITOLAK'
+        ? 'DITOLAK'
+        : 'MENUNGGU APPROVAL MANAGER';
+
+    const latestApprovalNote = (order.approvals ?? [])
+      .map((a) => a.keteranganCatatan)
+      .filter(Boolean)
+      .join(' | ');
+
+    printOfficialDocument({
+      documentType: 'PURCHASE ORDER (PO)',
+      documentNumber: poNumber,
+      documentDate: formatDateID(order.tanggalBeli),
+      statusLabel: statusText,
+      recipientTitle: 'Kepada Yth. Supplier',
+      recipientName: order.supplier?.namaSupplier || 'Supplier Kayu Log',
+      recipientAddress: order.supplier?.alamat,
+      recipientPhone: order.supplier?.noTelepon,
+      meta: [
+        { label: 'Diajukan Oleh', value: order.user?.nama || 'Admin Kantor' },
+        { label: 'Total Batang', value: `${totalBatang.toLocaleString('id-ID')} Batang` },
+      ],
+      columns: [
+        'No',
+        'Sortimen Kayu Log',
+        'Ukuran (Panjang x Diameter)',
+        'Jumlah Batang',
+        'Harga Satuan (Rp)',
+        'Subtotal (Rp)',
+      ],
+      rows: details.map((d, idx) => {
+        const subtotal = (d.jumlahDipesan || 0) * (d.hargaPerLog || 0);
+        return [
+          String(idx + 1),
+          d.asalSortimen,
+          `${d.panjang} cm x ${d.diameter} cm`,
+          `${d.jumlahDipesan} Batang`,
+          `Rp ${(d.hargaPerLog || 0).toLocaleString('id-ID')}`,
+          `Rp ${subtotal.toLocaleString('id-ID')}`,
+        ];
+      }),
+      summaryRows: [
+        {
+          label: 'Total Batang Dipesan',
+          value: `${totalBatang.toLocaleString('id-ID')} Batang`,
+        },
+        {
+          label: 'TOTAL NILAI PURCHASE ORDER',
+          value: `Rp ${grandTotal.toLocaleString('id-ID')}`,
+          bold: true,
+        },
+      ],
+      notes:
+        latestApprovalNote ||
+        'Harap menyertakan nomor PO ini pada saat pengiriman kayu gelondongan ke gudang PT Margi Jati Makmur.',
+      signatures: [
+        {
+          roleTitle: 'Diajukan Oleh (Admin Pembelian)',
+          name: order.user?.nama || 'Admin PT Margi Jati Makmur',
+        },
+        {
+          roleTitle: 'Disetujui Oleh (Manager)',
+          name:
+            order.statusPembelian === 'DISETUJUI' || order.statusPembelian === 'DITERIMA'
+              ? 'Manager PT Margi Jati Makmur (ACC)'
+              : '( ................................. )',
+        },
+        {
+          roleTitle: 'Diserahkan Oleh (Supplier)',
+          name: order.supplier?.namaSupplier || '( ................................. )',
+        },
+      ],
+    });
   };
 
   // Submit Modal (Input / Edit PO)
@@ -394,6 +482,7 @@ export default function PembelianPage() {
         canApprove={canApprove}
         canReject={canReject}
         onView={handleViewDetail}
+        onPrint={handlePrintPO}
         onEdit={handleOpenEdit}
         onDelete={handleDelete}
         onApprove={handleApprove}
@@ -420,6 +509,7 @@ export default function PembelianPage() {
             setDetailOrder(null);
           }}
           order={detailOrder}
+          onPrint={handlePrintPO}
           onApprove={handleApprove}
           onReject={handleReject}
         />

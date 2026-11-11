@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import {
   X, Building2, User, Calendar, FileText,
-  CheckCircle2, Clock, XCircle, Check,
+  CheckCircle2, XCircle, Check, Printer,
 } from 'lucide-react';
 import { PurchaseOrder } from '@/types/purchase';
 import { formatDateID } from '@/lib/dates';
@@ -12,6 +12,7 @@ interface PurchaseDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   order: PurchaseOrder | null;
+  onPrint?: (order: PurchaseOrder) => void;
   onApprove?: (order: PurchaseOrder) => void;
   onReject?: (order: PurchaseOrder) => void;
 }
@@ -20,6 +21,7 @@ export default function PurchaseDetailModal({
   isOpen,
   onClose,
   order,
+  onPrint,
   onApprove,
   onReject,
 }: PurchaseDetailModalProps) {
@@ -226,6 +228,16 @@ export default function PurchaseDetailModal({
 
           {/* Footer Actions */}
           <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-stone-100">
+            {onPrint && (
+              <button
+                type="button"
+                onClick={() => onPrint(order)}
+                className="inline-flex items-center gap-1.5 h-9 px-4 bg-green-50 hover:bg-green-100 border border-green-300 text-green-800 font-semibold rounded transition-colors cursor-pointer mr-auto"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Cetak PO</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={onClose}

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import {
   Eye, Pencil, Trash2, Loader2, ShoppingBag,
-  CheckCircle2, Clock, XCircle, Check,
+  CheckCircle2, XCircle, Check, Printer,
 } from 'lucide-react';
 import { PurchaseOrder } from '@/types/purchase';
 import Pagination from '@/components/Pagination';
@@ -19,6 +19,7 @@ interface PurchaseTableProps {
   canApprove?: boolean;
   canReject?: boolean;
   onView: (item: PurchaseOrder) => void;
+  onPrint?: (item: PurchaseOrder) => void;
   onEdit?: (item: PurchaseOrder) => void;
   onDelete?: (item: PurchaseOrder) => void;
   onApprove?: (item: PurchaseOrder) => void;
@@ -66,6 +67,7 @@ export default function PurchaseTable({
   canApprove = false,
   canReject = false,
   onView,
+  onPrint,
   onEdit,
   onDelete,
   onApprove,
@@ -178,6 +180,16 @@ export default function PurchaseTable({
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
+                        {onPrint && (
+                          <button
+                            type="button"
+                            onClick={() => onPrint(item)}
+                            className="p-1 text-stone-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                            title="Cetak Purchase Order (PO)"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                         {isPending && canEdit && onEdit && (
                           <button
                             type="button"

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShoppingBag, CheckCircle2, XCircle } from 'lucide-react';
+import { ShoppingBag, CheckCircle2, XCircle, Printer, Truck } from 'lucide-react';
 import { SalesItem } from '@/types/sales';
 import { formatDateID } from '@/lib/dates';
 import Pagination from '@/components/Pagination';
@@ -13,6 +13,8 @@ interface SalesTableProps {
   canApprove?: boolean;
   onApprove?: (id: string) => void;
   onReject?: (id: string) => void;
+  onPrintInvoice?: (item: SalesItem) => void;
+  onPrintSuratJalan?: (item: SalesItem) => void;
 }
 
 export default function SalesTable({
@@ -22,6 +24,8 @@ export default function SalesTable({
   canApprove = false,
   onApprove,
   onReject,
+  onPrintInvoice,
+  onPrintSuratJalan,
 }: SalesTableProps) {
   const pageSize = 10;
   const [page, setPage] = useState(1);
@@ -55,6 +59,7 @@ export default function SalesTable({
               <th className="py-3 px-3 text-center">Quantity</th>
               <th className="py-3 px-3 text-center">Total Amount</th>
               <th className="py-3 px-3 text-center">Status</th>
+              <th className="py-3 px-3 text-center">Dokumen</th>
               {canApprove && (
                 <th className="py-3 px-3 text-center w-28">Approval Action</th>
               )}
@@ -63,7 +68,7 @@ export default function SalesTable({
           <tbody className="divide-y divide-stone-100">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={6 + (canApprove ? 1 : 0)} className="py-14 text-center">
+                <td colSpan={7 + (canApprove ? 1 : 0)} className="py-14 text-center">
                   <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
                     <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
                     <p className="text-sm font-semibold text-stone-600">
@@ -108,6 +113,34 @@ export default function SalesTable({
                     >
                       {item.status}
                     </span>
+                  </td>
+
+                  {/* Cetak Invoice & Surat Jalan */}
+                  <td className="py-3 px-3 text-center">
+                    <div className="inline-flex items-center justify-center gap-1.5">
+                      {onPrintInvoice && (
+                        <button
+                          type="button"
+                          onClick={() => onPrintInvoice(item)}
+                          className="px-2 py-1 text-[11px] font-semibold text-green-800 bg-green-50 hover:bg-green-100 border border-green-300 rounded inline-flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Cetak Invoice Penjualan"
+                        >
+                          <Printer className="w-3 h-3" />
+                          <span>Invoice</span>
+                        </button>
+                      )}
+                      {onPrintSuratJalan && (
+                        <button
+                          type="button"
+                          onClick={() => onPrintSuratJalan(item)}
+                          className="px-2 py-1 text-[11px] font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-300 rounded inline-flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Cetak Surat Jalan Pengiriman"
+                        >
+                          <Truck className="w-3 h-3" />
+                          <span>Surat Jalan</span>
+                        </button>
+                      )}
+                    </div>
                   </td>
 
                   {/* Fitur Approval Aksi Eksklusif Manager */}

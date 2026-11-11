@@ -10,7 +10,9 @@ export interface PlankItem {
   lebar: number;   // Lebar (cm)
   panjang: number; // Panjang (cm)
   volume: number;  // m3
+  volumePlank?: number;
   grade: PlankGrade;
+  gradePapan?: string;
   stage?: string;
 }
 

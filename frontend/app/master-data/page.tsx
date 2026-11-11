@@ -125,7 +125,7 @@ export default function DataLogPage() {
   const canCreate = can(user?.role, 'log:create');
   const canUpdate = can(user?.role, 'log:update');
   const canDelete = can(user?.role, 'log:delete');
-  const canAct = canUpdate || canDelete || isManager;
+  const canAct = canUpdate || canDelete;
 
   // Hitung volume otomatis: V = (pi/4) * (d^2) * L atau rumus kubikasi standar
   const calculateVolume = (panjangCm: number, diameterCm: number): number => {
@@ -288,10 +288,6 @@ export default function DataLogPage() {
         tanggal: toISODate(),
         planks: [],
       });
-
-      if (item.idLog) {
-        await logApi.update(item.idLog, { statusLog: 'Sawmill' });
-      }
 
       setLogs((prev) =>
         prev.map((l) =>
@@ -484,7 +480,7 @@ export default function DataLogPage() {
             <span>Export PDF</span>
           </button>
 
-          {(canCreate || isManager) && (
+          {canCreate && (
             <button
               type="button"
               onClick={handleOpenInput}
@@ -578,7 +574,17 @@ export default function DataLogPage() {
                     className="text-green-700 hover:bg-stone-50 transition-colors"
                   >
                     <td className="py-3 px-3 text-center font-mono font-medium">
-                      {item.id_log}
+                      <span className="inline-flex items-center gap-1.5">
+                        <span>{item.id_log}</span>
+                        {item.idPembelian != null && (
+                          <span
+                            className="px-1.5 py-0.2 rounded text-[10px] font-sans font-bold bg-blue-100 text-blue-700 border border-blue-200"
+                            title="Log berasal dari transaksi Pembelian (PO)"
+                          >
+                            PO
+                          </span>
+                        )}
+                      </span>
                     </td>
                     <td className="py-3 px-3 text-center font-normal">
                       {item.sortimen}
@@ -630,12 +636,19 @@ export default function DataLogPage() {
                             </span>
                           )}
 
-                          {(canUpdate || isManager) && (
+                          {canUpdate && (
                             <button
                               type="button"
+                              disabled={item.idPembelian != null || item.stage !== 'Log'}
                               onClick={() => handleOpenEdit(item)}
-                              className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
-                              title="Edit Log"
+                              className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                              title={
+                                item.idPembelian != null
+                                  ? 'Log dari transaksi pembelian (PO) tidak dapat diubah'
+                                  : item.stage !== 'Log'
+                                  ? 'Log yang sudah masuk proses produksi tidak dapat diubah'
+                                  : 'Edit Log'
+                              }
                             >
                               <Pencil className="w-3.5 h-3.5" />
                             </button>
@@ -643,9 +656,16 @@ export default function DataLogPage() {
                           {canDelete && (
                             <button
                               type="button"
+                              disabled={item.idPembelian != null || item.stage !== 'Log'}
                               onClick={() => handleDeleteLog(item)}
-                              className="p-1 text-red-600 hover:bg-red-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
-                              title="Hapus Log"
+                              className="p-1 text-red-600 hover:bg-red-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                              title={
+                                item.idPembelian != null
+                                  ? 'Log dari transaksi pembelian (PO) tidak dapat dihapus'
+                                  : item.stage !== 'Log'
+                                  ? 'Log yang sudah masuk proses produksi tidak dapat dihapus'
+                                  : 'Hapus Log'
+                              }
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>

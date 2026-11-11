@@ -227,3 +227,365 @@ export function downloadExportFile(
 
   downloadExcel(filename, documentData);
 }
+
+/* ------------------------------------------------------------------ */
+/* Cetak Dokumen Resmi PT Margi Jati Makmur (PO, Invoice, Surat Jalan) */
+/* ------------------------------------------------------------------ */
+
+export interface OfficialDocumentMeta {
+  label: string;
+  value: string;
+}
+
+export interface OfficialDocumentSignature {
+  roleTitle: string;
+  name?: string;
+}
+
+export interface OfficialDocumentData {
+  documentType: 'PURCHASE ORDER (PO)' | 'INVOICE PENJUALAN' | 'SURAT JALAN';
+  documentNumber: string;
+  documentDate: string;
+  statusLabel: string;
+  recipientTitle: string;
+  recipientName: string;
+  recipientAddress?: string;
+  recipientPhone?: string;
+  meta: OfficialDocumentMeta[];
+  columns: string[];
+  rows: string[][];
+  summaryRows?: { label: string; value: string; bold?: boolean }[];
+  notes?: string;
+  signatures: OfficialDocumentSignature[];
+}
+
+function buildOfficialDocumentHtml(doc: OfficialDocumentData): string {
+  const metaHtml = doc.meta
+    .map(
+      (m) => `
+        <div class="meta-row">
+          <span class="meta-label">${escapeHtml(m.label)}</span>
+          <span class="meta-sep">:</span>
+          <span class="meta-val">${escapeHtml(m.value)}</span>
+        </div>`
+    )
+    .join('');
+
+  const rowsHtml =
+    doc.rows.length > 0
+      ? doc.rows
+          .map(
+            (row) =>
+              `<tr>${row
+                .map((cell, idx) => `<td class="${idx === 0 ? 'center' : ''}">${escapeHtml(cell)}</td>`)
+                .join('')}</tr>`
+          )
+          .join('')
+      : `<tr><td colspan="${doc.columns.length}" class="center muted">Tidak ada rincian item</td></tr>`;
+
+  const summaryHtml = (doc.summaryRows ?? [])
+    .map(
+      (s) => `
+        <tr class="summary-row ${s.bold ? 'summary-bold' : ''}">
+          <td colspan="${Math.max(1, doc.columns.length - 1)}" class="right">${escapeHtml(s.label)}</td>
+          <td class="right">${escapeHtml(s.value)}</td>
+        </tr>`
+    )
+    .join('');
+
+  const signaturesHtml = doc.signatures
+    .map(
+      (sig) => `
+        <div class="sig-box">
+          <div class="sig-title">${escapeHtml(sig.roleTitle)}</div>
+          <div class="sig-space"></div>
+          <div class="sig-name">${escapeHtml(sig.name || '( ................................. )')}</div>
+        </div>`
+    )
+    .join('');
+
+  return `<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <title>${escapeHtml(doc.documentType)} - ${escapeHtml(doc.documentNumber)}</title>
+    <style>
+      @page { size: A4 portrait; margin: 14mm; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        color: #1c1917;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 11px;
+        line-height: 1.45;
+      }
+      .letterhead {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding-bottom: 12px;
+        border-bottom: 3px double #15803d;
+        margin-bottom: 16px;
+      }
+      .company-name {
+        font-size: 20px;
+        font-weight: 800;
+        color: #14532d;
+        letter-spacing: 0.5px;
+        margin: 0 0 3px;
+      }
+      .company-sub {
+        font-size: 10px;
+        color: #57534e;
+        margin: 0;
+      }
+      .doc-badge {
+        text-align: right;
+      }
+      .doc-type {
+        font-size: 16px;
+        font-weight: 800;
+        color: #15803d;
+        margin: 0 0 4px;
+      }
+      .doc-number {
+        font-family: monospace;
+        font-size: 12px;
+        font-weight: 700;
+        color: #1c1917;
+        background: #dcfce7;
+        padding: 2px 8px;
+        border-radius: 4px;
+        display: inline-block;
+      }
+      .info-grid {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 16px;
+      }
+      .recipient-box, .meta-box {
+        flex: 1;
+        padding: 10px 12px;
+        border: 1px solid #d6d3d1;
+        border-radius: 6px;
+        background: #fafaf9;
+      }
+      .box-caption {
+        font-size: 9px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #15803d;
+        margin-bottom: 4px;
+      }
+      .recipient-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #1c1917;
+        margin-bottom: 2px;
+      }
+      .recipient-detail {
+        font-size: 10.5px;
+        color: #57534e;
+      }
+      .meta-row {
+        display: flex;
+        margin-bottom: 3px;
+      }
+      .meta-label {
+        width: 115px;
+        color: #57534e;
+        font-weight: 600;
+      }
+      .meta-sep {
+        width: 10px;
+      }
+      .meta-val {
+        flex: 1;
+        font-weight: 700;
+        color: #1c1917;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 14px;
+      }
+      th {
+        background: #15803d;
+        color: #ffffff;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 7px 8px;
+        border: 1px solid #15803d;
+      }
+      td {
+        padding: 7px 8px;
+        border: 1px solid #d6d3d1;
+        vertical-align: top;
+      }
+      tbody tr:nth-child(even) {
+        background: #fafaf9;
+      }
+      .summary-row td {
+        background: #f5f5f4;
+        font-weight: 600;
+      }
+      .summary-bold td {
+        background: #dcfce7;
+        color: #14532d;
+        font-weight: 800;
+        font-size: 12px;
+      }
+      .center { text-align: center; }
+      .right { text-align: right; }
+      .muted { color: #78716c; }
+      .notes-box {
+        padding: 8px 12px;
+        border-left: 3px solid #15803d;
+        background: #f5f5f4;
+        font-size: 10.5px;
+        margin-bottom: 24px;
+      }
+      .sig-grid {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 28px;
+        page-break-inside: avoid;
+      }
+      .sig-box {
+        flex: 1;
+        text-align: center;
+      }
+      .sig-title {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #44403c;
+      }
+      .sig-space {
+        height: 60px;
+      }
+      .sig-name {
+        font-size: 11px;
+        font-weight: 700;
+        color: #1c1917;
+        border-top: 1px solid #78716c;
+        display: inline-block;
+        min-width: 150px;
+        padding-top: 4px;
+      }
+      .footer-note {
+        margin-top: 20px;
+        padding-top: 8px;
+        border-top: 1px dashed #d6d3d1;
+        font-size: 9.5px;
+        color: #78716c;
+        display: flex;
+        justify-content: space-between;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="letterhead">
+      <div>
+        <div class="company-name">PT MARGI JATI MAKMUR</div>
+        <p class="company-sub">Industri Pengolahan Kayu Log, Sawmill, &amp; Pengeringan Dry-Kiln</p>
+        <p class="company-sub">Jawa Tengah, Indonesia | Email: operasional@margijatimakmur.co.id</p>
+      </div>
+      <div class="doc-badge">
+        <div class="doc-type">${escapeHtml(doc.documentType)}</div>
+        <div class="doc-number">${escapeHtml(doc.documentNumber)}</div>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="recipient-box">
+        <div class="box-caption">${escapeHtml(doc.recipientTitle)}</div>
+        <div class="recipient-name">${escapeHtml(doc.recipientName)}</div>
+        ${doc.recipientAddress ? `<div class="recipient-detail">${escapeHtml(doc.recipientAddress)}</div>` : ''}
+        ${doc.recipientPhone ? `<div class="recipient-detail">Telp: ${escapeHtml(doc.recipientPhone)}</div>` : ''}
+      </div>
+      <div class="meta-box">
+        <div class="box-caption">Informasi Dokumen</div>
+        <div class="meta-row">
+          <span class="meta-label">Tanggal</span>
+          <span class="meta-sep">:</span>
+          <span class="meta-val">${escapeHtml(doc.documentDate)}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Status</span>
+          <span class="meta-sep">:</span>
+          <span class="meta-val">${escapeHtml(doc.statusLabel)}</span>
+        </div>
+        ${metaHtml}
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>${doc.columns.map((c) => `<th>${escapeHtml(c)}</th>`).join('')}</tr>
+      </thead>
+      <tbody>
+        ${rowsHtml}
+        ${summaryHtml}
+      </tbody>
+    </table>
+
+    ${
+      doc.notes
+        ? `<div class="notes-box"><strong>Catatan:</strong> ${escapeHtml(doc.notes)}</div>`
+        : ''
+    }
+
+    <div class="sig-grid">
+      ${signaturesHtml}
+    </div>
+
+    <div class="footer-note">
+      <span>Dicetak dari Sistem Inventori Kayu PT Margi Jati Makmur</span>
+      <span>Waktu Cetak: ${escapeHtml(new Date().toLocaleString('id-ID'))}</span>
+    </div>
+  </body>
+</html>`;
+}
+
+export function printOfficialDocument(doc: OfficialDocumentData): void {
+  const iframe = document.createElement('iframe');
+  iframe.title = `${doc.documentType} - ${doc.documentNumber}`;
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+
+  document.body.appendChild(iframe);
+
+  const frameWindow = iframe.contentWindow;
+  const frameDocument = frameWindow?.document;
+
+  if (!frameWindow || !frameDocument) {
+    iframe.remove();
+    throw new Error('Browser tidak mendukung proses cetak dokumen.');
+  }
+
+  frameDocument.open();
+  frameDocument.write(buildOfficialDocumentHtml(doc));
+  frameDocument.close();
+
+  let cleanedUp = false;
+  const cleanup = () => {
+    if (cleanedUp) return;
+    cleanedUp = true;
+    iframe.remove();
+  };
+
+  frameWindow.onafterprint = cleanup;
+  window.setTimeout(cleanup, 5 * 60 * 1000);
+  window.setTimeout(() => {
+    frameWindow.focus();
+    frameWindow.print();
+  }, 150);
+}
+

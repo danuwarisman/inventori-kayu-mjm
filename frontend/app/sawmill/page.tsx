@@ -5,6 +5,7 @@ import {
   FileDown,
   Plus,
   Pencil,
+  Trash2,
   Eye,
   X,
   ChevronDown,
@@ -38,9 +39,11 @@ export default function DataSawmillPage() {
   const isManager = user?.role === 'manager';
   const canCreate = can(user?.role, 'sawmill:create') || isManager;
   const canUpdate = can(user?.role, 'sawmill:update') || isManager;
+  const canDelete = can(user?.role, 'sawmill:delete') || isManager;
   const canCreatePlank = can(user?.role, 'plank:create') || isManager;
   const canUpdatePlank = can(user?.role, 'plank:update') || isManager;
-  const canManagePlanks = canCreatePlank || canUpdatePlank;
+  const canDeletePlank = can(user?.role, 'plank:delete') || isManager;
+  const canManagePlanks = canCreatePlank || canUpdatePlank || canDeletePlank;
 
   // State data utama
   const [sawmillItems, setSawmillItems] = useState<SawmillItem[]>([]);
@@ -105,6 +108,7 @@ export default function DataSawmillPage() {
   const [formPanjang, setFormPanjang] = useState<number | ''>('');
   const [formDiameter, setFormDiameter] = useState<number | ''>('');
   const [formSuplier, setFormSuplier] = useState('PT. Suplier');
+  const [formStage, setFormStage] = useState<'Sawmill' | 'finish Sawmill'>('Sawmill');
   const [availableLogs, setAvailableLogs] = useState<LogItem[]>([]);
 
   // Form Hasil Plank
@@ -145,6 +149,7 @@ export default function DataSawmillPage() {
     setFormPanjang('');
     setFormDiameter('');
     setFormSuplier('');
+    setFormStage('Sawmill');
     setSelectedSawmill(null);
     setFormError(null);
     setModalType('input-sawmill');
@@ -157,6 +162,7 @@ export default function DataSawmillPage() {
     setFormPanjang(item.panjang);
     setFormDiameter(item.diameter);
     setFormSuplier(item.suplier);
+    setFormStage(item.stage === 'finish Sawmill' ? 'finish Sawmill' : 'Sawmill');
     setFormError(null);
     setModalType('edit-sawmill');
   };
@@ -189,8 +195,15 @@ export default function DataSawmillPage() {
 
     if (modalType === 'input-sawmill') {
       const chosenLog = availableLogs.find((l) => l.id_log === idLog);
+      if (!chosenLog) {
+        setFormError(
+          'Pilih kayu log dari daftar Stok Kayu Log yang berstatus "Log".'
+        );
+        return;
+      }
+
       const newItemPayload: Partial<SawmillItem> = {
-        idLog: chosenLog?.idLog,
+        idLog: chosenLog.idLog,
         id_sawmill: `SM-${new Date().getFullYear()}-${sawmillItems.length + 1}`,
         id_log_asal: idLog,
         sortimen: formSortimen,
@@ -200,7 +213,7 @@ export default function DataSawmillPage() {
         stage: 'Sawmill',
         tanggal: toISODate(),
         suplier,
-        harga: chosenLog?.harga || 1000000,
+        harga: chosenLog.harga || 1000000,
         planks: [],
       };
 
@@ -220,12 +233,8 @@ export default function DataSawmillPage() {
       }
     } else if (modalType === 'edit-sawmill' && selectedSawmill) {
       const updatedPayload: Partial<SawmillItem> = {
-        id_log_asal: idLog,
-        sortimen: formSortimen,
-        panjang: p,
-        diameter: d,
-        volume_total: vol,
-        suplier,
+        kodeSawmill: selectedSawmill.kodeSawmill ?? selectedSawmill.id_sawmill,
+        stage: formStage,
       };
 
       if (!selectedSawmill.idSawmill) {
@@ -707,14 +716,26 @@ export default function DataSawmillPage() {
 
                     {canUpdate && (
                       <td className="py-3 px-3 text-center">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEditSawmill(item)}
-                          className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
-                          title="Edit Log Asal"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="inline-flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditSawmill(item)}
+                            className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                            title="Edit Status Batch Sawmill"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          {canDelete && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSawmill(item)}
+                              className="p-1 text-red-600 hover:bg-red-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                              title="Hapus Batch Sawmill"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -765,103 +786,105 @@ export default function DataSawmillPage() {
               <div className="flex flex-col gap-1">
                 <label className="font-semibold text-green-700 flex justify-between items-center">
                   <span>ID LOG ASAL</span>
-                  {modalType === 'input-sawmill' && availableLogs.length > 0 && (
+                  {modalType === 'input-sawmill' && (
                     <span className="text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded font-normal">
                       {availableLogs.length} Log Siap Olah
                     </span>
                   )}
                 </label>
-                {modalType === 'input-sawmill' && availableLogs.length > 0 ? (
-                  <div className="relative">
-                    <select
-                      value={formIdLog}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setFormIdLog(val);
-                        const chosen = availableLogs.find((l) => l.id_log === val);
-                        if (chosen) {
-                          setFormSortimen(chosen.sortimen);
-                          setFormPanjang(chosen.panjang);
-                          setFormDiameter(chosen.diameter);
-                          setFormSuplier(chosen.suplier);
-                        }
-                      }}
-                      className="w-full h-10 pl-3 pr-8 bg-white border border-stone-800 rounded font-mono text-green-700 text-xs focus:outline-none focus:border-green-700 cursor-pointer"
-                      required
-                    >
-                      <option value="">-- Pilih Log dari Stok Kayu Log --</option>
-                      {availableLogs.map((l) => (
-                        <option key={l.id_log} value={l.id_log}>
-                          {l.id_log} - {l.sortimen} ({l.panjang}x{l.diameter} cm, Vol: {l.volume} m³) - {l.suplier}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
-                  </div>
+                {modalType === 'input-sawmill' ? (
+                  availableLogs.length > 0 ? (
+                    <div className="relative">
+                      <select
+                        value={formIdLog}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setFormIdLog(val);
+                          const chosen = availableLogs.find((l) => l.id_log === val);
+                          if (chosen) {
+                            setFormSortimen(chosen.sortimen);
+                            setFormPanjang(chosen.panjang);
+                            setFormDiameter(chosen.diameter);
+                            setFormSuplier(chosen.suplier);
+                          }
+                        }}
+                        className="w-full h-10 pl-3 pr-8 bg-white border border-stone-800 rounded font-mono text-green-700 text-xs focus:outline-none focus:border-green-700 cursor-pointer"
+                        required
+                      >
+                        <option value="">-- Pilih Log dari Stok Kayu Log --</option>
+                        {availableLogs.map((l) => (
+                          <option key={l.id_log} value={l.id_log}>
+                            {l.id_log} - {l.sortimen} ({l.panjang}x{l.diameter} cm, Vol: {l.volume} m³) - {l.suplier}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
+                    </div>
+                  ) : (
+                    <div className="p-2.5 bg-amber-50 border border-amber-300 rounded text-amber-800 text-[11px]">
+                      Belum ada stok kayu log berstatus <b>&quot;Log&quot;</b> yang siap diolah. Tambahkan log terlebih dahulu melalui Master Data atau Pembelian PO.
+                    </div>
+                  )
                 ) : (
                   <input
                     type="text"
-                    required
-                    maxLength={50}
-                    placeholder="L-2026-X-X-X"
+                    disabled
                     value={formIdLog}
-                    onChange={(e) => setFormIdLog(e.target.value)}
-                    className="w-full h-10 px-3 bg-white border border-stone-800 rounded font-mono text-green-700 focus:outline-none focus:border-green-700"
+                    className="w-full h-10 px-3 bg-stone-100 border border-stone-300 rounded font-mono text-green-800 font-medium"
                   />
                 )}
               </div>
 
+              {modalType === 'edit-sawmill' && (
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-green-700">Stage Sawmill</label>
+                  <div className="relative">
+                    <select
+                      value={formStage}
+                      onChange={(e) =>
+                        setFormStage(e.target.value as 'Sawmill' | 'finish Sawmill')
+                      }
+                      className="w-full h-10 pl-3 pr-8 bg-white border border-stone-800 rounded text-green-700 font-semibold appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
+                    >
+                      <option value="Sawmill">Sawmill</option>
+                      <option value="finish Sawmill">finish Sawmill</option>
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col gap-1">
                 <label className="font-semibold text-green-700">Sortimen</label>
-                <div className="relative">
-                  <select
-                    value={formSortimen}
-                    onChange={(e) => setFormSortimen(e.target.value)}
-                    className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded text-green-700 font-medium appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
-                  >
-                    <option value="Sortimen A">Sortimen A</option>
-                    <option value="Sortimen B">Sortimen B</option>
-                    <option value="Sortimen C">Sortimen C</option>
-                  </select>
-                  <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
-                </div>
+                <input
+                  type="text"
+                  disabled
+                  value={formSortimen}
+                  className="w-full h-10 px-3 bg-stone-100 border border-stone-300 rounded text-green-800 font-medium"
+                />
               </div>
 
               <div className="flex flex-col gap-1">
-                <span className="font-semibold text-green-700">Ukuran</span>
+                <span className="font-semibold text-green-700">Ukuran Log Asal</span>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[11px] text-green-700">Panjang (cm)</label>
                     <input
                       type="number"
-                      required
-                      min={0.1}
-                      step="any"
-                      placeholder="100"
+                      disabled
+                      placeholder="-"
                       value={formPanjang}
-                      onChange={(e) =>
-                        setFormPanjang(
-                          e.target.value === '' ? '' : Number(e.target.value)
-                        )
-                      }
-                      className="w-full h-9 px-3 bg-white border border-stone-800 rounded text-green-700 focus:outline-none focus:border-green-700"
+                      className="w-full h-9 px-3 bg-stone-100 border border-stone-300 rounded text-green-800"
                     />
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[11px] text-green-700">Diameter (cm)</label>
                     <input
                       type="number"
-                      required
-                      min={0.1}
-                      step="any"
-                      placeholder="20"
+                      disabled
+                      placeholder="-"
                       value={formDiameter}
-                      onChange={(e) =>
-                        setFormDiameter(
-                          e.target.value === '' ? '' : Number(e.target.value)
-                        )
-                      }
-                      className="w-full h-9 px-3 bg-white border border-stone-800 rounded text-green-700 focus:outline-none focus:border-green-700"
+                      className="w-full h-9 px-3 bg-stone-100 border border-stone-300 rounded text-green-800"
                     />
                   </div>
                 </div>
@@ -872,16 +895,15 @@ export default function DataSawmillPage() {
                 <div className="flex items-center gap-3">
                   <input
                     type="text"
-                    required
-                    maxLength={100}
-                    placeholder="PT. Suplier"
+                    disabled
+                    placeholder="-"
                     value={formSuplier}
-                    onChange={(e) => setFormSuplier(e.target.value)}
-                    className="flex-1 h-10 px-3 bg-white border border-stone-800 rounded text-green-700 font-semibold focus:outline-none focus:border-green-700"
+                    className="flex-1 h-10 px-3 bg-stone-100 border border-stone-300 rounded text-green-800 font-semibold"
                   />
                   <button
                     type="submit"
-                    className="h-10 px-4 bg-green-700 hover:bg-green-800 text-white font-bold rounded flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer shadow-2xs"
+                    disabled={modalType === 'input-sawmill' && availableLogs.length === 0}
+                    className="h-10 px-4 bg-green-700 hover:bg-green-800 text-white font-bold rounded flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {modalType === 'input-sawmill' ? (
                       <>
@@ -907,7 +929,7 @@ export default function DataSawmillPage() {
       {/* Modal B: Rincian Papan Hasil Potong (Detail Hasil Sawmill) */}
       {modalType === 'detail-hasil' && selectedSawmill && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="relative w-full max-w-[640px] p-5 bg-orange-50 rounded-[10px] border border-stone-300 shadow-xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-[680px] p-5 bg-orange-50 rounded-[10px] border border-stone-300 shadow-xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-2 border-b border-stone-300/60">
               <h2 className="text-stone-800 text-xl font-bold font-sans">
                 {canManagePlanks ? 'Edit Detail Hasil Sawmill' : 'Detail Hasil Sawmill'}
@@ -941,8 +963,9 @@ export default function DataSawmillPage() {
                       </th>
                       <th className="py-2.5 px-2 text-center">Total Volume</th>
                       <th className="py-2.5 px-2 text-center">Grade</th>
+                      <th className="py-2.5 px-2 text-center">Stage</th>
                       {canManagePlanks && (
-                        <th className="py-2.5 px-2 text-center w-12">Action</th>
+                        <th className="py-2.5 px-2 text-center w-16">Action</th>
                       )}
                     </tr>
                   </thead>
@@ -950,7 +973,7 @@ export default function DataSawmillPage() {
                     {selectedSawmill.planks.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={5 + (canManagePlanks ? 1 : 0)}
+                          colSpan={6 + (canManagePlanks ? 1 : 0)}
                           className="py-8 text-center text-stone-400"
                         >
                           <div className="flex flex-col items-center justify-center gap-1">
@@ -960,39 +983,68 @@ export default function DataSawmillPage() {
                         </td>
                       </tr>
                     ) : (
-                      selectedSawmill.planks.map((plank, pIdx) => (
-                        <tr key={plank.id_plank} className="text-green-700">
-                          <td className="py-2 px-2 text-center font-mono font-medium">
-                            {plank.id_plank}
-                          </td>
-                          <td className="py-2 px-2 text-center">{plank.sortimen}</td>
-                          <td className="py-2 px-2 text-center whitespace-nowrap">
-                            {plank.tinggi}mm x {plank.lebar}mm x {plank.panjang}mm
-                          </td>
-                          <td className="py-2 px-2 text-center font-medium">
-                            {plank.volume.toFixed(3)} m³
-                          </td>
-                          <td className="py-2 px-2 text-center font-semibold">
-                            {plank.grade}
-                          </td>
-                          {canManagePlanks && (
-                            <td className="py-2 px-2 text-center">
-                              {canUpdatePlank ? (
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenEditHasil(plank, pIdx)}
-                                  className="p-1 hover:bg-green-100 rounded text-green-700 cursor-pointer"
-                                  title="Edit Plank"
-                                >
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                              ) : (
-                                <span className="text-stone-300">-</span>
-                              )}
+                      selectedSawmill.planks.map((plank, pIdx) => {
+                        const isPlankLocked =
+                          Boolean(plank.stage) && plank.stage !== 'Sawmill';
+                        return (
+                          <tr key={plank.id_plank} className="text-green-700">
+                            <td className="py-2 px-2 text-center font-mono font-medium">
+                              {plank.id_plank}
                             </td>
-                          )}
-                        </tr>
-                      ))
+                            <td className="py-2 px-2 text-center">{plank.sortimen}</td>
+                            <td className="py-2 px-2 text-center whitespace-nowrap">
+                              {plank.tinggi}cm x {plank.lebar}cm x {plank.panjang}cm
+                            </td>
+                            <td className="py-2 px-2 text-center font-medium">
+                              {plank.volume.toFixed(3)} m³
+                            </td>
+                            <td className="py-2 px-2 text-center font-semibold">
+                              {plank.grade}
+                            </td>
+                            <td className="py-2 px-2 text-center">
+                              <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-lime-100 text-green-800">
+                                {plank.stage || 'Sawmill'}
+                              </span>
+                            </td>
+                            {canManagePlanks && (
+                              <td className="py-2 px-2 text-center">
+                                <div className="inline-flex items-center gap-1">
+                                  {canUpdatePlank && (
+                                    <button
+                                      type="button"
+                                      disabled={isPlankLocked}
+                                      onClick={() => handleOpenEditHasil(plank, pIdx)}
+                                      className="p-1 hover:bg-green-100 rounded text-green-700 cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                      title={
+                                        isPlankLocked
+                                          ? `Plank sudah digunakan pada proses ${plank.stage} dan tidak dapat diubah`
+                                          : 'Edit Plank'
+                                      }
+                                    >
+                                      <Pencil className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                  {canDeletePlank && (
+                                    <button
+                                      type="button"
+                                      disabled={isPlankLocked}
+                                      onClick={() => handleDeletePlank(plank, pIdx)}
+                                      className="p-1 hover:bg-red-100 rounded text-red-600 cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                      title={
+                                        isPlankLocked
+                                          ? `Plank sudah digunakan pada proses ${plank.stage} dan tidak dapat dihapus`
+                                          : 'Hapus Plank'
+                                      }
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>

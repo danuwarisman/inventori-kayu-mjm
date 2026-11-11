@@ -4,6 +4,7 @@ export interface LogItem {
   idLog?: number;
   id_log: string;
   kodeLog?: string;
+  idPembelian?: number | null;
   sortimen: string;
   panjang: number;
   diameter: number;

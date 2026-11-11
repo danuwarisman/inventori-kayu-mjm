@@ -355,15 +355,21 @@ function compactPayload<T extends Record<string, unknown>>(payload: T): Partial<
  * - `id_log`        -> `kodeLog`
  */
 function toBackendLogPayload(data: Partial<LogItem>) {
+  const p = data.panjang !== undefined ? Number(data.panjang) : undefined;
+  const d = data.diameter !== undefined ? Number(data.diameter) : undefined;
+  const rawVol = data.volumeLog ?? data.volume;
+  const vol = rawVol !== undefined ? Number(rawVol) : undefined;
+  const harga = data.harga !== undefined ? Number(data.harga) : undefined;
+
   return compactPayload({
     kodeLog: data.kodeLog ?? data.id_log,
     asalSortimen: data.sortimen,
-    panjang: data.panjang,
-    diameter: data.diameter,
-    volumeLog: data.volumeLog ?? data.volume,
+    panjang: p,
+    diameter: d,
+    volumeLog: vol,
     stage: data.stage,
     suplier: data.suplier,
-    harga: data.harga,
+    harga: harga,
     tanggalMasuk: data.tanggal_masuk,
   });
 }
@@ -456,21 +462,49 @@ function mapBackendPlank(
  * `id_sawmill` bukan field DTO; kode tampilan dipetakan ke `kodeSawmill`.
  */
 function toBackendSawmillPayload(data: Partial<SawmillItem>) {
+  const p = data.panjang !== undefined ? Number(data.panjang) : undefined;
+  const d = data.diameter !== undefined ? Number(data.diameter) : undefined;
+  const volTotal = data.volume_total !== undefined ? Number(data.volume_total) : undefined;
+  const harga = data.harga !== undefined ? Number(data.harga) : undefined;
+  const idLog = data.idLog !== undefined ? Number(data.idLog) : undefined;
+
+  const mappedPlanks = Array.isArray(data.planks)
+    ? data.planks.map((plank) => {
+        const tinggi = Number(plank.tinggi) || 0;
+        const lebar = Number(plank.lebar) || 0;
+        const panjang = Number(plank.panjang) || 0;
+        const rawVol = plank.volumePlank ?? plank.volume;
+        const volumePlank =
+          rawVol !== undefined && rawVol !== null
+            ? Number(rawVol)
+            : Number(((tinggi * lebar * panjang) / 1000000).toFixed(3));
+
+        return compactPayload({
+          kodePlank: plank.kodePlank ?? plank.id_plank,
+          id_plank: plank.id_plank ?? plank.kodePlank,
+          gradePapan: plank.gradePapan ?? plank.grade ?? 'Grade A',
+          tinggi,
+          lebar,
+          panjang,
+          volumePlank,
+          stage: plank.stage ?? 'Sawmill',
+        });
+      })
+    : undefined;
+
   return compactPayload({
     kodeSawmill: data.kodeSawmill ?? data.id_sawmill,
-    idLog: data.idLog,
+    idLog: idLog,
     id_log_asal: data.id_log_asal,
     sortimen: data.sortimen,
-    panjang: data.panjang,
-    diameter: data.diameter,
-    volume_total: data.volume_total,
+    panjang: p,
+    diameter: d,
+    volume_total: volTotal,
     stage: data.stage,
     suplier: data.suplier,
-    harga: data.harga,
+    harga: harga,
     tanggal: data.tanggal,
-    // Nested plank pada CreateSawmillDto dibaca backend dengan nama UI
-    // (`id_plank`, `grade`, `volume`), jadi tidak dipetakan ulang di sini.
-    planks: data.planks,
+    planks: mappedPlanks,
   });
 }
 
@@ -492,13 +526,22 @@ function toBackendSawmillUpdatePayload(data: Partial<SawmillItem>) {
  * - `volume`   -> `volumePlank`
  */
 function toBackendPlankCreatePayload(data: Partial<PlankItem>) {
+  const tinggi = Number(data.tinggi) || 0;
+  const lebar = Number(data.lebar) || 0;
+  const panjang = Number(data.panjang) || 0;
+  const rawVol = data.volumePlank ?? data.volume;
+  const volumePlank =
+    rawVol !== undefined && rawVol !== null
+      ? Number(rawVol)
+      : Number(((tinggi * lebar * panjang) / 1000000).toFixed(3));
+
   return compactPayload({
     kodePlank: data.kodePlank ?? data.id_plank,
-    gradePapan: data.grade,
-    tinggi: data.tinggi,
-    lebar: data.lebar,
-    panjang: data.panjang,
-    volumePlank: data.volume,
+    gradePapan: data.gradePapan ?? data.grade ?? 'Grade A',
+    tinggi,
+    lebar,
+    panjang,
+    volumePlank,
     stage: data.stage,
     sortimen: data.sortimen,
   });
@@ -506,13 +549,19 @@ function toBackendPlankCreatePayload(data: Partial<PlankItem>) {
 
 /** Petakan `PlankItem` ke `UpdatePlankDto` (tanpa field di luar DTO). */
 function toBackendPlankUpdatePayload(data: Partial<PlankItem>) {
+  const tinggi = data.tinggi !== undefined ? Number(data.tinggi) : undefined;
+  const lebar = data.lebar !== undefined ? Number(data.lebar) : undefined;
+  const panjang = data.panjang !== undefined ? Number(data.panjang) : undefined;
+  const rawVol = data.volumePlank ?? data.volume;
+  const volumePlank = rawVol !== undefined ? Number(rawVol) : undefined;
+
   return compactPayload({
     kodePlank: data.kodePlank ?? data.id_plank,
-    gradePapan: data.grade,
-    tinggi: data.tinggi,
-    lebar: data.lebar,
-    panjang: data.panjang,
-    volumePlank: data.volume,
+    gradePapan: data.gradePapan ?? data.grade,
+    tinggi,
+    lebar,
+    panjang,
+    volumePlank,
     stage: data.stage,
   });
 }
@@ -733,43 +782,86 @@ export const customerApi = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Account Endpoints                                                   */
+/* Account / Users Endpoints                                           */
 /* ------------------------------------------------------------------ */
 
 export const accountApi = {
-  /** GET /accounts -> daftar user + role (manager-only). */
+  /** GET /users (fallback /accounts) -> daftar user + role (manager-only). */
   list: async (): Promise<AccountUser[]> => {
-    const data = await request<AccountUser[]>('/accounts');
-    return Array.isArray(data) ? data : [];
+    try {
+      const data = await request<AccountUser[]>('/users');
+      return Array.isArray(data) ? data : [];
+    } catch {
+      const data = await request<AccountUser[]>('/accounts');
+      return Array.isArray(data) ? data : [];
+    }
   },
 
-  /** GET /accounts/:id -> detail user. */
+  /** GET /users/:id -> detail user. */
   get: async (id: number): Promise<AccountUser> => {
-    return request<AccountUser>(`/accounts/${id}`);
+    try {
+      return await request<AccountUser>(`/users/${id}`);
+    } catch {
+      return await request<AccountUser>(`/accounts/${id}`);
+    }
   },
 
-  /** POST /accounts -> buat user baru. */
+  /** POST /users -> buat user baru. */
   create: async (data: AccountCreatePayload): Promise<AccountUser> => {
-    return request<AccountUser>('/accounts', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    try {
+      return await request<AccountUser>('/users', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    } catch {
+      return await request<AccountUser>('/accounts', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    }
   },
 
-  /** PATCH /accounts/:id -> ubah user/password/role. */
+  /** PATCH /users/:id -> ubah user/password/role. */
   update: async (
     id: number,
     data: AccountUpdatePayload
   ): Promise<AccountUser> => {
-    return request<AccountUser>(`/accounts/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
+    try {
+      return await request<AccountUser>(`/users/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      });
+    } catch {
+      return await request<AccountUser>(`/accounts/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      });
+    }
   },
 
-  /** DELETE /accounts/:id -> nonaktifkan/hapus user. */
+  /** PATCH /users/:id -> reset password akun staf. */
+  resetPassword: async (
+    id: number,
+    newPassword: string
+  ): Promise<AccountUser> => {
+    return accountApi.update(id, { password: newPassword });
+  },
+
+  /** PATCH /users/:id -> aktifkan atau nonaktifkan akun staf. */
+  toggleStatus: async (
+    id: number,
+    isActive: boolean
+  ): Promise<AccountUser> => {
+    return accountApi.update(id, { isActive });
+  },
+
+  /** DELETE /users/:id -> nonaktifkan/hapus user. */
   remove: async (id: number): Promise<void> => {
-    await request<unknown>(`/accounts/${id}`, { method: 'DELETE' });
+    try {
+      await request<unknown>(`/users/${id}`, { method: 'DELETE' });
+    } catch {
+      await request<unknown>(`/accounts/${id}`, { method: 'DELETE' });
+    }
   },
 };
 

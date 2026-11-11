@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Plus, ChevronDown } from 'lucide-react';
 import { SalesItem } from '@/types/sales';
 import SalesStatCards from '@/components/sales/SalesStatCards';
@@ -8,9 +8,13 @@ import SalesTable from '@/components/sales/SalesTable';
 import SalesModal from '@/components/sales/SalesModal';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
+import { printOfficialDocument } from '@/lib/export';
+import { formatDateID } from '@/lib/dates';
+
+const SALES_STORAGE_KEY = 'mjm_sales_records_v1';
 
 // Data transaksi penjualan aktif (Sample Data)
-const INITIAL_SALES: SalesItem[] = [
+export const INITIAL_SALES: SalesItem[] = [
   {
     id_transaksi: 'TR-2026-001',
     tanggal: '2026-11-04',
@@ -86,7 +90,7 @@ export default function SalesPage() {
   const canCreate = can(user?.role, 'sales:create');
   const canApprove = can(user?.role, 'sales:approve');
 
-  // State data transaksi (Zero Dummy Data)
+  // State data transaksi
   const [sales, setSales] = useState<SalesItem[]>(INITIAL_SALES);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
@@ -94,6 +98,32 @@ export default function SalesPage() {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(SALES_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as SalesItem[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSales(parsed);
+        }
+      }
+    } catch {
+      // Abaikan bila localStorage tidak tersedia
+    }
+  }, []);
+
+  const persistSales = (updater: (prev: SalesItem[]) => SalesItem[]) => {
+    setSales((prev) => {
+      const next = updater(prev);
+      try {
+        window.localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // Abaikan bila gagal menulis ke localStorage
+      }
+      return next;
+    });
+  };
 
   const handleOpenModal = () => {
     if (!canCreate) return;
@@ -107,15 +137,22 @@ export default function SalesPage() {
       ...data,
       total_harga: total,
     };
-    setSales((prev) => [newItem, ...prev]);
+    persistSales((prev) => [newItem, ...prev]);
   };
 
   // Handler Approval Manager (FR-013 & UC-08)
   const handleApprove = (id: string) => {
     if (!canApprove) return;
-    setSales((prev) =>
+    persistSales((prev) =>
       prev.map((item) =>
-        item.id_transaksi === id ? { ...item, status: 'Approved' } : item
+        item.id_transaksi === id
+          ? {
+              ...item,
+              status: 'Approved',
+              catatan_approval:
+                item.catatan_approval || 'Disetujui oleh Manager PT Margi Jati Makmur',
+            }
+          : item
       )
     );
   };
@@ -124,7 +161,7 @@ export default function SalesPage() {
     if (!canApprove) return;
     const reason = window.prompt('Masukkan alasan penolakan pesanan penjualan:');
     if (reason !== null) {
-      setSales((prev) =>
+      persistSales((prev) =>
         prev.map((item) =>
           item.id_transaksi === id
             ? { ...item, status: 'Rejected', catatan_approval: reason }
@@ -132,6 +169,135 @@ export default function SalesPage() {
         )
       );
     }
+  };
+
+  const handlePrintInvoice = (item: SalesItem) => {
+    const statusLabel =
+      item.status === 'Approved'
+        ? 'DISETUJUI (LUNAS / TERVERIFIKASI)'
+        : item.status === 'Rejected'
+        ? 'DITOLAK'
+        : 'MENUNGGU PERSETUJUAN MANAGER';
+
+    printOfficialDocument({
+      documentType: 'INVOICE PENJUALAN',
+      documentNumber: `INV/${item.id_transaksi}`,
+      documentDate: formatDateID(item.tanggal),
+      statusLabel,
+      recipientTitle: 'Kepada Yth. Pelanggan / Customer',
+      recipientName: item.nama_customer,
+      meta: [
+        { label: 'No. Transaksi', value: item.id_transaksi },
+        { label: 'Total Kuantitas', value: `${item.kuantitas.toLocaleString('id-ID')} pcs` },
+      ],
+      columns: [
+        'No',
+        'Deskripsi Produk Kayu Olahan',
+        'Kuantitas',
+        'Harga Satuan (Rp)',
+        'Subtotal (Rp)',
+      ],
+      rows: [
+        [
+          '1',
+          `Papan Kayu Jati Olahan (Finish Dry-Kiln) - Batch ${item.id_transaksi}`,
+          `${item.kuantitas.toLocaleString('id-ID')} pcs`,
+          `Rp ${item.harga_satuan.toLocaleString('id-ID')}`,
+          `Rp ${item.total_harga.toLocaleString('id-ID')}`,
+        ],
+      ],
+      summaryRows: [
+        {
+          label: 'TOTAL TAGIHAN INVOICE',
+          value: `Rp ${item.total_harga.toLocaleString('id-ID')}`,
+          bold: true,
+        },
+      ],
+      notes:
+        item.catatan_approval ||
+        'Pembayaran dapat ditransfer melalui rekening resmi PT Margi Jati Makmur dengan mencantumkan nomor Invoice.',
+      signatures: [
+        {
+          roleTitle: 'Dibuat Oleh (Admin Penjualan)',
+          name: 'Admin PT Margi Jati Makmur',
+        },
+        {
+          roleTitle: 'Disetujui Oleh (Manager)',
+          name:
+            item.status === 'Approved'
+              ? 'Manager PT Margi Jati Makmur (ACC)'
+              : '( ................................. )',
+        },
+        {
+          roleTitle: 'Penerima / Customer',
+          name: item.nama_customer,
+        },
+      ],
+    });
+  };
+
+  const handlePrintSuratJalan = (item: SalesItem) => {
+    const statusLabel =
+      item.status === 'Approved'
+        ? 'SIAP KIRIM (APPROVED MANAGER)'
+        : item.status === 'Rejected'
+        ? 'DIBATALKAN / DITOLAK'
+        : 'DRAFT MENUNGGU APPROVAL';
+
+    printOfficialDocument({
+      documentType: 'SURAT JALAN',
+      documentNumber: `SJ/${item.id_transaksi}`,
+      documentDate: formatDateID(item.tanggal),
+      statusLabel,
+      recipientTitle: 'Tujuan Pengiriman (Customer)',
+      recipientName: item.nama_customer,
+      meta: [
+        { label: 'Ref. Transaksi', value: item.id_transaksi },
+        { label: 'Total Barang', value: `${item.kuantitas.toLocaleString('id-ID')} pcs` },
+      ],
+      columns: [
+        'No',
+        'Nama Barang / Spesifikasi Kayu',
+        'Jumlah Dikirim',
+        'Satuan',
+        'Keterangan Pemeriksaan Gudang',
+      ],
+      rows: [
+        [
+          '1',
+          `Kayu Papan Olahan KD (Ref: ${item.id_transaksi})`,
+          item.kuantitas.toLocaleString('id-ID'),
+          'Pcs / Lembar',
+          item.catatan_approval || 'Kondisi baik, siap muat armada',
+        ],
+      ],
+      summaryRows: [
+        {
+          label: 'TOTAL KUANTITAS PENGIRIMAN',
+          value: `${item.kuantitas.toLocaleString('id-ID')} Pcs`,
+          bold: true,
+        },
+      ],
+      notes:
+        'Barang telah diperiksa dalam kondisi baik dan cukup sebelum meninggalkan gudang PT Margi Jati Makmur.',
+      signatures: [
+        {
+          roleTitle: 'Diserahkan Oleh (Bag. Gudang)',
+          name: 'Admin Lapangan MJM',
+        },
+        {
+          roleTitle: 'Mengetahui (Manager Operasional)',
+          name:
+            item.status === 'Approved'
+              ? 'Manager PT Margi Jati Makmur'
+              : '( ................................. )',
+        },
+        {
+          roleTitle: 'Diterima Oleh (Customer / Ekspedisi)',
+          name: item.nama_customer,
+        },
+      ],
+    });
   };
 
   const filteredSales = sales.filter((item) => {
@@ -215,6 +381,8 @@ export default function SalesPage() {
         canApprove={canApprove}
         onApprove={handleApprove}
         onReject={handleReject}
+        onPrintInvoice={handlePrintInvoice}
+        onPrintSuratJalan={handlePrintSuratJalan}
       />
 
       {/* 4. Modal Add New Sale */}
