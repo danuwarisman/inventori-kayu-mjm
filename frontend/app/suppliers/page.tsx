@@ -8,10 +8,12 @@ import SupplierModal from '@/components/suppliers/SupplierModal';
 import { getApiErrorMessage, supplierApi } from '@/lib/api';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
+import { useConfirm } from '@/components/ConfirmModal';
 
 export default function SuppliersPage() {
   // Supplier dikelola Admin Kantor; role lain hanya melihat.
   const user = useSessionUser();
+  const { confirm, ConfirmDialog } = useConfirm();
   const isManager = user?.role === 'manager';
   const canCreate = can(user?.role, 'supplier:create');
   const canUpdate = can(user?.role, 'supplier:update');
@@ -156,11 +158,13 @@ export default function SuppliersPage() {
     );
     if (targets.length === 0) return;
 
-    if (
-      !window.confirm(
-        `Apakah Anda yakin ingin menghapus ${targets.length} supplier terpilih?`
-      )
-    ) {
+    const ok = await confirm({
+      title: 'Hapus Supplier Terpilih',
+      message: `Apakah Anda yakin ingin menghapus ${targets.length} supplier terpilih (${targets.map((t) => t.nama_supplier).join(', ')})?`,
+      confirmLabel: 'Ya, Hapus Supplier',
+      variant: 'danger',
+    });
+    if (!ok) {
       return;
     }
 
@@ -323,6 +327,8 @@ export default function SuppliersPage() {
         isSaving={isSaving}
         errorMessage={modalError}
       />
+
+      {ConfirmDialog}
     </div>
   );
 }

@@ -23,6 +23,7 @@ import { LogItem } from '@/types/log';
 import FormError from '@/components/FormError';
 import ErrorBanner from '@/components/ErrorBanner';
 import Pagination from '@/components/Pagination';
+import { useConfirm } from '@/components/ConfirmModal';
 import {
   firstError,
   maxLength,
@@ -81,19 +82,11 @@ export default function DataLogPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'input' | 'edit'>('input');
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const { confirm, ConfirmDialog } = useConfirm();
 
-  // Daftar Supplier untuk Dropdown
-  const DEFAULT_SUPPLIERS = [
-    'PT Rimba Jati Makmur',
-    'Perum Perhutani KPH Randublatung',
-    'CV Jati Alam Lestari',
-    'PT Kayu Tropis Nusantara',
-    'UD Sumber Kayu Barokah',
-    'CV Mitra Timber Sejahtera',
-    'PT. Suplier',
-  ];
-  const [suppliersList, setSuppliersList] = useState<string[]>(DEFAULT_SUPPLIERS);
-  const [supplierSelect, setSupplierSelect] = useState<string>(DEFAULT_SUPPLIERS[0]);
+  // Daftar Supplier dari Master Supplier Backend
+  const [suppliersList, setSuppliersList] = useState<string[]>([]);
+  const [supplierSelect, setSupplierSelect] = useState<string>('__others__');
   const [customSupplier, setCustomSupplier] = useState<string>('');
 
   // Form State
@@ -101,6 +94,7 @@ export default function DataLogPage() {
   const [formSortimen, setFormSortimen] = useState('Sortimen A');
   const [formPanjang, setFormPanjang] = useState<number | ''>('');
   const [formDiameter, setFormDiameter] = useState<number | ''>('');
+  const [formHarga, setFormHarga] = useState<number | ''>('');
   const [formError, setFormError] = useState<string | null>(null);
 
   // Muat supplier riil dari database backend
@@ -110,8 +104,13 @@ export default function DataLogPage() {
       .list()
       .then((data) => {
         if (!cancelled && Array.isArray(data) && data.length > 0) {
-          const names = data.map((s) => s.nama_supplier).filter(Boolean);
-          setSuppliersList((prev) => Array.from(new Set([...names, ...prev])));
+          const names = Array.from(
+            new Set(data.map((s) => s.nama_supplier).filter(Boolean))
+          );
+          setSuppliersList(names);
+          if (names.length > 0) {
+            setSupplierSelect(names[0]);
+          }
         }
       })
       .catch(() => {});
@@ -142,7 +141,8 @@ export default function DataLogPage() {
     setFormSortimen('Sortimen A');
     setFormPanjang('');
     setFormDiameter('');
-    setSupplierSelect(suppliersList[0] || 'PT Rimba Jati Makmur');
+    setFormHarga('');
+    setSupplierSelect(suppliersList[0] || '__others__');
     setCustomSupplier('');
     setFormError(null);
     setIsModalOpen(true);
@@ -155,6 +155,7 @@ export default function DataLogPage() {
     setFormSortimen(item.sortimen);
     setFormPanjang(item.panjang);
     setFormDiameter(item.diameter);
+    setFormHarga(item.harga ? item.harga : '');
     const existing = suppliersList.find(
       (s) => s.toLowerCase() === (item.suplier || '').toLowerCase()
     );
@@ -190,6 +191,7 @@ export default function DataLogPage() {
 
     const p = Number(formPanjang);
     const d = Number(formDiameter);
+    const hargaValue = formHarga === '' ? 0 : Math.max(0, Number(formHarga));
     const calculatedVol = calculateVolume(p, d);
 
     setFormError(null);
@@ -205,7 +207,7 @@ export default function DataLogPage() {
         stage: 'Log',
         tanggal_masuk: toISODate(),
         suplier,
-        harga: 1000000,
+        harga: hargaValue,
       };
 
       try {
@@ -230,6 +232,7 @@ export default function DataLogPage() {
         diameter: d,
         volume: calculatedVol,
         suplier,
+        harga: hargaValue,
       };
 
       if (!current?.idLog) {
@@ -262,11 +265,13 @@ export default function DataLogPage() {
 
 
   const handleSendToSawmill = async (item: LogItem) => {
-    if (
-      !confirm(
-        `Kirim kayu log ${item.id_log} (${item.sortimen}, ${item.panjang}x${item.diameter} cm) ke proses Sawmill?`
-      )
-    ) {
+    const ok = await confirm({
+      title: 'Kirim Log ke Sawmill',
+      message: `Kirim kayu log ${item.id_log} (${item.sortimen}, ${item.panjang}x${item.diameter} cm) ke proses Sawmill?`,
+      confirmLabel: 'Ya, Kirim ke Sawmill',
+      variant: 'warning',
+    });
+    if (!ok) {
       return;
     }
 
@@ -313,7 +318,13 @@ export default function DataLogPage() {
   };
 
   const handleDeleteLog = async (item: LogItem) => {
-    if (!confirm(`Hapus log ${item.id_log}?`)) return;
+    const ok = await confirm({
+      title: 'Hapus Stok Log',
+      message: `Apakah Anda yakin ingin menghapus kayu log ${item.id_log} (${item.sortimen}) dari stok inventori?`,
+      confirmLabel: 'Ya, Hapus Log',
+      variant: 'danger',
+    });
+    if (!ok) return;
 
     setPageError(null);
     try {
@@ -822,6 +833,29 @@ export default function DataLogPage() {
                 </div>
               </div>
 
+              {/* Harga Satuan Opsional */}
+              <div className="flex flex-col gap-1">
+                <label className="font-semibold text-green-700">
+                  Harga Satuan (Rp){' '}
+                  <span className="font-normal text-stone-500 text-[11px]">
+                    (Opsional)
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step="any"
+                  placeholder="Contoh: 1500000 (kosongkan jika 0)"
+                  value={formHarga}
+                  onChange={(e) =>
+                    setFormHarga(
+                      e.target.value === '' ? '' : Number(e.target.value)
+                    )
+                  }
+                  className="w-full h-9 px-3 bg-white border border-stone-300 rounded text-green-700 focus:outline-none focus:border-green-700"
+                />
+              </div>
+
               {/* Suplier Dropdown & Aksi Submit */}
               <div className="flex flex-col gap-1.5">
                 <label className="font-semibold text-green-700">Suplier</label>
@@ -882,6 +916,8 @@ export default function DataLogPage() {
           </div>
         </div>
       )}
+
+      {ConfirmDialog}
     </div>
   );
 }

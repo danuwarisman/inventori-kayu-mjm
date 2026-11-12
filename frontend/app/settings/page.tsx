@@ -44,6 +44,7 @@ import {
   type ExportDocumentSection,
 } from '@/lib/export';
 import FormError from '@/components/FormError';
+import { useConfirm } from '@/components/ConfirmModal';
 import {
   email,
   firstError,
@@ -54,6 +55,7 @@ import {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { confirm, ConfirmDialog } = useConfirm();
   const user = useSessionUser();
   const canManageData = can(user?.role, 'settings:manage-data');
 
@@ -362,8 +364,14 @@ export default function SettingsPage() {
     setIsBackupSuccessOpen(true);
   };
 
-  const handleLogout = () => {
-    if (window.confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: 'Keluar dari Sistem',
+      message: 'Apakah Anda yakin ingin keluar dari sesi aplikasi PT Margi Jati Makmur?',
+      confirmLabel: 'Ya, Keluar',
+      variant: 'danger',
+    });
+    if (ok) {
       clearSession();
       router.push('/login');
     }
@@ -1127,6 +1135,8 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      {ConfirmDialog}
     </div>
   );
 }

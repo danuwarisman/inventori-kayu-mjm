@@ -102,19 +102,11 @@ export default function OperationalDashboardPage() {
 
   // Quick Entry State
   const [diameter, setDiameter] = useState<string>('');
-  const DEFAULT_SUPPLIERS = [
-    'PT Rimba Jati Makmur',
-    'Perum Perhutani KPH Randublatung',
-    'CV Jati Alam Lestari',
-    'PT Kayu Tropis Nusantara',
-    'UD Sumber Kayu Barokah',
-    'CV Mitra Timber Sejahtera',
-    'PT. Suplier',
-  ];
-  const [suppliersList, setSuppliersList] = useState<string[]>(DEFAULT_SUPPLIERS);
-  const [supplierSelect, setSupplierSelect] = useState<string>(DEFAULT_SUPPLIERS[0]);
+  const [suppliersList, setSuppliersList] = useState<string[]>([]);
+  const [supplierSelect, setSupplierSelect] = useState<string>('__others__');
   const [customSupplier, setCustomSupplier] = useState<string>('');
   const [panjang, setPanjang] = useState<string>('');
+  const [hargaSatuan, setHargaSatuan] = useState<string>('');
   const [sortimen, setSortimen] = useState<string>('Sortimen A');
 
   useEffect(() => {
@@ -123,8 +115,13 @@ export default function OperationalDashboardPage() {
       .list()
       .then((data) => {
         if (!cancelled && Array.isArray(data) && data.length > 0) {
-          const names = data.map((s) => s.nama_supplier).filter(Boolean);
-          setSuppliersList((prev) => Array.from(new Set([...names, ...prev])));
+          const names = Array.from(
+            new Set(data.map((s) => s.nama_supplier).filter(Boolean))
+          );
+          setSuppliersList(names);
+          if (names.length > 0) {
+            setSupplierSelect(names[0]);
+          }
         }
       })
       .catch(() => {});
@@ -152,6 +149,7 @@ export default function OperationalDashboardPage() {
 
     const p = Number(panjang);
     const d = Number(diameter);
+    const hargaVal = hargaSatuan.trim() === '' ? 0 : Math.max(0, Number(hargaSatuan));
     const code = `L-2026-3-A-${activities.length + 1}`;
 
     setQuickError(null);
@@ -164,6 +162,7 @@ export default function OperationalDashboardPage() {
         panjang: p,
         diameter: d,
         suplier: supplier,
+        harga: hargaVal,
         stage: 'Log',
       });
 
@@ -182,8 +181,9 @@ export default function OperationalDashboardPage() {
       setLogCount((prev) => prev + 1);
       setDiameter('');
       setPanjang('');
+      setHargaSatuan('');
       setCustomSupplier('');
-      setSupplierSelect(suppliersList[0] || 'PT Rimba Jati Makmur');
+      setSupplierSelect(suppliersList[0] || '__others__');
       setLoadError(null);
     } catch (err) {
       setQuickError(
@@ -408,6 +408,22 @@ export default function OperationalDashboardPage() {
                     <option value="Sortimen B">Sortimen B</option>
                     <option value="Sortimen C">Sortimen C</option>
                   </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-stone-700">
+                    Harga Satuan (Rp){' '}
+                    <span className="font-normal text-stone-400">(Opsional)</span>
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step="any"
+                    placeholder="Contoh: 1500000"
+                    value={hargaSatuan}
+                    onChange={(e) => setHargaSatuan(e.target.value)}
+                    className="w-full h-10 px-3 border border-stone-300 rounded text-stone-900 focus:border-green-700 focus:outline-none"
+                  />
                 </div>
 
                 <div className="flex flex-col gap-1">

@@ -32,7 +32,7 @@ export default function SalesModal({
     id_transaksi: '',
     nama_customer: '',
     kuantitas: '',
-    harga_satuan: 1000000,
+    harga_satuan: '',
     tanggal: toISODate(),
     status: 'Pending',
   });
@@ -44,7 +44,7 @@ export default function SalesModal({
         id_transaksi: `TRX-${String(nextIndex).padStart(3, '0')}`,
         nama_customer: '',
         kuantitas: '',
-        harga_satuan: 1000000,
+        harga_satuan: '',
         tanggal: toISODate(),
         status: 'Pending', // Sesuai SRS: default order admin berstatus Pending
       });

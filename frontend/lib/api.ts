@@ -100,29 +100,38 @@ function isAuthLikePath(path: string): boolean {
   return path === '/login' || path === '/';
 }
 
+export const SESSION_EXPIRED_STORAGE_KEY = 'mjm_auth_expired_notice';
+export const SESSION_EXPIRED_MESSAGE =
+  'Sesi Anda telah berakhir, silakan login kembali';
+
 /**
  * Interceptor response 401 Unauthorized:
  * sesi tidak valid/kedaluwarsa -> bersihkan seluruh jejak sesi & state
- * lalu paksa kembali ke halaman login. Dipanggil sekali per request gagal.
+ * lalu paksa kembali ke halaman login dengan pesan pemberitahuan.
  */
 function handleUnauthorized(): void {
-  // Jika sedang menggunakan token demo offline (mis. mock presentation),
-  // jangan paksa logout saat endpoint live menolak token tiruan tersebut.
-  const token = getAccessToken();
-  if (token && token.includes('mock-signature')) {
-    console.warn('Endpoint backend menolak token demo offline (401), sesi UI tetap dipertahankan.');
-    return;
-  }
-
   clearSession();
-  setTimeout(() => {
-    if (
-      typeof window !== 'undefined' &&
-      !isAuthLikePath(window.location.pathname)
-    ) {
-      window.location.replace('/login?reason=expired');
+  if (typeof window !== 'undefined') {
+    try {
+      window.sessionStorage.setItem(
+        SESSION_EXPIRED_STORAGE_KEY,
+        SESSION_EXPIRED_MESSAGE
+      );
+      if (!isAuthLikePath(window.location.pathname)) {
+        document.cookie = `mjm_redirect=${encodeURIComponent(
+          window.location.pathname
+        )}; path=/; max-age=300; samesite=lax`;
+      }
+    } catch {
+      // Abaikan bila sessionStorage tidak tersedia
     }
-  }, 0);
+
+    setTimeout(() => {
+      if (!isAuthLikePath(window.location.pathname)) {
+        window.location.replace('/login?reason=expired');
+      }
+    }, 0);
+  }
 }
 
 interface RequestOptions {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -21,7 +21,12 @@ import {
   getDashboardPath,
   AppRole,
 } from '@/lib/session';
-import { authApi, getApiErrorMessage } from '@/lib/api';
+import {
+  authApi,
+  getApiErrorMessage,
+  SESSION_EXPIRED_STORAGE_KEY,
+  SESSION_EXPIRED_MESSAGE,
+} from '@/lib/api';
 
 /** Akun hardcode sementara untuk keperluan demo dan presentasi progres */
 interface HardcodedAccount {
@@ -94,6 +99,24 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    try {
+      const storedNotice = window.sessionStorage.getItem(
+        SESSION_EXPIRED_STORAGE_KEY
+      );
+      const isExpiredParam =
+        window.location.search.includes('reason=expired');
+      if (storedNotice) {
+        setError(storedNotice);
+        window.sessionStorage.removeItem(SESSION_EXPIRED_STORAGE_KEY);
+      } else if (isExpiredParam) {
+        setError(SESSION_EXPIRED_MESSAGE);
+      }
+    } catch {
+      // Abaikan bila sessionStorage tidak tersedia
+    }
+  }, []);
+
   const completeLogin = (
     userId: number,
     uname: string,
@@ -109,10 +132,13 @@ export default function LoginPage() {
       role,
     });
 
-    const redirectCookie = document.cookie
+    const redirectCookieRaw = document.cookie
       .split('; ')
       .find((c) => c.startsWith('mjm_redirect='))
       ?.split('=')[1];
+    const redirectCookie = redirectCookieRaw
+      ? decodeURIComponent(redirectCookieRaw)
+      : undefined;
     document.cookie = 'mjm_redirect=; path=/; max-age=0; samesite=lax';
 
     if (redirectCookie && redirectCookie.startsWith('/') && !redirectCookie.startsWith('/login')) {

@@ -13,9 +13,11 @@ import { printOfficialDocument } from '@/lib/export';
 import { formatDateID } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
+import { useConfirm } from '@/components/ConfirmModal';
 
 export default function PembelianPage() {
   const user = useSessionUser();
+  const { confirm, ConfirmDialog } = useConfirm();
   const canCreate = can(user?.role, 'purchase:create');
   const canUpdate = can(user?.role, 'purchase:update');
   const canDelete = can(user?.role, 'purchase:delete');
@@ -239,7 +241,13 @@ export default function PembelianPage() {
     if (!canDelete) return;
 
     const poNumber = `PO-${String(item.idPembelian).padStart(4, '0')}`;
-    if (!window.confirm(`Apakah Anda yakin ingin membatalkan/menghapus pesanan ${poNumber}?`)) {
+    const ok = await confirm({
+      title: 'Batalkan / Hapus Pesanan Pembelian',
+      message: `Apakah Anda yakin ingin membatalkan/menghapus pesanan ${poNumber}? Tindakan ini tidak dapat dibatalkan.`,
+      confirmLabel: 'Ya, Hapus Pesanan',
+      variant: 'danger',
+    });
+    if (!ok) {
       return;
     }
 
@@ -269,7 +277,13 @@ export default function PembelianPage() {
     if (!canApprove) return;
 
     const poNumber = `PO-${String(item.idPembelian).padStart(4, '0')}`;
-    if (!window.confirm(`Apakah Anda yakin ingin menyetujui pesanan ${poNumber}? Pesanan ini akan langsung dicatat ke Stok Log inventori.`)) {
+    const ok = await confirm({
+      title: 'Setujui Purchase Order (ACC)',
+      message: `Apakah Anda yakin ingin menyetujui pesanan ${poNumber}? Pesanan ini akan langsung dicatat ke Stok Log inventori.`,
+      confirmLabel: 'Ya, Setujui PO',
+      variant: 'primary',
+    });
+    if (!ok) {
       return;
     }
 
@@ -514,6 +528,8 @@ export default function PembelianPage() {
           onReject={handleReject}
         />
       )}
+
+      {ConfirmDialog}
     </div>
   );
 }

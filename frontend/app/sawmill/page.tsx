@@ -23,6 +23,7 @@ import { LogItem } from '@/types/log';
 import FormError from '@/components/FormError';
 import ErrorBanner from '@/components/ErrorBanner';
 import Pagination from '@/components/Pagination';
+import { useConfirm } from '@/components/ConfirmModal';
 import {
   firstError,
   maxLength,
@@ -36,6 +37,7 @@ const PAGE_SIZE = 10;
 
 export default function DataSawmillPage() {
   const user = useSessionUser();
+  const { confirm, ConfirmDialog } = useConfirm();
   const isManager = user?.role === 'manager';
   const canCreate = can(user?.role, 'sawmill:create') || isManager;
   const canUpdate = can(user?.role, 'sawmill:update') || isManager;
@@ -213,7 +215,7 @@ export default function DataSawmillPage() {
         stage: 'Sawmill',
         tanggal: toISODate(),
         suplier,
-        harga: chosenLog.harga || 1000000,
+        harga: chosenLog.harga || 0,
         planks: [],
       };
 
@@ -270,7 +272,13 @@ export default function DataSawmillPage() {
   };
 
   const handleDeleteSawmill = async (item: SawmillItem) => {
-    if (!confirm(`Hapus batch Sawmill ${item.id_sawmill}?`)) return;
+    const ok = await confirm({
+      title: 'Hapus Batch Sawmill',
+      message: `Apakah Anda yakin ingin menghapus batch Sawmill ${item.id_sawmill} (Log Asal: ${item.id_log_asal})?`,
+      confirmLabel: 'Ya, Hapus Batch',
+      variant: 'danger',
+    });
+    if (!ok) return;
     setPageError(null);
     try {
       if (item.idSawmill) {
@@ -321,7 +329,13 @@ export default function DataSawmillPage() {
 
   const handleDeletePlank = async (plank: PlankItem, index: number) => {
     if (!selectedSawmill) return;
-    if (!confirm(`Hapus papan ${plank.id_plank}?`)) return;
+    const ok = await confirm({
+      title: 'Hapus Papan (Plank)',
+      message: `Apakah Anda yakin ingin menghapus papan ${plank.id_plank} (${plank.grade}) dari daftar hasil Sawmill?`,
+      confirmLabel: 'Ya, Hapus Papan',
+      variant: 'danger',
+    });
+    if (!ok) return;
     setPageError(null);
     try {
       if (plank.idPlank) {
@@ -1207,6 +1221,8 @@ export default function DataSawmillPage() {
           </div>
         </div>
       )}
+
+      {ConfirmDialog}
     </div>
   );
 }

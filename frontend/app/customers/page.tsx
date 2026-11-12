@@ -9,10 +9,12 @@ import CustomerModal from '@/components/customers/CustomerModal';
 import { customerApi, getApiErrorMessage } from '@/lib/api';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
+import { useConfirm } from '@/components/ConfirmModal';
 
 export default function CustomersPage() {
   // Customer dikelola Admin Lapangan; role lain hanya melihat.
   const user = useSessionUser();
+  const { confirm, ConfirmDialog } = useConfirm();
   const isManager = user?.role === 'manager';
   const canCreate = can(user?.role, 'customer:create');
   const canUpdate = can(user?.role, 'customer:update');
@@ -129,7 +131,13 @@ export default function CustomersPage() {
   const handleDelete = async (item: CustomerItem) => {
     if (!canDelete || !item.id_backend) return;
 
-    if (!window.confirm(`Apakah Anda yakin ingin menghapus customer "${item.nama}"?`)) {
+    const ok = await confirm({
+      title: 'Hapus Data Customer',
+      message: `Apakah Anda yakin ingin menghapus customer "${item.nama}" (${item.id_customer})?`,
+      confirmLabel: 'Ya, Hapus Customer',
+      variant: 'danger',
+    });
+    if (!ok) {
       return;
     }
 
@@ -249,6 +257,8 @@ export default function CustomersPage() {
         isSaving={isSaving}
         errorMessage={modalError}
       />
+
+      {ConfirmDialog}
     </div>
   );
 }
