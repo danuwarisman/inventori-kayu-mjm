@@ -96,7 +96,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-stone-100 text-stone-900">
       <Sidebar
         role={user.role}
         userName={user.fullName}
@@ -104,11 +104,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         isOpenMobile={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-stone-100">
         <Header
           onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
         />
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-stone-100">{children}</main>
       </div>
     </div>
   );

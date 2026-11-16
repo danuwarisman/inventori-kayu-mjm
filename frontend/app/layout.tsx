@@ -6,9 +6,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-
   return (
-    <html lang="id">
+    <html lang="id" className="light" style={{ colorScheme: 'light' }}>
+      <head>
+        <meta name="color-scheme" content="light only" />
+      </head>
       <body className="antialiased bg-stone-100 text-stone-900">
         <AppShell>{children}</AppShell>
       </body>
