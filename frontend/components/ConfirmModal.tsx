@@ -3,7 +3,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Trash2, X } from 'lucide-react';
 
-export type ConfirmVariant = 'danger' | 'success' | 'warning';
+export type ConfirmVariant = 'danger' | 'success' | 'warning' | 'primary';
 
 export interface ConfirmOptions {
   title: string;
@@ -34,21 +34,21 @@ export default function ConfirmModal({
   const badgeStyles =
     variant === 'danger'
       ? 'bg-rose-100 text-rose-700 border-rose-200'
-      : variant === 'success'
+      : variant === 'success' || variant === 'primary'
       ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
       : 'bg-amber-100 text-amber-700 border-amber-200';
 
   const buttonStyles =
     variant === 'danger'
       ? 'bg-rose-600 hover:bg-rose-700 text-white'
-      : variant === 'success'
+      : variant === 'success' || variant === 'primary'
       ? 'bg-green-700 hover:bg-green-800 text-white'
       : 'bg-amber-600 hover:bg-amber-700 text-white';
 
   const Icon =
     variant === 'danger'
       ? Trash2
-      : variant === 'success'
+      : variant === 'success' || variant === 'primary'
       ? CheckCircle2
       : AlertTriangle;
 

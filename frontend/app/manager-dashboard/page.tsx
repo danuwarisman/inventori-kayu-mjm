@@ -101,7 +101,7 @@ export default function ManagerDashboardPage() {
         const total = s.totalHarga || 0;
         const unitPrice = qty > 0 ? Math.round(total / qty) : total;
         const status: SalesItem['status'] =
-          s.statusPenjualan === 'DISETUJUI' || s.statusPenjualan === 'SELESAI'
+          s.statusPenjualan === 'DISETUJUI'
             ? 'Approved'
             : s.statusPenjualan === 'DITOLAK' || s.statusPenjualan === 'DIBATALKAN'
             ? 'Rejected'
