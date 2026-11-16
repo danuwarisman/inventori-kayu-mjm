@@ -75,8 +75,8 @@ export interface PurchaseOrder {
   supplier?: {
     idSupplier: number;
     namaSupplier: string;
-    alamat?: string | null;
-    noTelepon?: string | null;
+    alamat?: string;
+    noTelepon?: string;
   };
   user?: {
     id: number;
