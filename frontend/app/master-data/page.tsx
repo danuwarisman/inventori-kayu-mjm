@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toISODate, formatDateID } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
+import { useGlobalSearch } from '@/lib/useGlobalSearch';
 import { can } from '@/lib/permissions';
 import { getApiErrorMessage, logApi, sawmillApi, supplierApi } from '@/lib/api';
 import { exportToPdf } from '@/lib/export';
@@ -120,6 +121,7 @@ export default function DataLogPage() {
   }, []);
 
   const user = useSessionUser();
+  const globalSearch = useGlobalSearch();
   const isManager = user?.role === 'manager';
   const canCreate = can(user?.role, 'log:create');
   const canUpdate = can(user?.role, 'log:update');
@@ -346,7 +348,14 @@ export default function DataLogPage() {
     const matchesSortimen =
       sortimenFilter === 'All Sortimen' || log.sortimen === sortimenFilter;
     const matchesDate = !dateFilter || log.tanggal_masuk === dateFilter;
-    return matchesSortimen && matchesDate;
+    const q = globalSearch.trim().toLowerCase();
+    const matchesGlobal =
+      !q ||
+      log.id_log.toLowerCase().includes(q) ||
+      log.sortimen.toLowerCase().includes(q) ||
+      (log.suplier || '').toLowerCase().includes(q) ||
+      log.stage.toLowerCase().includes(q);
+    return matchesSortimen && matchesDate && matchesGlobal;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE));

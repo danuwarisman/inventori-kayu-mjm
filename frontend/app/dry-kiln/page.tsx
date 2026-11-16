@@ -8,12 +8,14 @@ import DryKilnModal from '@/components/dry-kiln/DryKilnModal';
 import { toISODate, formatDateID } from '@/lib/dates';
 import { exportToPdf } from '@/lib/export';
 import useSessionUser from '@/lib/useSessionUser';
+import { useGlobalSearch } from '@/lib/useGlobalSearch';
 import { can } from '@/lib/permissions';
 import { dryKilnApi, logApi, getApiErrorMessage } from '@/lib/api';
 import ErrorBanner from '@/components/ErrorBanner';
 
 export default function DryKilnPage() {
   const user = useSessionUser();
+  const globalSearch = useGlobalSearch();
   const isManager = user?.role === 'manager';
   const canCreate = can(user?.role, 'dry-kiln:create');
   const canUpdate = can(user?.role, 'dry-kiln:update');
@@ -169,7 +171,15 @@ export default function DryKilnPage() {
     const matchesSortimen =
       sortimenFilter === 'All Sortimen' || item.sortimen === sortimenFilter;
     const matchesDate = !dateFilter || item.date === dateFilter;
-    return matchesSortimen && matchesDate;
+    const q = globalSearch.trim().toLowerCase();
+    const matchesGlobal =
+      !q ||
+      item.id_plank.toLowerCase().includes(q) ||
+      item.id_log.toLowerCase().includes(q) ||
+      item.sortimen.toLowerCase().includes(q) ||
+      item.grade.toLowerCase().includes(q) ||
+      item.stage.toLowerCase().includes(q);
+    return matchesSortimen && matchesDate && matchesGlobal;
   });
 
   const handleExportPdf = () => {

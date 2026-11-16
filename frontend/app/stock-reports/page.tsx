@@ -12,6 +12,7 @@ import {
 import { toISODate, formatDateID } from '@/lib/dates';
 import { exportToPdf } from '@/lib/export';
 import useSessionUser from '@/lib/useSessionUser';
+import { useGlobalSearch } from '@/lib/useGlobalSearch';
 import { can } from '@/lib/permissions';
 import Pagination from '@/components/Pagination';
 import {
@@ -156,6 +157,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
 export default function StockReportsPage() {
   // Input stok dilakukan Admin Lapangan; role lain read-only.
   const user = useSessionUser();
+  const globalSearch = useGlobalSearch();
   const isManager = user?.role === 'manager';
   const canCreate = can(user?.role, 'stock:create');
   const currentYear = new Date().getFullYear();
@@ -256,7 +258,14 @@ export default function StockReportsPage() {
     const matchesGrade =
       gradeFilter === 'All Grade' || item.grade === gradeFilter;
     const matchesDate = !dateFilter || item.date === dateFilter;
-    return matchesSortimen && matchesGrade && matchesDate;
+    const q = globalSearch.trim().toLowerCase();
+    const matchesGlobal =
+      !q ||
+      item.id_log.toLowerCase().includes(q) ||
+      item.sortimen.toLowerCase().includes(q) ||
+      item.grade.toLowerCase().includes(q) ||
+      item.status.toLowerCase().includes(q);
+    return matchesSortimen && matchesGrade && matchesDate && matchesGlobal;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredStocks.length / PAGE_SIZE));

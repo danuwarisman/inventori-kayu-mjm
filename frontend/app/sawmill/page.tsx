@@ -17,6 +17,7 @@ import { toISODate, formatDateID } from '@/lib/dates';
 import { getApiErrorMessage, sawmillApi, logApi } from '@/lib/api';
 import { exportToPdf } from '@/lib/export';
 import useSessionUser from '@/lib/useSessionUser';
+import { useGlobalSearch } from '@/lib/useGlobalSearch';
 import { can } from '@/lib/permissions';
 import { PlankItem, SawmillItem } from '@/types/sawmill';
 import { LogItem } from '@/types/log';
@@ -37,6 +38,7 @@ const PAGE_SIZE = 10;
 
 export default function DataSawmillPage() {
   const user = useSessionUser();
+  const globalSearch = useGlobalSearch();
   const { confirm, ConfirmDialog } = useConfirm();
   const isManager = user?.role === 'manager';
   const canCreate = can(user?.role, 'sawmill:create') || isManager;
@@ -475,7 +477,15 @@ export default function DataSawmillPage() {
     const matchesSortimen =
       sortimenFilter === 'All Sortimen' || item.sortimen === sortimenFilter;
     const matchesDate = !dateFilter || item.tanggal === dateFilter;
-    return matchesSortimen && matchesDate;
+    const q = globalSearch.trim().toLowerCase();
+    const matchesGlobal =
+      !q ||
+      item.id_sawmill.toLowerCase().includes(q) ||
+      item.id_log_asal.toLowerCase().includes(q) ||
+      item.sortimen.toLowerCase().includes(q) ||
+      (item.suplier || '').toLowerCase().includes(q) ||
+      item.planks.some((p) => p.id_plank.toLowerCase().includes(q));
+    return matchesSortimen && matchesDate && matchesGlobal;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
