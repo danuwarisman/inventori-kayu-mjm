@@ -41,8 +41,14 @@ export class DryKilnService {
     if (sortimen && sortimen !== 'All Sortimen') {
       where.sortimen = sortimen;
     }
-    if (stage) {
+    if (stage === 'pra') {
+      where.stage = { in: ['pra-drykiln', 'finish pra-drykiln'] };
+    } else if (stage === 'oven') {
+      where.stage = { in: ['in-drykiln', 'finish drykiln'] };
+    } else if (stage) {
       where.stage = stage;
+    } else {
+      where.OR = [{ stage: { not: 'finish pra-drykiln' } }, { stage: null }];
     }
 
     const items = await this.prisma.dryKiln.findMany({
@@ -97,16 +103,23 @@ export class DryKilnService {
       },
     });
 
+    let result = created;
     if (!created.kodePlank) {
       const code = `P-${new Date().getFullYear()}-${created.idOven}`;
-      const updated = await this.prisma.dryKiln.update({
+      result = await this.prisma.dryKiln.update({
         where: { idOven: created.idOven },
         data: { kodePlank: code },
       });
-      return this.mapDryKiln(updated);
     }
 
-    return this.mapDryKiln(created);
+    if (result.kodePlank) {
+      await this.prisma.plank.updateMany({
+        where: { kodePlank: result.kodePlank, deletedAt: null },
+        data: { stage },
+      });
+    }
+
+    return this.mapDryKiln(result);
   }
 
   async update(id: number, dto: UpdateDryKilnDto) {
@@ -141,6 +154,13 @@ export class DryKilnService {
         ...(dto.date ? { tanggalMasuk: new Date(dto.date) } : {}),
       },
     });
+
+    if (dto.stage && updated.kodePlank) {
+      await this.prisma.plank.updateMany({
+        where: { kodePlank: updated.kodePlank, deletedAt: null },
+        data: { stage: dto.stage },
+      });
+    }
 
     return this.mapDryKiln(updated);
   }

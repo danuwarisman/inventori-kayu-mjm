@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FileDown, Plus, ChevronDown, CheckCircle2, X, ArrowRight } from 'lucide-react';
 import { dryKilnApi } from '@/lib/api';
+import { DryKilnItem, DryKilnStage } from '@/types/dry-kiln';
 import { PraDryKilnItem } from '@/types/pra-dry-kiln';
 import PlankTable from '@/components/pra-dry-kiln/PlankTable';
 import BatchModal from '@/components/pra-dry-kiln/BatchModal';
@@ -120,6 +121,52 @@ export default function PraDryKilnPage() {
   const [modalMode, setModalMode] = useState<'input' | 'edit'>('input');
   const [selectedItem, setSelectedItem] = useState<PraDryKilnItem | null>(null);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    dryKilnApi
+      .list({ stage: 'pra', sortimen: sortimenFilter, date: dateFilter })
+      .then((data) => {
+        if (cancelled || !Array.isArray(data)) return;
+        const mapped: PraDryKilnItem[] = data.map((item) => {
+          const rawStage: string = item.stage;
+          return {
+            idOven: item.idOven,
+            id_plank: item.id_plank,
+            id_log: item.id_log,
+            sortimen: item.sortimen,
+            panjang: item.panjang,
+            lebar: item.lebar,
+            tinggi: item.tinggi,
+            volume: item.volume,
+            grade: item.grade,
+            stage:
+              rawStage === 'finish pra-drykiln'
+                ? 'finish pra-drykiln'
+                : 'pra-drykiln',
+            date: item.date,
+          };
+        });
+
+        if (
+          mapped.length > 0 ||
+          dateFilter ||
+          sortimenFilter !== 'All Sortimen'
+        ) {
+          setItems(mapped);
+        } else {
+          setItems(INITIAL_PRA_DRY_KILN);
+        }
+      })
+      .catch(() => {
+        // Jika backend belum aktif / mode demo, pertahankan data state lokal.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sortimenFilter, dateFilter]);
+
   // Volume Calculation: T(cm) * W(cm) * L(cm) / 1.000.000 (m³)
   const calculateVolume = (t: number, w: number, l: number): number => {
     return Number(((t * w * l) / 1000000).toFixed(3));
@@ -142,6 +189,11 @@ export default function PraDryKilnPage() {
     setTransferSuccess(null);
 
     try {
+      if (item.idOven) {
+        await dryKilnApi.update(item.idOven, {
+          stage: 'finish pra-drykiln' as DryKilnStage,
+        });
+      }
       await dryKilnApi.create({
         id_plank: item.id_plank,
         id_log: item.id_log,
@@ -160,7 +212,7 @@ export default function PraDryKilnPage() {
 
     setItems((prev) =>
       prev.map((row) =>
-        row.id_plank === item.id_plank
+        row.id_plank === item.id_plank && row.idOven === item.idOven
           ? { ...row, stage: 'finish pra-drykiln' }
           : row
       )
@@ -170,7 +222,30 @@ export default function PraDryKilnPage() {
     );
   };
 
-  const handleModalSubmit = (
+  const toDryKilnPayload = (item: PraDryKilnItem): Partial<DryKilnItem> => ({
+    id_plank: item.id_plank,
+    id_log: item.id_log,
+    sortimen: item.sortimen,
+    grade: item.grade,
+    panjang: item.panjang,
+    lebar: item.lebar,
+    tinggi: item.tinggi,
+    volume: item.volume,
+    stage: item.stage as unknown as DryKilnStage,
+    date: item.date,
+  });
+
+  const resolvePraStage = (
+    rawStage: string | undefined,
+    fallback: PraDryKilnItem['stage']
+  ): PraDryKilnItem['stage'] =>
+    rawStage === 'finish pra-drykiln'
+      ? 'finish pra-drykiln'
+      : rawStage === 'pra-drykiln'
+      ? 'pra-drykiln'
+      : fallback;
+
+  const handleModalSubmit = async (
     data: Omit<PraDryKilnItem, 'volume' | 'date'>
   ) => {
     const vol = calculateVolume(data.tinggi, data.lebar, data.panjang);
@@ -181,19 +256,63 @@ export default function PraDryKilnPage() {
         volume: vol,
         date: toISODate(),
       };
-      setItems((prev) => [newItem, ...prev]);
+      try {
+        const saved = await dryKilnApi.create(toDryKilnPayload(newItem));
+        setItems((prev) => [
+          {
+            ...newItem,
+            idOven: saved.idOven,
+            id_plank: saved.id_plank || newItem.id_plank,
+            id_log: saved.id_log || newItem.id_log,
+            volume: saved.volume ?? vol,
+            date: saved.date || newItem.date,
+            stage: resolvePraStage(saved.stage, data.stage),
+          },
+          ...prev,
+        ]);
+      } catch (err) {
+        console.warn('Gagal menyimpan batch pra dry-kiln ke API, menggunakan state lokal:', err);
+        setItems((prev) => [newItem, ...prev]);
+      }
     } else if (modalMode === 'edit' && selectedItem) {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id_plank === selectedItem.id_plank
-            ? {
-                ...item,
-                ...data,
-                volume: vol,
-              }
-            : item
-        )
-      );
+      const updatedItem: PraDryKilnItem = {
+        ...selectedItem,
+        ...data,
+        volume: vol,
+      };
+      try {
+        const saved = selectedItem.idOven
+          ? await dryKilnApi.update(selectedItem.idOven, toDryKilnPayload(updatedItem))
+          : await dryKilnApi.create({
+              ...toDryKilnPayload(updatedItem),
+              date: selectedItem.date || toISODate(),
+            });
+
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id_plank === selectedItem.id_plank &&
+            item.idOven === selectedItem.idOven
+              ? {
+                  ...updatedItem,
+                  idOven: saved.idOven ?? selectedItem.idOven,
+                  volume: saved.volume ?? vol,
+                  date: saved.date || updatedItem.date,
+                  stage: resolvePraStage(saved.stage, data.stage),
+                }
+              : item
+          )
+        );
+      } catch (err) {
+        console.warn('Gagal memperbarui batch pra dry-kiln di API, menggunakan state lokal:', err);
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id_plank === selectedItem.id_plank &&
+            item.idOven === selectedItem.idOven
+              ? updatedItem
+              : item
+          )
+        );
+      }
     }
   };
 

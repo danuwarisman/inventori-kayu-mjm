@@ -2,6 +2,7 @@ export type PlankGrade = 'Grade A' | 'Grade B' | 'Grade C';
 export type PraDryKilnStage = 'pra-drykiln' | 'finish pra-drykiln';
 
 export interface PraDryKilnItem {
+  idOven?: number;
   id_plank: string;
   id_log: string;
   sortimen: string;
