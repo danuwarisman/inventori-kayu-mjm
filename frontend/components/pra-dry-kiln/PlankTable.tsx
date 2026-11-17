@@ -37,7 +37,7 @@ export default function PlankTable({
       <div className="overflow-x-auto">
         <table className="w-full text-xs text-left">
           <thead>
-            <tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider">
+            <tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider whitespace-nowrap">
               <th className="py-3 px-3 text-center">ID PLANK</th>
               <th className="py-3 px-3 text-center">ID LOG</th>
               <th className="py-3 px-3 text-center">Sortimen</th>
@@ -74,25 +74,27 @@ export default function PlankTable({
                   key={item.id_plank}
                   className="text-green-700 hover:bg-stone-50 transition-colors"
                 >
-                  <td className="py-3 px-3 text-center font-mono font-medium">
+                  <td className="py-3 px-3 text-center font-mono font-medium whitespace-nowrap">
                     {item.id_plank}
                   </td>
-                  <td className="py-3 px-3 text-center font-mono text-stone-600">
+                  <td className="py-3 px-3 text-center font-mono text-stone-600 whitespace-nowrap">
                     {item.id_log}
                   </td>
-                  <td className="py-3 px-3 text-center font-normal">{item.sortimen}</td>
+                  <td className="py-3 px-3 text-center font-normal whitespace-nowrap">
+                    {item.sortimen}
+                  </td>
                   <td className="py-3 px-3 text-center font-medium whitespace-nowrap">
                     {item.tinggi}cm x {item.lebar}cm x {item.panjang}cm
                   </td>
-                  <td className="py-3 px-3 text-center font-medium">
+                  <td className="py-3 px-3 text-center font-medium whitespace-nowrap">
                     {item.volume.toFixed(3)} m³
                   </td>
-                  <td className="py-3 px-3 text-center">
+                  <td className="py-3 px-3 text-center whitespace-nowrap">
                     <span className="inline-block px-2 py-0.5 border border-green-700 rounded-xs text-[11px] font-semibold">
                       {item.grade}
                     </span>
                   </td>
-                  <td className="py-3 px-3 text-center">
+                  <td className="py-3 px-3 text-center whitespace-nowrap">
                     <span
                       className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
                         item.stage === 'finish pra-drykiln'
@@ -103,7 +105,7 @@ export default function PlankTable({
                       {item.stage}
                     </span>
                   </td>
-                  <td className="py-3 px-3 text-center font-normal text-stone-600">
+                  <td className="py-3 px-3 text-center font-normal text-stone-600 whitespace-nowrap">
                     {formatDateID(item.date)}
                   </td>
                   {canEdit && (

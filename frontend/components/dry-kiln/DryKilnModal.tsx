@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, ChevronDown, Check, Plus } from 'lucide-react';
 import {
   DryKilnItem,
@@ -27,6 +27,182 @@ interface DryKilnModalProps {
   mode: 'input' | 'edit';
   nextBatchIndex: number;
 }
+
+interface SelectOption {
+  value: string;
+  label: string;
+  meta?: string;
+  dotClass?: string;
+}
+
+interface ModalSelectProps {
+  id?: string;
+  value: string;
+  options: SelectOption[];
+  onChange: (value: string) => void;
+  mono?: boolean;
+  menuPlacement?: 'bottom' | 'top';
+}
+
+function ModalSelect({
+  id,
+  value,
+  options,
+  onChange,
+  mono = false,
+  menuPlacement = 'bottom',
+}: ModalSelectProps) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open]);
+
+  const selected = options.find((opt) => opt.value === value) ?? options[0];
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        id={id}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((prev) => !prev)}
+        className={`w-full h-10 px-3 bg-white border rounded-md flex items-center justify-between gap-2 text-left transition-all cursor-pointer ${
+          open
+            ? 'border-green-700 ring-2 ring-green-700/15'
+            : 'border-stone-300 hover:border-green-600/70 focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/15'
+        }`}
+      >
+        <span className="flex items-center gap-2 min-w-0">
+          {selected?.dotClass && (
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 ${selected.dotClass}`}
+            />
+          )}
+          <span
+            className={`truncate ${
+              mono
+                ? 'font-mono font-semibold text-green-800'
+                : 'font-medium text-stone-800'
+            }`}
+          >
+            {selected?.label ?? value}
+          </span>
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 text-stone-500 shrink-0 transition-transform duration-150 ${
+            open ? 'rotate-180 text-green-700' : ''
+          }`}
+        />
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          className={`absolute left-0 right-0 z-50 max-h-52 overflow-y-auto bg-white border border-stone-200 rounded-lg shadow-lg py-1 ${
+            menuPlacement === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          }`}
+        >
+          {options.map((opt) => {
+            const isSelected = opt.value === value;
+            return (
+              <li key={opt.value} role="option" aria-selected={isSelected}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange(opt.value);
+                    setOpen(false);
+                  }}
+                  className={`w-full px-3 py-2 flex items-center justify-between gap-2 text-left text-xs transition-colors cursor-pointer ${
+                    isSelected
+                      ? 'bg-green-50 text-green-800 font-semibold'
+                      : 'text-stone-700 hover:bg-stone-50'
+                  }`}
+                >
+                  <span className="flex items-center gap-2 min-w-0">
+                    {opt.dotClass && (
+                      <span
+                        className={`w-2 h-2 rounded-full shrink-0 ${opt.dotClass}`}
+                      />
+                    )}
+                    <span className={`truncate ${mono ? 'font-mono' : ''}`}>
+                      {opt.label}
+                    </span>
+                  </span>
+                  <span className="flex items-center gap-1.5 shrink-0">
+                    {opt.meta && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-stone-100 text-stone-600 font-normal">
+                        {opt.meta}
+                      </span>
+                    )}
+                    {isSelected && (
+                      <Check className="w-3.5 h-3.5 text-green-700 shrink-0" />
+                    )}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+const SORTIMEN_OPTIONS: SelectOption[] = [
+  { value: 'Sortimen A', label: 'Sortimen A' },
+  { value: 'Sortimen B', label: 'Sortimen B' },
+  { value: 'Sortimen C', label: 'Sortimen C' },
+];
+
+const GRADE_OPTIONS: SelectOption[] = [
+  { value: 'Grade A', label: 'Grade A' },
+  { value: 'Grade B', label: 'Grade B' },
+  { value: 'Grade C', label: 'Grade C' },
+];
+
+const DRY_STAGE_OPTIONS: SelectOption[] = [
+  {
+    value: 'in-drykiln',
+    label: 'In-Drykiln (Sedang Proses Oven)',
+    dotClass: 'bg-amber-500',
+  },
+  {
+    value: 'finish drykiln',
+    label: 'Finish Drykiln (Selesai Pengeringan)',
+    dotClass: 'bg-emerald-600',
+  },
+  {
+    value: 'pra-drykiln',
+    label: 'Pra-Drykiln (Persiapan Oven)',
+    dotClass: 'bg-lime-500',
+  },
+];
 
 export default function DryKilnModal(props: DryKilnModalProps) {
   if (!props.isOpen) return null;
@@ -128,7 +304,7 @@ function DryKilnModalContent({
     };
   }, [mode, defaultLogId, defaultPlankId]);
 
-  const logOptions = Array.from(
+  const logIds = Array.from(
     new Set(
       [
         ...logs.map((l) => l.id_log),
@@ -142,7 +318,7 @@ function DryKilnModalContent({
 
   const matchingPlanks = planks.filter((p) => p.id_log === formData.id_log);
   const otherPlanks = planks.filter((p) => p.id_log !== formData.id_log);
-  const plankOptions = Array.from(
+  const plankIds = Array.from(
     new Set(
       [
         ...matchingPlanks.map((p) => p.id_plank),
@@ -154,20 +330,27 @@ function DryKilnModalContent({
     )
   );
 
-  const logLabel = (id: string) => {
+  const logSelectOptions: SelectOption[] = logIds.map((id) => {
     const match = logs.find((l) => l.id_log === id);
-    return match ? `${id} (${match.sortimen})` : id;
-  };
+    return {
+      value: id,
+      label: id,
+      meta: match?.sortimen,
+    };
+  });
 
-  const plankLabel = (id: string) => {
+  const plankSelectOptions: SelectOption[] = plankIds.map((id) => {
     const match = planks.find((p) => p.id_plank === id);
-    if (!match) return id;
     const dims =
-      match.panjang && match.lebar && match.tinggi
+      match?.panjang && match?.lebar && match?.tinggi
         ? ` · ${match.panjang}×${match.lebar}×${match.tinggi} cm`
         : '';
-    return `${id} (${match.grade}${dims})`;
-  };
+    return {
+      value: id,
+      label: id,
+      meta: match ? `${match.grade}${dims}` : undefined,
+    };
+  });
 
   const updateForm = (patch: Partial<DryKilnFormData>) => {
     setFormData((prev) => ({ ...prev, ...patch }));
@@ -249,106 +432,126 @@ function DryKilnModalContent({
     onClose();
   };
 
+  const estimatedVolume =
+    ((Number(formData.panjang) || 0) *
+      (Number(formData.lebar) || 0) *
+      (Number(formData.tinggi) || 0)) /
+    1_000_000;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs font-sans animate-in fade-in duration-150">
-      <div className="relative w-full max-w-[560px] p-5 bg-orange-50 rounded-[10px] border border-stone-300 shadow-xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center pb-2 border-b border-stone-300/60">
-          <h2 className="text-stone-800 text-xl font-bold font-sans">
-            {mode === 'input' ? 'Input Hasil Dry Kiln' : 'Edit Hasil Dry Kiln'}
-          </h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/45 backdrop-blur-xs font-sans animate-in fade-in duration-150">
+      <div className="relative w-full max-w-[580px] p-5 bg-orange-50 rounded-xl border border-stone-200 shadow-2xl flex flex-col gap-3.5 max-h-[92vh] overflow-y-auto">
+        <div className="flex justify-between items-start gap-3 pb-2.5 border-b border-stone-200/90">
+          <div>
+            <h2 className="text-stone-800 text-lg font-bold tracking-tight">
+              {mode === 'input' ? 'Input Hasil Dry Kiln' : 'Edit Hasil Dry Kiln'}
+            </h2>
+            <p className="text-[11px] text-stone-500 mt-0.5">
+              Pilih log dan plank sumber untuk mengisi sortimen, grade, dan ukuran otomatis.
+            </p>
+          </div>
           <button
             type="button"
             onClick={handleClose}
-            className="p-1 text-stone-500 hover:text-stone-900 rounded transition-colors"
+            aria-label="Tutup modal"
+            className="p-1.5 text-stone-500 hover:text-stone-900 hover:bg-stone-200/60 rounded-md transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="p-4 bg-white/80 rounded-[10px] border border-stone-800 flex flex-col gap-3 text-xs"
+          className="p-5 bg-white rounded-xl border border-stone-200 shadow-xs flex flex-col gap-4 text-xs"
         >
-          <div className="flex flex-col gap-1">
-            <label className="font-semibold text-green-700">ID LOG</label>
-            <div className="relative">
-              <select
-                required
+          {/* Baris 1: ID LOG & ID PLANK */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="dry-id-log"
+                className="text-xs font-semibold text-green-800"
+              >
+                ID LOG
+              </label>
+              <ModalSelect
+                id="dry-id-log"
                 value={formData.id_log}
-                onChange={(e) => handleLogChange(e.target.value)}
-                className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded font-mono text-green-700 appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
-              >
-                {logOptions.map((id) => (
-                  <option key={id} value={id}>
-                    {logLabel(id)}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
+                options={logSelectOptions}
+                onChange={handleLogChange}
+                mono
+              />
             </div>
-          </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="font-semibold text-green-700">ID PLANK</label>
-            <div className="relative">
-              <select
-                required
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="dry-id-plank"
+                className="text-xs font-semibold text-green-800"
+              >
+                ID PLANK
+              </label>
+              <ModalSelect
+                id="dry-id-plank"
                 value={formData.id_plank}
-                onChange={(e) => handlePlankChange(e.target.value)}
-                className="w-full h-10 pl-3 pr-8 bg-white border border-stone-800 rounded font-mono text-green-700 font-medium appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
+                options={plankSelectOptions}
+                onChange={handlePlankChange}
+                mono
+              />
+            </div>
+          </div>
+
+          {/* Baris 2: Sortimen & Grade */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="dry-sortimen"
+                className="text-xs font-semibold text-green-800"
               >
-                {plankOptions.map((id) => (
-                  <option key={id} value={id}>
-                    {plankLabel(id)}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
+                Sortimen
+              </label>
+              <ModalSelect
+                id="dry-sortimen"
+                value={formData.sortimen}
+                options={SORTIMEN_OPTIONS}
+                onChange={(val) => updateForm({ sortimen: val })}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="dry-grade"
+                className="text-xs font-semibold text-green-800"
+              >
+                Grade
+              </label>
+              <ModalSelect
+                id="dry-grade"
+                value={formData.grade}
+                options={GRADE_OPTIONS}
+                onChange={(val) => updateForm({ grade: val as PlankGrade })}
+              />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="font-semibold text-green-700">Sortimen</label>
-              <div className="relative">
-                <select
-                  value={formData.sortimen}
-                  onChange={(e) => updateForm({ sortimen: e.target.value })}
-                  className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded text-green-700 appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
-                >
-                  <option value="Sortimen A">Sortimen A</option>
-                  <option value="Sortimen B">Sortimen B</option>
-                  <option value="Sortimen C">Sortimen C</option>
-                </select>
-                <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
-              </div>
+          {/* Baris 3: Ukuran Papan */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-green-800">
+                Ukuran Papan
+              </span>
+              <span className="text-[11px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full font-mono">
+                Estimasi Volume: {estimatedVolume.toFixed(4)} m³
+              </span>
             </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="font-semibold text-green-700">Grade</label>
-              <div className="relative">
-                <select
-                  value={formData.grade}
-                  onChange={(e) =>
-                    updateForm({ grade: e.target.value as PlankGrade })
-                  }
-                  className="w-full h-10 pl-3 pr-8 bg-white border border-stone-800 rounded text-green-700 font-medium appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="dry-panjang"
+                  className="text-[11px] font-medium text-stone-600"
                 >
-                  <option value="Grade A">Grade A</option>
-                  <option value="Grade B">Grade B</option>
-                  <option value="Grade C">Grade C</option>
-                </select>
-                <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <span className="font-semibold text-green-700">Ukuran</span>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[11px] text-green-700">Panjang (cm)</label>
+                  Panjang (cm)
+                </label>
                 <input
+                  id="dry-panjang"
                   type="number"
                   required
                   min={0.1}
@@ -360,13 +563,19 @@ function DryKilnModalContent({
                       panjang: e.target.value === '' ? '' : Number(e.target.value),
                     })
                   }
-                  className="w-full h-9 px-2.5 bg-white border border-stone-800 rounded text-green-700 focus:outline-none focus:border-green-700"
+                  className="w-full h-10 px-3 bg-white border border-stone-300 hover:border-green-600/70 rounded-md font-mono text-stone-800 focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/15 transition-all"
                 />
               </div>
 
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[11px] text-green-700">Lebar (cm)</label>
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="dry-lebar"
+                  className="text-[11px] font-medium text-stone-600"
+                >
+                  Lebar (cm)
+                </label>
                 <input
+                  id="dry-lebar"
                   type="number"
                   required
                   min={0.1}
@@ -378,13 +587,19 @@ function DryKilnModalContent({
                       lebar: e.target.value === '' ? '' : Number(e.target.value),
                     })
                   }
-                  className="w-full h-9 px-2.5 bg-white border border-stone-800 rounded text-green-700 focus:outline-none focus:border-green-700"
+                  className="w-full h-10 px-3 bg-white border border-stone-300 hover:border-green-600/70 rounded-md font-mono text-stone-800 focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/15 transition-all"
                 />
               </div>
 
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[11px] text-green-700">Tinggi (cm)</label>
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="dry-tinggi"
+                  className="text-[11px] font-medium text-stone-600"
+                >
+                  Tinggi (cm)
+                </label>
                 <input
+                  id="dry-tinggi"
                   type="number"
                   required
                   min={0.1}
@@ -396,36 +611,43 @@ function DryKilnModalContent({
                       tinggi: e.target.value === '' ? '' : Number(e.target.value),
                     })
                   }
-                  className="w-full h-9 px-2.5 bg-white border border-stone-800 rounded text-green-700 focus:outline-none focus:border-green-700"
+                  className="w-full h-10 px-3 bg-white border border-stone-300 hover:border-green-600/70 rounded-md font-mono text-stone-800 focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/15 transition-all"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="font-semibold text-green-700">Status Tahapan</label>
-            <div className="relative">
-              <select
-                value={formData.stage}
-                onChange={(e) =>
-                  updateForm({ stage: e.target.value as DryKilnStage })
-                }
-                className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded text-green-700 font-semibold appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
-              >
-                <option value="in-drykiln">In-Drykiln (Sedang Proses Oven)</option>
-                <option value="finish drykiln">Finish Drykiln (Selesai Pengeringan)</option>
-                <option value="pra-drykiln">Pra-Drykiln (Persiapan Oven)</option>
-              </select>
-              <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
-            </div>
+          {/* Baris 4: Status Tahapan */}
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="dry-stage"
+              className="text-xs font-semibold text-green-800"
+            >
+              Status Tahapan
+            </label>
+            <ModalSelect
+              id="dry-stage"
+              value={formData.stage}
+              options={DRY_STAGE_OPTIONS}
+              onChange={(val) => updateForm({ stage: val as DryKilnStage })}
+              menuPlacement="top"
+            />
           </div>
 
           <FormError message={formError} />
 
-          <div className="flex justify-end pt-2">
+          {/* Footer Action Buttons */}
+          <div className="flex items-center justify-end gap-2.5 pt-3.5 mt-0.5 border-t border-stone-200/80">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="h-10 px-4 bg-white hover:bg-stone-100 text-stone-700 font-semibold border border-stone-300 rounded-md transition-colors cursor-pointer"
+            >
+              Batal
+            </button>
             <button
               type="submit"
-              className="h-10 px-5 bg-green-700 hover:bg-green-800 text-white font-bold rounded flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
+              className="h-10 px-5 bg-green-700 hover:bg-green-800 text-white font-bold rounded-md flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
             >
               {mode === 'input' ? (
                 <>
