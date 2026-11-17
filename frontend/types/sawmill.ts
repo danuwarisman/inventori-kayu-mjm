@@ -5,6 +5,8 @@ export interface PlankItem {
   idPlank?: number;
   id_plank: string;
   kodePlank?: string;
+  idLogAsal?: number;
+  id_log?: string;
   sortimen: string;
   tinggi: number;  // Tebal (cm)
   lebar: number;   // Lebar (cm)

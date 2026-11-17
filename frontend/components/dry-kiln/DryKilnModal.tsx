@@ -9,6 +9,9 @@ import {
   DryKilnStage,
 } from '@/types/dry-kiln';
 import FormError from '@/components/FormError';
+import { logApi, sawmillApi } from '@/lib/api';
+import { LogItem } from '@/types/log';
+import { PlankItem } from '@/types/sawmill';
 import {
   firstError,
   maxLength,
@@ -25,8 +28,13 @@ interface DryKilnModalProps {
   nextBatchIndex: number;
 }
 
-export default function DryKilnModal({
-  isOpen,
+export default function DryKilnModal(props: DryKilnModalProps) {
+  if (!props.isOpen) return null;
+  const formKey = `${props.mode}-${props.initialData?.id_plank ?? 'new'}-${props.nextBatchIndex}`;
+  return <DryKilnModalContent key={formKey} {...props} />;
+}
+
+function DryKilnModalContent({
   onClose,
   onSubmit,
   initialData,
@@ -34,50 +42,174 @@ export default function DryKilnModal({
   nextBatchIndex,
 }: DryKilnModalProps) {
   const currentYear = new Date().getFullYear();
+  const defaultLogId = `L-${currentYear}-3-A-${nextBatchIndex}`;
+  const defaultPlankId = `P-${currentYear}-3-A-${nextBatchIndex}`;
 
-  const [formData, setFormData] = useState<DryKilnFormData>({
-    id_log: '',
-    id_plank: '',
-    sortimen: 'Sortimen A',
-    grade: 'Grade A',
-    panjang: '',
-    lebar: '',
-    tinggi: '',
-    stage: 'in-drykiln',
-  });
+  const [formData, setFormData] = useState<DryKilnFormData>(() =>
+    initialData && mode === 'edit'
+      ? {
+          id_log: initialData.id_log,
+          id_plank: initialData.id_plank,
+          sortimen: initialData.sortimen,
+          grade: initialData.grade,
+          panjang: initialData.panjang,
+          lebar: initialData.lebar,
+          tinggi: initialData.tinggi,
+          stage: initialData.stage,
+        }
+      : {
+          id_log: defaultLogId,
+          id_plank: defaultPlankId,
+          sortimen: 'Sortimen A',
+          grade: 'Grade A',
+          panjang: 240,
+          lebar: 20,
+          tinggi: 5,
+          stage: 'in-drykiln',
+        }
+  );
+  const [logs, setLogs] = useState<LogItem[]>([]);
+  const [planks, setPlanks] = useState<PlankItem[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (initialData && mode === 'edit') {
-      setFormData({
-        id_log: initialData.id_log,
-        id_plank: initialData.id_plank,
-        sortimen: initialData.sortimen,
-        grade: initialData.grade,
-        panjang: initialData.panjang,
-        lebar: initialData.lebar,
-        tinggi: initialData.tinggi,
-        stage: initialData.stage,
-      });
-    } else {
-      setFormData({
-        id_log: `L-${currentYear}-3-A-${nextBatchIndex}`,
-        id_plank: `P-${currentYear}-3-A-${nextBatchIndex}`,
-        sortimen: 'Sortimen A',
-        grade: 'Grade A',
-        panjang: 240,
-        lebar: 20,
-        tinggi: 5,
-        stage: 'in-drykiln',
-      });
-    }
-  }, [initialData, mode, isOpen, nextBatchIndex, currentYear]);
+    let cancelled = false;
 
-  if (!isOpen) return null;
+    Promise.allSettled([logApi.list(), sawmillApi.listPlanks()]).then(
+      ([logsRes, planksRes]) => {
+        if (cancelled) return;
+        const fetchedLogs =
+          logsRes.status === 'fulfilled' && Array.isArray(logsRes.value)
+            ? logsRes.value
+            : [];
+        const fetchedPlanks =
+          planksRes.status === 'fulfilled' && Array.isArray(planksRes.value)
+            ? planksRes.value
+            : [];
+
+        setLogs(fetchedLogs);
+        setPlanks(fetchedPlanks);
+
+        if (mode === 'input') {
+          if (fetchedPlanks.length > 0) {
+            const firstPlank = fetchedPlanks[0];
+            setFormData((prev) =>
+              prev.id_log === defaultLogId && prev.id_plank === defaultPlankId
+                ? {
+                    ...prev,
+                    id_plank: firstPlank.id_plank,
+                    id_log: firstPlank.id_log || prev.id_log,
+                    sortimen: firstPlank.sortimen || prev.sortimen,
+                    grade: firstPlank.grade || prev.grade,
+                    panjang: firstPlank.panjang || prev.panjang,
+                    lebar: firstPlank.lebar || prev.lebar,
+                    tinggi: firstPlank.tinggi || prev.tinggi,
+                  }
+                : prev
+            );
+          } else if (fetchedLogs.length > 0) {
+            const firstLog = fetchedLogs[0];
+            setFormData((prev) =>
+              prev.id_log === defaultLogId
+                ? {
+                    ...prev,
+                    id_log: firstLog.id_log,
+                    sortimen: firstLog.sortimen || prev.sortimen,
+                  }
+                : prev
+            );
+          }
+        }
+      }
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, defaultLogId, defaultPlankId]);
+
+  const logOptions = Array.from(
+    new Set(
+      [
+        ...logs.map((l) => l.id_log),
+        ...planks.map((p) => p.id_log),
+        initialData?.id_log,
+        defaultLogId,
+        formData.id_log,
+      ].filter((v): v is string => Boolean(v && v.trim()))
+    )
+  );
+
+  const matchingPlanks = planks.filter((p) => p.id_log === formData.id_log);
+  const otherPlanks = planks.filter((p) => p.id_log !== formData.id_log);
+  const plankOptions = Array.from(
+    new Set(
+      [
+        ...matchingPlanks.map((p) => p.id_plank),
+        ...otherPlanks.map((p) => p.id_plank),
+        initialData?.id_plank,
+        defaultPlankId,
+        formData.id_plank,
+      ].filter((v): v is string => Boolean(v && v.trim()))
+    )
+  );
+
+  const logLabel = (id: string) => {
+    const match = logs.find((l) => l.id_log === id);
+    return match ? `${id} (${match.sortimen})` : id;
+  };
+
+  const plankLabel = (id: string) => {
+    const match = planks.find((p) => p.id_plank === id);
+    if (!match) return id;
+    const dims =
+      match.panjang && match.lebar && match.tinggi
+        ? ` · ${match.panjang}×${match.lebar}×${match.tinggi} cm`
+        : '';
+    return `${id} (${match.grade}${dims})`;
+  };
 
   const updateForm = (patch: Partial<DryKilnFormData>) => {
     setFormData((prev) => ({ ...prev, ...patch }));
     if (formError) setFormError(null);
+  };
+
+  const handleLogChange = (newLogId: string) => {
+    const matchedLog = logs.find((l) => l.id_log === newLogId);
+    const matchingPlank = planks.find((p) => p.id_log === newLogId);
+    updateForm({
+      id_log: newLogId,
+      ...(matchingPlank
+        ? {
+            id_plank: matchingPlank.id_plank,
+            sortimen:
+              matchingPlank.sortimen || matchedLog?.sortimen || formData.sortimen,
+            grade: matchingPlank.grade || formData.grade,
+            panjang: matchingPlank.panjang || formData.panjang,
+            lebar: matchingPlank.lebar || formData.lebar,
+            tinggi: matchingPlank.tinggi || formData.tinggi,
+          }
+        : matchedLog
+        ? { sortimen: matchedLog.sortimen || formData.sortimen }
+        : {}),
+    });
+  };
+
+  const handlePlankChange = (newPlankId: string) => {
+    const matchedPlank = planks.find((p) => p.id_plank === newPlankId);
+    updateForm({
+      id_plank: newPlankId,
+      ...(matchedPlank
+        ? {
+            id_log: matchedPlank.id_log || formData.id_log,
+            sortimen: matchedPlank.sortimen || formData.sortimen,
+            grade: matchedPlank.grade || formData.grade,
+            panjang: matchedPlank.panjang || formData.panjang,
+            lebar: matchedPlank.lebar || formData.lebar,
+            tinggi: matchedPlank.tinggi || formData.tinggi,
+          }
+        : {}),
+    });
   };
 
   const handleClose = () => {
@@ -139,26 +271,40 @@ export default function DryKilnModal({
         >
           <div className="flex flex-col gap-1">
             <label className="font-semibold text-green-700">ID LOG</label>
-            <input
-              type="text"
-              required
-              maxLength={50}
-              value={formData.id_log}
-              onChange={(e) => updateForm({ id_log: e.target.value })}
-              className="w-full h-10 px-3 bg-white border border-stone-300 rounded font-mono text-green-700 focus:outline-none focus:border-green-700"
-            />
+            <div className="relative">
+              <select
+                required
+                value={formData.id_log}
+                onChange={(e) => handleLogChange(e.target.value)}
+                className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded font-mono text-green-700 appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
+              >
+                {logOptions.map((id) => (
+                  <option key={id} value={id}>
+                    {logLabel(id)}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
+            </div>
           </div>
 
           <div className="flex flex-col gap-1">
             <label className="font-semibold text-green-700">ID PLANK</label>
-            <input
-              type="text"
-              required
-              maxLength={50}
-              value={formData.id_plank}
-              onChange={(e) => updateForm({ id_plank: e.target.value })}
-              className="w-full h-10 px-3 bg-white border border-stone-800 rounded font-mono text-green-700 font-medium focus:outline-none focus:border-green-700"
-            />
+            <div className="relative">
+              <select
+                required
+                value={formData.id_plank}
+                onChange={(e) => handlePlankChange(e.target.value)}
+                className="w-full h-10 pl-3 pr-8 bg-white border border-stone-800 rounded font-mono text-green-700 font-medium appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
+              >
+                {plankOptions.map((id) => (
+                  <option key={id} value={id}>
+                    {plankLabel(id)}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
