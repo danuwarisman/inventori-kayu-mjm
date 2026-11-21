@@ -172,9 +172,9 @@ export default function PraDryKilnPage() {
     return Number(((t * w * l) / 1000000).toFixed(3));
   };
 
-  const handleOpenInput = () => {
+  const handleOpenInput = (palletItem?: PraDryKilnItem) => {
     setModalMode('input');
-    setSelectedItem(null);
+    setSelectedItem(palletItem ?? null);
     setIsModalOpen(true);
   };
 
@@ -414,7 +414,7 @@ export default function PraDryKilnPage() {
           {canCreate && (
             <button
               type="button"
-              onClick={handleOpenInput}
+              onClick={() => handleOpenInput()}
               className="px-4 py-2 bg-green-700 hover:bg-green-800 rounded text-xs font-bold text-white flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -458,6 +458,7 @@ export default function PraDryKilnPage() {
         canEdit={canUpdate}
         onEdit={handleOpenEdit}
         onSendToOven={handleSendToOven}
+        onAddPlank={canCreate ? handleOpenInput : undefined}
       />
 
       {/* Input / Edit Batch Modal */}
@@ -468,6 +469,7 @@ export default function PraDryKilnPage() {
         initialData={selectedItem}
         mode={modalMode}
         nextBatchIndex={items.length + 1}
+        availableItems={items}
       />
     </div>
   );

@@ -26,6 +26,7 @@ interface BatchModalProps {
   initialData?: PraDryKilnItem | null;
   mode: 'input' | 'edit';
   nextBatchIndex: number;
+  availableItems?: PraDryKilnItem[];
 }
 
 interface SelectOption {
@@ -211,6 +212,7 @@ function BatchModalContent({
   initialData,
   mode,
   nextBatchIndex,
+  availableItems = [],
 }: BatchModalProps) {
   const currentYear = new Date().getFullYear();
   const defaultLogId = `L-${currentYear}-3-A-${nextBatchIndex}`;
@@ -230,13 +232,13 @@ function BatchModalContent({
         }
       : {
           id_plank: defaultPlankId,
-          id_log: defaultLogId,
-          sortimen: 'Sortimen A',
-          grade: 'Grade A',
-          panjang: 240,
-          lebar: 20,
-          tinggi: 5,
-          stage: 'finish pra-drykiln',
+          id_log: initialData?.id_log || defaultLogId,
+          sortimen: initialData?.sortimen || 'Sortimen A',
+          grade: initialData?.grade || 'Grade A',
+          panjang: initialData?.panjang || 240,
+          lebar: initialData?.lebar || 20,
+          tinggi: initialData?.tinggi || 5,
+          stage: initialData?.stage || 'finish pra-drykiln',
         }
   );
   const [logs, setLogs] = useState<LogItem[]>([]);
@@ -259,7 +261,17 @@ function BatchModalContent({
             : [];
 
         setLogs(fetchedLogs);
-        setPlanks(fetchedPlanks);
+        setPlanks(fetchedPlanks.length > 0 ? fetchedPlanks : availableItems.map((item) => ({
+          id_plank: item.id_plank,
+          id_log: item.id_log,
+          sortimen: item.sortimen,
+          tinggi: item.tinggi,
+          lebar: item.lebar,
+          panjang: item.panjang,
+          volume: item.volume,
+          grade: item.grade,
+          stage: item.stage,
+        })));
 
         if (mode === 'input') {
           if (fetchedPlanks.length > 0) {
@@ -302,28 +314,29 @@ function BatchModalContent({
   const logIds = Array.from(
     new Set(
       [
-        ...logs.map((l) => l.id_log),
         ...planks.map((p) => p.id_log),
         initialData?.id_log,
-        defaultLogId,
         formData.id_log,
       ].filter((v): v is string => Boolean(v && v.trim()))
     )
   );
 
   const matchingPlanks = planks.filter((p) => p.id_log === formData.id_log);
-  const otherPlanks = planks.filter((p) => p.id_log !== formData.id_log);
   const plankIds = Array.from(
     new Set(
       [
         ...matchingPlanks.map((p) => p.id_plank),
-        ...otherPlanks.map((p) => p.id_plank),
         initialData?.id_plank,
-        defaultPlankId,
         formData.id_plank,
       ].filter((v): v is string => Boolean(v && v.trim()))
     )
   );
+
+  const selectedPlank = planks.find((p) => p.id_plank === formData.id_plank);
+  const dimensionOptions = Array.from(new Map(
+    matchingPlanks.map((p) => [`${p.panjang}-${p.lebar}-${p.tinggi}`, p])
+  ).values());
+  const gradeOptions = Array.from(new Set(matchingPlanks.map((p) => p.grade)));
 
   const logSelectOptions: SelectOption[] = logIds.map((id) => {
     const match = logs.find((l) => l.id_log === id);
@@ -497,23 +510,8 @@ function BatchModalContent({
             </div>
           </div>
 
-          {/* Baris 2: Sortimen & Grade */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="pra-sortimen"
-                className="text-xs font-semibold text-green-800"
-              >
-                Sortimen
-              </label>
-              <ModalSelect
-                id="pra-sortimen"
-                value={formData.sortimen}
-                options={SORTIMEN_OPTIONS}
-                onChange={(val) => updateForm({ sortimen: val })}
-              />
-            </div>
-
+          {/* Baris 2: Grade */}
+          <div className="grid grid-cols-1 gap-3.5">
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="pra-grade"
@@ -521,12 +519,9 @@ function BatchModalContent({
               >
                 Grade
               </label>
-              <ModalSelect
-                id="pra-grade"
-                value={formData.grade}
-                options={GRADE_OPTIONS}
-                onChange={(val) => updateForm({ grade: val as PlankGrade })}
-              />
+              <div className="w-full h-10 px-3 flex items-center bg-stone-100 border border-stone-300 rounded-md font-mono text-stone-600 cursor-not-allowed">
+                {formData.grade || '-'}
+              </div>
             </div>
           </div>
 
@@ -548,21 +543,9 @@ function BatchModalContent({
                 >
                   Panjang (cm)
                 </label>
-                <input
-                  id="pra-panjang"
-                  type="number"
-                  required
-                  min={0.1}
-                  step="any"
-                  placeholder="240"
-                  value={formData.panjang}
-                  onChange={(e) =>
-                    updateForm({
-                      panjang: e.target.value === '' ? '' : Number(e.target.value),
-                    })
-                  }
-                  className="w-full h-10 px-3 bg-white border border-stone-300 hover:border-green-600/70 rounded-md font-mono text-stone-800 focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/15 transition-all"
-                />
+                <div className="w-full h-10 px-3 flex items-center bg-stone-100 border border-stone-300 rounded-md font-mono text-stone-600 cursor-not-allowed">
+                  {formData.panjang || '-'} cm
+                </div>
               </div>
 
               <div className="flex flex-col gap-1">
@@ -572,21 +555,9 @@ function BatchModalContent({
                 >
                   Lebar (cm)
                 </label>
-                <input
-                  id="pra-lebar"
-                  type="number"
-                  required
-                  min={0.1}
-                  step="any"
-                  placeholder="20"
-                  value={formData.lebar}
-                  onChange={(e) =>
-                    updateForm({
-                      lebar: e.target.value === '' ? '' : Number(e.target.value),
-                    })
-                  }
-                  className="w-full h-10 px-3 bg-white border border-stone-300 hover:border-green-600/70 rounded-md font-mono text-stone-800 focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/15 transition-all"
-                />
+                <div className="w-full h-10 px-3 flex items-center bg-stone-100 border border-stone-300 rounded-md font-mono text-stone-600 cursor-not-allowed">
+                  {formData.lebar || '-'} cm
+                </div>
               </div>
 
               <div className="flex flex-col gap-1">
@@ -596,21 +567,9 @@ function BatchModalContent({
                 >
                   Tinggi (cm)
                 </label>
-                <input
-                  id="pra-tinggi"
-                  type="number"
-                  required
-                  min={0.1}
-                  step="any"
-                  placeholder="5"
-                  value={formData.tinggi}
-                  onChange={(e) =>
-                    updateForm({
-                      tinggi: e.target.value === '' ? '' : Number(e.target.value),
-                    })
-                  }
-                  className="w-full h-10 px-3 bg-white border border-stone-300 hover:border-green-600/70 rounded-md font-mono text-stone-800 focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/15 transition-all"
-                />
+                <div className="w-full h-10 px-3 flex items-center bg-stone-100 border border-stone-300 rounded-md font-mono text-stone-600 cursor-not-allowed">
+                  {formData.tinggi || '-'} cm
+                </div>
               </div>
             </div>
           </div>
