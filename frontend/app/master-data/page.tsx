@@ -396,39 +396,20 @@ export default function DataLogPage() {
 
   const handleExportPdf = () => {
     const columns = [
-      'ID Log',
-      'Sortimen',
-      'Panjang (cm)',
-      'Diameter (cm)',
-      'Volume (m³)',
-      'Stage',
-      'Tanggal Masuk',
+      'ID Kavling',
+      'Total Volume (m³)',
+      'Rendemen',
+      'Tanggal',
+      'Detail',
     ];
 
-    if (isManager) {
-      columns.push('Supplier', 'Harga');
-    }
-
-    const rows = filteredLogs.map((item) => {
-      const row = [
-        item.id_log,
-        item.sortimen,
-        String(item.panjang),
-        String(item.diameter),
-        item.volume.toFixed(3),
-        item.stage,
-        formatDateID(item.tanggal_masuk),
-      ];
-
-      if (isManager) {
-        row.push(
-          item.suplier,
-          `Rp ${(item.harga || 0).toLocaleString('id-ID')}`
-        );
-      }
-
-      return row;
-    });
+    const rows = filteredLogs.map((item) => [
+      item.id_log,
+      item.volume.toFixed(3),
+      '-',
+      formatDateID(item.tanggal_masuk),
+      item.stage,
+    ]);
 
     exportToPdf({
       title: 'Laporan Data Log',
@@ -544,24 +525,15 @@ export default function DataLogPage() {
           <table className="w-full text-xs text-left">
             <thead>
               <tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider">
-                <th className="py-3 px-3 text-center">ID LOG</th>
-                <th className="py-3 px-3 text-center">Sortimen</th>
-                <th className="py-3 px-3 text-center">DIMENSIONS (P X D)</th>
-                <th className="py-3 px-3 text-center">Total Volume</th>
-                <th className="py-3 px-3 text-center">Stage</th>
-                <th className="py-3 px-3 text-center">Date</th>
-
-                {/* Kolom Khusus Manager (Harga & Suplier) */}
-                {isManager && (
-                  <>
-                    <th className="py-3 px-3 text-center">Suplier</th>
-                    <th className="py-3 px-3 text-center">Harga</th>
-                  </>
-                )}
+                <th className="py-3 px-3 text-center">ID KAVLING</th>
+                <th className="py-3 px-3 text-center">TOTAL VOLUME</th>
+                <th className="py-3 px-3 text-center">RENDEMEN</th>
+                <th className="py-3 px-3 text-center">TANGGAL</th>
+                <th className="py-3 px-3 text-center w-12">DETAIL</th>
 
                 {/* Kolom Aksi sesuai izin role */}
                 {canAct && (
-                  <th className="py-3 px-3 text-center w-12">Action</th>
+                  <th className="py-3 px-3 text-center w-12">ACTION</th>
                 )}
               </tr>
             </thead>
@@ -569,7 +541,7 @@ export default function DataLogPage() {
               {filteredLogs.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6 + (isManager ? 2 : 0) + (canAct ? 1 : 0)}
+                    colSpan={5 + (canAct ? 1 : 0)}
                     className="py-14 text-center"
                   >
                     <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
@@ -599,41 +571,31 @@ export default function DataLogPage() {
                         {item.idPembelian != null && (
                           <span
                             className="px-1.5 py-0.2 rounded text-[10px] font-sans font-bold bg-blue-100 text-blue-700 border border-blue-200"
-                            title="Log berasal dari transaksi Pembelian (PO)"
+                            title="Kavling berasal dari transaksi Pembelian (PO)"
                           >
                             PO
                           </span>
                         )}
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-center font-normal">
-                      {item.sortimen}
-                    </td>
-                    <td className="py-3 px-3 text-center font-medium">
-                      {item.panjang}cm x {item.diameter}cm
-                    </td>
                     <td className="py-3 px-3 text-center font-medium">
                       {item.volume.toFixed(3)} m³
                     </td>
-                    <td className="py-3 px-3 text-center">
-                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-lime-100 text-green-800">
-                        {item.stage}
-                      </span>
+                    <td className="py-3 px-3 text-center font-medium">
+                      -
                     </td>
                     <td className="py-3 px-3 text-center font-normal text-stone-600">
                       {formatDateID(item.tanggal_masuk)}
                     </td>
-
-                    {isManager && (
-                      <>
-                        <td className="py-3 px-3 text-center font-medium text-stone-800">
-                          {item.suplier}
-                        </td>
-                        <td className="py-3 px-3 text-center font-semibold text-stone-900">
-                          Rp {(item.harga || 0).toLocaleString('id-ID')}
-                        </td>
-                      </>
-                    )}
+                    <td className="py-3 px-3 text-center">
+                      <button
+                        type="button"
+                        className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50 hover:bg-green-100 rounded border border-green-200"
+                        title="Lihat detail kavling"
+                      >
+                        Detail
+                      </button>
+                    </td>
 
                     {canAct && (
                       <td className="py-3 px-3 text-center">
