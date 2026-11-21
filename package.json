@@ -1,0 +1,15 @@
+{
+  "name": "inventori-kayu-mjm-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistem Informasi Pendataan Kayu - PT. Margi Jati Makmur",
+  "scripts": {
+    "dev": "concurrently -k -n \"BACKEND,FRONTEND\" -c \"cyan.bold,green.bold\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run start:dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
