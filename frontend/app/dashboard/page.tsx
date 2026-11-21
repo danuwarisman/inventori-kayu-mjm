@@ -18,6 +18,7 @@ import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 import FormError from '@/components/FormError';
 import ErrorBanner from '@/components/ErrorBanner';
+import { DEMO_CUSTOMERS, DEMO_DRY_KILN, DEMO_LOGS, DEMO_SAWMILL, DEMO_SUPPLIERS } from '@/lib/demo-data';
 import {
   firstError,
   maxLength,
@@ -38,11 +39,11 @@ export default function OperationalDashboardPage() {
   const canCreate = can(user?.role, 'log:create');
 
   // State data operasional awal
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [logCount, setLogCount] = useState<number>(0);
-  const [plankCount, setPlankCount] = useState<number>(0);
-  const [kilnCount, setKilnCount] = useState<number>(0);
-  const [totalCustomers, setTotalCustomers] = useState<number>(0);
+  const [activities, setActivities] = useState<ActivityItem[]>(DEMO_LOGS.map((l) => ({ id: l.id_log, sortimen: l.sortimen, grade: 'Grade A', stage: l.stage, time: l.tanggal_masuk })));
+  const [logCount, setLogCount] = useState<number>(DEMO_LOGS.length);
+  const [plankCount, setPlankCount] = useState<number>(DEMO_SAWMILL.reduce((sum, item) => sum + item.planks.length, 0));
+  const [kilnCount, setKilnCount] = useState<number>(DEMO_DRY_KILN.length);
+  const [totalCustomers, setTotalCustomers] = useState<number>(DEMO_CUSTOMERS.length);
   const [totalSales] = useState<number>(0);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [quickError, setQuickError] = useState<string | null>(null);
@@ -57,8 +58,9 @@ export default function OperationalDashboardPage() {
         ]);
 
         if (logs.status === 'fulfilled' && Array.isArray(logs.value)) {
-          setLogCount(logs.value.length);
-          const recentLogs: ActivityItem[] = logs.value.slice(0, 5).map((l) => ({
+          const sourceLogs = logs.value.length > 0 ? logs.value : DEMO_LOGS;
+          setLogCount(sourceLogs.length);
+          const recentLogs: ActivityItem[] = sourceLogs.slice(0, 5).map((l) => ({
             id: l.id_log,
             sortimen: l.sortimen,
             grade: 'Grade A',
@@ -70,10 +72,10 @@ export default function OperationalDashboardPage() {
           }
         }
         if (planks.status === 'fulfilled' && Array.isArray(planks.value)) {
-          setPlankCount(planks.value.length);
+          setPlankCount(planks.value.length > 0 ? planks.value.length : DEMO_SAWMILL.reduce((sum, item) => sum + item.planks.length, 0));
         }
         if (kilns.status === 'fulfilled' && Array.isArray(kilns.value)) {
-          setKilnCount(kilns.value.length);
+          setKilnCount(kilns.value.length > 0 ? kilns.value.length : DEMO_DRY_KILN.length);
         }
 
         const failed = [logs, planks, kilns].find(

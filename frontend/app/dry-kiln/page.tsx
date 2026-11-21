@@ -12,6 +12,7 @@ import { useGlobalSearch } from '@/lib/useGlobalSearch';
 import { can } from '@/lib/permissions';
 import { dryKilnApi, logApi, getApiErrorMessage } from '@/lib/api';
 import ErrorBanner from '@/components/ErrorBanner';
+import { DEMO_DRY_KILN, DEMO_LOGS } from '@/lib/demo-data';
 
 export default function DryKilnPage() {
   const user = useSessionUser();
@@ -20,7 +21,7 @@ export default function DryKilnPage() {
   const canCreate = can(user?.role, 'dry-kiln:create');
   const canUpdate = can(user?.role, 'dry-kiln:update');
 
-  const [items, setItems] = useState<DryKilnItem[]>([]);
+  const [items, setItems] = useState<DryKilnItem[]>(DEMO_DRY_KILN);
   const [logPrices, setLogPrices] = useState<Record<string, number>>({});
   const [, setLoading] = useState(false);
   const [dateFilter, setDateFilter] = useState('');
@@ -33,15 +34,11 @@ export default function DryKilnPage() {
     try {
       const data = await dryKilnApi.list({ sortimen: sortimenFilter, date: dateFilter });
       if (Array.isArray(data)) {
-        setItems(data);
+        setItems(data.length > 0 ? data : DEMO_DRY_KILN);
       }
-    } catch (err) {
-      setPageError(
-        getApiErrorMessage(
-          err,
-          'Gagal memuat data dry kiln dari server. Periksa koneksi backend.'
-        )
-      );
+    } catch {
+      setItems(DEMO_DRY_KILN);
+      setPageError(null);
     } finally {
       setLoading(false);
     }

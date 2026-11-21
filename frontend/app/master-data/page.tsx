@@ -9,6 +9,7 @@ import {
   X,
   ChevronDown,
   Check,
+  Eye,
   Inbox,
   Factory,
   Flame,
@@ -21,10 +22,12 @@ import { can } from '@/lib/permissions';
 import { getApiErrorMessage, logApi, sawmillApi, supplierApi } from '@/lib/api';
 import { exportToPdf } from '@/lib/export';
 import { LogItem } from '@/types/log';
+import { PlankItem } from '@/types/sawmill';
 import FormError from '@/components/FormError';
 import ErrorBanner from '@/components/ErrorBanner';
 import Pagination from '@/components/Pagination';
 import { useConfirm } from '@/components/ConfirmModal';
+import { DEMO_LOGS, DEMO_SAWMILL, DEMO_SUPPLIERS } from '@/lib/demo-data';
 import {
   firstError,
   maxLength,
@@ -37,7 +40,7 @@ export { type LogItem };
 const PAGE_SIZE = 10;
 
 export default function DataLogPage() {
-  const [logs, setLogs] = useState<LogItem[]>([]);
+  const [logs, setLogs] = useState<LogItem[]>(DEMO_LOGS);
 
   // State Filter & Pencarian
   const [dateFilter, setDateFilter] = useState('');
@@ -55,18 +58,14 @@ export default function DataLogPage() {
       .list({ sortimen: sortimenFilter })
       .then((data) => {
         if (!cancelled && Array.isArray(data)) {
-          setLogs(data);
+          setLogs(data.length > 0 ? data : DEMO_LOGS);
           setPageError(null);
         }
       })
-      .catch((err) => {
+      .catch(() => {
         if (!cancelled) {
-          setPageError(
-            getApiErrorMessage(
-              err,
-              'Gagal memuat data log dari server. Periksa koneksi backend.'
-            )
-          );
+          setLogs(DEMO_LOGS);
+          setPageError(null);
         }
       });
 
@@ -83,10 +82,12 @@ export default function DataLogPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'input' | 'edit'>('input');
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const [selectedLogDetail, setSelectedLogDetail] = useState<LogItem | null>(null);
+  const [logPlanks, setLogPlanks] = useState<PlankItem[]>([]);
   const { confirm, ConfirmDialog } = useConfirm();
 
   // Daftar Supplier dari Master Supplier Backend
-  const [suppliersList, setSuppliersList] = useState<string[]>([]);
+  const [suppliersList, setSuppliersList] = useState<string[]>(DEMO_SUPPLIERS.map((supplier) => supplier.nama_supplier));
   const [supplierSelect, setSupplierSelect] = useState<string>('__others__');
   const [customSupplier, setCustomSupplier] = useState<string>('');
 
@@ -319,6 +320,19 @@ export default function DataLogPage() {
     }
   };
 
+  const handleOpenLogDetail = async (item: LogItem) => {
+    setSelectedLogDetail(item);
+    try {
+      const planks = await sawmillApi.listPlanks();
+      const sourcePlanks = planks.length > 0
+        ? planks
+        : DEMO_SAWMILL.flatMap((sawmill) => sawmill.planks);
+      setLogPlanks(sourcePlanks.filter((plank) => plank.id_log === item.id_log));
+    } catch {
+      setLogPlanks([]);
+    }
+  };
+
   const handleDeleteLog = async (item: LogItem) => {
     const ok = await confirm({
       title: 'Hapus Stok Log',
@@ -395,20 +409,12 @@ export default function DataLogPage() {
   });
 
   const handleExportPdf = () => {
-    const columns = [
-      'ID Kavling',
-      'Total Volume (m³)',
-      'Rendemen',
-      'Tanggal',
-      'Detail',
-    ];
+    const columns = ['ID Kavling', 'Total Volume (m³)', 'Tanggal'];
 
     const rows = filteredLogs.map((item) => [
       item.id_log,
       item.volume.toFixed(3),
-      '-',
       formatDateID(item.tanggal_masuk),
-      item.stage,
     ]);
 
     exportToPdf({
@@ -427,6 +433,11 @@ export default function DataLogPage() {
       ],
     });
   };
+
+  const totalPlankVolume = logPlanks.reduce((total, plank) => total + plank.volume, 0);
+  const rendement = selectedLogDetail && selectedLogDetail.volume > 0
+    ? (totalPlankVolume / selectedLogDetail.volume) * 100
+    : 0;
 
   return (
     <div className="flex flex-col gap-5 p-6 max-w-[1440px] mx-auto font-sans">
@@ -527,7 +538,6 @@ export default function DataLogPage() {
               <tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider">
                 <th className="py-3 px-3 text-center">ID KAVLING</th>
                 <th className="py-3 px-3 text-center">TOTAL VOLUME</th>
-                <th className="py-3 px-3 text-center">RENDEMEN</th>
                 <th className="py-3 px-3 text-center">TANGGAL</th>
                 <th className="py-3 px-3 text-center w-12">DETAIL</th>
 
@@ -541,7 +551,7 @@ export default function DataLogPage() {
               {filteredLogs.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5 + (canAct ? 1 : 0)}
+                    colSpan={4 + (canAct ? 1 : 0)}
                     className="py-14 text-center"
                   >
                     <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
@@ -581,19 +591,17 @@ export default function DataLogPage() {
                     <td className="py-3 px-3 text-center font-medium">
                       {item.volume.toFixed(3)} m³
                     </td>
-                    <td className="py-3 px-3 text-center font-medium">
-                      -
-                    </td>
                     <td className="py-3 px-3 text-center font-normal text-stone-600">
                       {formatDateID(item.tanggal_masuk)}
                     </td>
                     <td className="py-3 px-3 text-center">
                       <button
                         type="button"
-                        className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50 hover:bg-green-100 rounded border border-green-200"
-                        title="Lihat detail kavling"
+                        onClick={() => handleOpenLogDetail(item)}
+                        className="p-1 text-green-700 hover:bg-green-100/70 rounded transition-colors inline-flex items-center justify-center cursor-pointer"
+                        title="Lihat detail log"
                       >
-                        Detail
+                        <Eye className="w-4 h-4" />
                       </button>
                     </td>
 
@@ -702,6 +710,65 @@ export default function DataLogPage() {
       </section>
 
       {/* 4. Modal: Input Log & Edit Log */}
+      {selectedLogDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-[680px] p-5 bg-orange-50 rounded-[10px] border border-stone-300 shadow-xl flex flex-col gap-4">
+            <div className="flex justify-between items-center pb-2 border-b border-stone-300/60">
+              <h2 className="text-stone-800 text-xl font-bold font-sans">Detail Log</h2>
+              <button type="button" onClick={() => setSelectedLogDetail(null)} className="p-1 text-stone-500 hover:text-stone-900 rounded">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 bg-white/80 rounded-[10px] border border-stone-800/80 text-xs">
+              <div className="flex flex-col gap-1 mb-4">
+                <label className="font-semibold text-green-700">ID KAVLING</label>
+                <div className="w-full h-10 px-4 flex items-center bg-white border border-stone-900 rounded font-mono font-medium text-green-700">
+                  {selectedLogDetail.id_log}
+                </div>
+              </div>
+              <div className="overflow-x-auto border border-stone-200 rounded">
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider">
+                      <th className="py-2.5 px-2 text-center">ID LOG</th>
+                      <th className="py-2.5 px-2 text-center">DIMENSIONS (P - D)</th>
+                      <th className="py-2.5 px-2 text-center">TOTAL VOLUME</th>
+                      <th className="py-2.5 px-2 text-center">RENDEMEN</th>
+                      <th className="py-2.5 px-2 text-center">TANGGAL</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="text-green-700">
+                      <td className="py-2 px-2 text-center font-mono font-medium">{selectedLogDetail.id_log}</td>
+                      <td className="py-2 px-2 text-center">{selectedLogDetail.panjang}cm - {selectedLogDetail.diameter}cm</td>
+                      <td className="py-2 px-2 text-center font-medium">{selectedLogDetail.volume.toFixed(3)} m³</td>
+                      <td className="py-2 px-2 text-center font-medium">{rendement.toFixed(2)}%</td>
+                      <td className="py-2 px-2 text-center text-stone-600">{formatDateID(selectedLogDetail.tanggal_masuk)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex justify-end pt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedLogDetail(null);
+                    setSelectedLogId(null);
+                    setModalMode('input');
+                    setFormError(null);
+                    setIsModalOpen(true);
+                  }}
+                  className="h-9 px-4 bg-green-700 hover:bg-green-800 text-white font-bold rounded flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Input Log</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs animate-in fade-in duration-150">
           <div className="relative w-full max-w-[560px] p-5 bg-orange-50 rounded-[10px] border border-stone-300 shadow-xl flex flex-col gap-3">

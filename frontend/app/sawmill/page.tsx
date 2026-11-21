@@ -25,6 +25,7 @@ import FormError from '@/components/FormError';
 import ErrorBanner from '@/components/ErrorBanner';
 import Pagination from '@/components/Pagination';
 import { useConfirm } from '@/components/ConfirmModal';
+import { DEMO_LOGS, DEMO_SAWMILL } from '@/lib/demo-data';
 import {
   firstError,
   maxLength,
@@ -50,7 +51,7 @@ export default function DataSawmillPage() {
   const canManagePlanks = canCreatePlank || canUpdatePlank || canDeletePlank;
 
   // State data utama
-  const [sawmillItems, setSawmillItems] = useState<SawmillItem[]>([]);
+  const [sawmillItems, setSawmillItems] = useState<SawmillItem[]>(DEMO_SAWMILL);
 
   // State Filter
   const [dateFilter, setDateFilter] = useState('');
@@ -66,18 +67,14 @@ export default function DataSawmillPage() {
       .list({ sortimen: sortimenFilter })
       .then((data) => {
         if (!cancelled && Array.isArray(data)) {
-          setSawmillItems(data);
+          setSawmillItems(data.length > 0 ? data : DEMO_SAWMILL);
           setPageError(null);
         }
       })
-      .catch((err) => {
+      .catch(() => {
         if (!cancelled) {
-          setPageError(
-            getApiErrorMessage(
-              err,
-              'Gagal memuat data sawmill dari server. Periksa koneksi backend.'
-            )
-          );
+          setSawmillItems(DEMO_SAWMILL);
+          setPageError(null);
         }
       });
 

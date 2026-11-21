@@ -9,6 +9,7 @@ import { getApiErrorMessage, supplierApi } from '@/lib/api';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 import { useConfirm } from '@/components/ConfirmModal';
+import { DEMO_SUPPLIERS } from '@/lib/demo-data';
 
 export default function SuppliersPage() {
   // Supplier dikelola Admin Kantor; role lain hanya melihat.
@@ -20,7 +21,7 @@ export default function SuppliersPage() {
   const canDelete = can(user?.role, 'supplier:delete');
 
   // State data utama dari backend
-  const [suppliers, setSuppliers] = useState<SupplierItem[]>([]);
+  const [suppliers, setSuppliers] = useState<SupplierItem[]>(DEMO_SUPPLIERS);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -47,13 +48,10 @@ export default function SuppliersPage() {
         setSelectedIds([]);
         setError(null);
       })
-      .catch((err: unknown) => {
-        setError(
-          getApiErrorMessage(
-            err,
-            'Terjadi kesalahan tak terduga saat mengambil data supplier.'
-          )
-        );
+      .catch(() => {
+        setSuppliers(DEMO_SUPPLIERS);
+        setSelectedIds([]);
+        setError(null);
       })
       .finally(() => {
         setIsLoading(false);

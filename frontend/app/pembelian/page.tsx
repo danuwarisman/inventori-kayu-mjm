@@ -14,6 +14,7 @@ import { formatDateID } from '@/lib/dates';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 import { useConfirm } from '@/components/ConfirmModal';
+import { DEMO_PURCHASES, DEMO_SUPPLIERS } from '@/lib/demo-data';
 
 export default function PembelianPage() {
   const user = useSessionUser();
@@ -25,8 +26,8 @@ export default function PembelianPage() {
   const canReject = can(user?.role, 'purchase:reject');
 
   // State data utama
-  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
-  const [suppliers, setSuppliers] = useState<SupplierItem[]>([]);
+  const [orders, setOrders] = useState<PurchaseOrder[]>(DEMO_PURCHASES);
+  const [suppliers, setSuppliers] = useState<SupplierItem[]>(DEMO_SUPPLIERS);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [, setIsDeleting] = useState(false);
@@ -52,13 +53,15 @@ export default function PembelianPage() {
     return Promise.allSettled([purchaseApi.list(), supplierApi.list()])
       .then(([ordersRes, suppliersRes]) => {
         if (ordersRes.status === 'fulfilled') {
-          setOrders(ordersRes.value);
+          setOrders(ordersRes.value.length > 0 ? ordersRes.value : DEMO_PURCHASES);
         } else {
-          throw ordersRes.reason;
+          setOrders(DEMO_PURCHASES);
         }
 
         if (suppliersRes.status === 'fulfilled') {
-          setSuppliers(suppliersRes.value);
+          setSuppliers(suppliersRes.value.length > 0 ? suppliersRes.value : DEMO_SUPPLIERS);
+        } else {
+          setSuppliers(DEMO_SUPPLIERS);
         }
 
         setError(null);

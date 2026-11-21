@@ -20,6 +20,7 @@ import { PlankItem } from '@/types/sawmill';
 import { INITIAL_SALES } from '@/app/sales/page';
 import { exportToPdf } from '@/lib/export';
 import { formatDateID } from '@/lib/dates';
+import { DEMO_LOGS, DEMO_PURCHASES, DEMO_SAWMILL } from '@/lib/demo-data';
 
 const SALES_STORAGE_KEY = 'mjm_sales_records_v1';
 
@@ -54,10 +55,10 @@ const MONTH_LABELS = [
 ];
 
 export default function ManagerDashboardPage() {
-  const [purchases, setPurchases] = useState<PurchaseOrder[]>([]);
+  const [purchases, setPurchases] = useState<PurchaseOrder[]>(DEMO_PURCHASES);
   const [sales, setSales] = useState<SalesItem[]>(INITIAL_SALES);
-  const [logs, setLogs] = useState<LogItem[]>([]);
-  const [planks, setPlanks] = useState<PlankItem[]>([]);
+  const [logs, setLogs] = useState<LogItem[]>(DEMO_LOGS);
+  const [planks, setPlanks] = useState<PlankItem[]>(DEMO_SAWMILL.flatMap((item) => item.planks));
   const [isLoading, setIsLoading] = useState(true);
 
   const loadDashboardData = useCallback(async () => {
@@ -85,7 +86,7 @@ export default function ManagerDashboardPage() {
     ]);
 
     if (poRes.status === 'fulfilled' && Array.isArray(poRes.value)) {
-      setPurchases(poRes.value);
+      setPurchases(poRes.value.length > 0 ? poRes.value : DEMO_PURCHASES);
     }
 
     if (
@@ -125,11 +126,11 @@ export default function ManagerDashboardPage() {
     }
 
     if (logRes.status === 'fulfilled' && Array.isArray(logRes.value)) {
-      setLogs(logRes.value);
+      setLogs(logRes.value.length > 0 ? logRes.value : DEMO_LOGS);
     }
 
     if (plankRes.status === 'fulfilled' && Array.isArray(plankRes.value)) {
-      setPlanks(plankRes.value);
+      setPlanks(plankRes.value.length > 0 ? plankRes.value : DEMO_SAWMILL.flatMap((item) => item.planks));
     }
 
     setIsLoading(false);

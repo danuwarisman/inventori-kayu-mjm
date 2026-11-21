@@ -10,6 +10,7 @@ import { customerApi, getApiErrorMessage } from '@/lib/api';
 import useSessionUser from '@/lib/useSessionUser';
 import { can } from '@/lib/permissions';
 import { useConfirm } from '@/components/ConfirmModal';
+import { DEMO_CUSTOMERS } from '@/lib/demo-data';
 
 export default function CustomersPage() {
   // Customer dikelola Admin Lapangan; role lain hanya melihat.
@@ -21,7 +22,7 @@ export default function CustomersPage() {
   const canDelete = can(user?.role, 'customer:delete');
 
   // State data utama dari backend
-  const [customers, setCustomers] = useState<CustomerItem[]>([]);
+  const [customers, setCustomers] = useState<CustomerItem[]>(DEMO_CUSTOMERS);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [, setIsDeleting] = useState(false);
@@ -43,12 +44,8 @@ export default function CustomersPage() {
         setError(null);
       })
       .catch((err: unknown) => {
-        setError(
-          getApiErrorMessage(
-            err,
-            'Terjadi kesalahan tak terduga saat mengambil data customer.'
-          )
-        );
+        setCustomers(DEMO_CUSTOMERS);
+        setError(null);
       })
       .finally(() => {
         setIsLoading(false);
