@@ -182,10 +182,14 @@ model Plank {
 }
 
 model Palet {
-  idPalet         Int      @id @default(autoincrement())
+  idPalet       Int       @id @default(autoincrement())
   tanggalSticking DateTime @db.Date
-  statusPalet     String   @db.VarChar(20)
-  deletedAt       DateTime? @map("deleted_at")
+  statusPalet   String    @db.VarChar(20)
+  sortimen      String    @db.VarChar(50)
+  grade         String    @db.VarChar(20)
+  totalVolume   Decimal   @default(0) @db.Decimal(10, 3) @map("total_volume")
+  stage         String    @default("Pra-Dry Kiln") @db.VarChar(30)
+  deletedAt     DateTime? @map("deleted_at")
 
   detailPalet DetailPalet[]
   dryKilns    DryKiln[]
