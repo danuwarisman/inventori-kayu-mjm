@@ -12,6 +12,7 @@ import { PembelianModule } from './pembelian/pembelian.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
+import { PraDryKilnModule } from './pra-dry-kiln/pra-dry-kiln.module';
 
 // endpoint terlindungi, lalu pakai @Public() untuk route publik seperti login.
 // Lihat catatan lengkap di src/auth/auth.module.ts.
@@ -22,6 +23,7 @@ import { RolesGuard } from './auth/roles.guard';
     LogModule,
     SawmillModule,
     DryKilnModule,
+    PraDryKilnModule,
     AuthModule,
     CustomerModule,
     PembelianModule,

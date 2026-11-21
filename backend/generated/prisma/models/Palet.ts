@@ -28,16 +28,22 @@ export type AggregatePalet = {
 
 export type PaletAvgAggregateOutputType = {
   idPalet: number | null
+  totalVolume: runtime.Decimal | null
 }
 
 export type PaletSumAggregateOutputType = {
   idPalet: number | null
+  totalVolume: runtime.Decimal | null
 }
 
 export type PaletMinAggregateOutputType = {
   idPalet: number | null
   tanggalSticking: Date | null
   statusPalet: string | null
+  sortimen: string | null
+  grade: string | null
+  totalVolume: runtime.Decimal | null
+  stage: string | null
   deletedAt: Date | null
 }
 
@@ -45,6 +51,10 @@ export type PaletMaxAggregateOutputType = {
   idPalet: number | null
   tanggalSticking: Date | null
   statusPalet: string | null
+  sortimen: string | null
+  grade: string | null
+  totalVolume: runtime.Decimal | null
+  stage: string | null
   deletedAt: Date | null
 }
 
@@ -52,6 +62,10 @@ export type PaletCountAggregateOutputType = {
   idPalet: number
   tanggalSticking: number
   statusPalet: number
+  sortimen: number
+  grade: number
+  totalVolume: number
+  stage: number
   deletedAt: number
   _all: number
 }
@@ -59,16 +73,22 @@ export type PaletCountAggregateOutputType = {
 
 export type PaletAvgAggregateInputType = {
   idPalet?: true
+  totalVolume?: true
 }
 
 export type PaletSumAggregateInputType = {
   idPalet?: true
+  totalVolume?: true
 }
 
 export type PaletMinAggregateInputType = {
   idPalet?: true
   tanggalSticking?: true
   statusPalet?: true
+  sortimen?: true
+  grade?: true
+  totalVolume?: true
+  stage?: true
   deletedAt?: true
 }
 
@@ -76,6 +96,10 @@ export type PaletMaxAggregateInputType = {
   idPalet?: true
   tanggalSticking?: true
   statusPalet?: true
+  sortimen?: true
+  grade?: true
+  totalVolume?: true
+  stage?: true
   deletedAt?: true
 }
 
@@ -83,6 +107,10 @@ export type PaletCountAggregateInputType = {
   idPalet?: true
   tanggalSticking?: true
   statusPalet?: true
+  sortimen?: true
+  grade?: true
+  totalVolume?: true
+  stage?: true
   deletedAt?: true
   _all?: true
 }
@@ -177,6 +205,10 @@ export type PaletGroupByOutputType = {
   idPalet: number
   tanggalSticking: Date
   statusPalet: string
+  sortimen: string
+  grade: string
+  totalVolume: runtime.Decimal
+  stage: string
   deletedAt: Date | null
   _count: PaletCountAggregateOutputType | null
   _avg: PaletAvgAggregateOutputType | null
@@ -207,6 +239,10 @@ export type PaletWhereInput = {
   idPalet?: Prisma.IntFilter<"Palet"> | number
   tanggalSticking?: Prisma.DateTimeFilter<"Palet"> | Date | string
   statusPalet?: Prisma.StringFilter<"Palet"> | string
+  sortimen?: Prisma.StringFilter<"Palet"> | string
+  grade?: Prisma.StringFilter<"Palet"> | string
+  totalVolume?: Prisma.DecimalFilter<"Palet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: Prisma.StringFilter<"Palet"> | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Palet"> | Date | string | null
   detailPalet?: Prisma.DetailPaletListRelationFilter
   dryKilns?: Prisma.DryKilnListRelationFilter
@@ -216,6 +252,10 @@ export type PaletOrderByWithRelationInput = {
   idPalet?: Prisma.SortOrder
   tanggalSticking?: Prisma.SortOrder
   statusPalet?: Prisma.SortOrder
+  sortimen?: Prisma.SortOrder
+  grade?: Prisma.SortOrder
+  totalVolume?: Prisma.SortOrder
+  stage?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   detailPalet?: Prisma.DetailPaletOrderByRelationAggregateInput
   dryKilns?: Prisma.DryKilnOrderByRelationAggregateInput
@@ -228,6 +268,10 @@ export type PaletWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PaletWhereInput | Prisma.PaletWhereInput[]
   tanggalSticking?: Prisma.DateTimeFilter<"Palet"> | Date | string
   statusPalet?: Prisma.StringFilter<"Palet"> | string
+  sortimen?: Prisma.StringFilter<"Palet"> | string
+  grade?: Prisma.StringFilter<"Palet"> | string
+  totalVolume?: Prisma.DecimalFilter<"Palet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: Prisma.StringFilter<"Palet"> | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Palet"> | Date | string | null
   detailPalet?: Prisma.DetailPaletListRelationFilter
   dryKilns?: Prisma.DryKilnListRelationFilter
@@ -237,6 +281,10 @@ export type PaletOrderByWithAggregationInput = {
   idPalet?: Prisma.SortOrder
   tanggalSticking?: Prisma.SortOrder
   statusPalet?: Prisma.SortOrder
+  sortimen?: Prisma.SortOrder
+  grade?: Prisma.SortOrder
+  totalVolume?: Prisma.SortOrder
+  stage?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PaletCountOrderByAggregateInput
   _avg?: Prisma.PaletAvgOrderByAggregateInput
@@ -252,12 +300,20 @@ export type PaletScalarWhereWithAggregatesInput = {
   idPalet?: Prisma.IntWithAggregatesFilter<"Palet"> | number
   tanggalSticking?: Prisma.DateTimeWithAggregatesFilter<"Palet"> | Date | string
   statusPalet?: Prisma.StringWithAggregatesFilter<"Palet"> | string
+  sortimen?: Prisma.StringWithAggregatesFilter<"Palet"> | string
+  grade?: Prisma.StringWithAggregatesFilter<"Palet"> | string
+  totalVolume?: Prisma.DecimalWithAggregatesFilter<"Palet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: Prisma.StringWithAggregatesFilter<"Palet"> | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Palet"> | Date | string | null
 }
 
 export type PaletCreateInput = {
   tanggalSticking: Date | string
   statusPalet: string
+  sortimen: string
+  grade: string
+  totalVolume?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: string
   deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletCreateNestedManyWithoutPaletInput
   dryKilns?: Prisma.DryKilnCreateNestedManyWithoutPaletInput
@@ -267,6 +323,10 @@ export type PaletUncheckedCreateInput = {
   idPalet?: number
   tanggalSticking: Date | string
   statusPalet: string
+  sortimen: string
+  grade: string
+  totalVolume?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: string
   deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedCreateNestedManyWithoutPaletInput
   dryKilns?: Prisma.DryKilnUncheckedCreateNestedManyWithoutPaletInput
@@ -275,6 +335,10 @@ export type PaletUncheckedCreateInput = {
 export type PaletUpdateInput = {
   tanggalSticking?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPalet?: Prisma.StringFieldUpdateOperationsInput | string
+  sortimen?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  totalVolume?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: Prisma.StringFieldUpdateOperationsInput | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUpdateManyWithoutPaletNestedInput
   dryKilns?: Prisma.DryKilnUpdateManyWithoutPaletNestedInput
@@ -284,6 +348,10 @@ export type PaletUncheckedUpdateInput = {
   idPalet?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalSticking?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPalet?: Prisma.StringFieldUpdateOperationsInput | string
+  sortimen?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  totalVolume?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: Prisma.StringFieldUpdateOperationsInput | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedUpdateManyWithoutPaletNestedInput
   dryKilns?: Prisma.DryKilnUncheckedUpdateManyWithoutPaletNestedInput
@@ -293,12 +361,20 @@ export type PaletCreateManyInput = {
   idPalet?: number
   tanggalSticking: Date | string
   statusPalet: string
+  sortimen: string
+  grade: string
+  totalVolume?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: string
   deletedAt?: Date | string | null
 }
 
 export type PaletUpdateManyMutationInput = {
   tanggalSticking?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPalet?: Prisma.StringFieldUpdateOperationsInput | string
+  sortimen?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  totalVolume?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: Prisma.StringFieldUpdateOperationsInput | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -306,6 +382,10 @@ export type PaletUncheckedUpdateManyInput = {
   idPalet?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalSticking?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPalet?: Prisma.StringFieldUpdateOperationsInput | string
+  sortimen?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  totalVolume?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: Prisma.StringFieldUpdateOperationsInput | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -313,17 +393,26 @@ export type PaletCountOrderByAggregateInput = {
   idPalet?: Prisma.SortOrder
   tanggalSticking?: Prisma.SortOrder
   statusPalet?: Prisma.SortOrder
+  sortimen?: Prisma.SortOrder
+  grade?: Prisma.SortOrder
+  totalVolume?: Prisma.SortOrder
+  stage?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
 }
 
 export type PaletAvgOrderByAggregateInput = {
   idPalet?: Prisma.SortOrder
+  totalVolume?: Prisma.SortOrder
 }
 
 export type PaletMaxOrderByAggregateInput = {
   idPalet?: Prisma.SortOrder
   tanggalSticking?: Prisma.SortOrder
   statusPalet?: Prisma.SortOrder
+  sortimen?: Prisma.SortOrder
+  grade?: Prisma.SortOrder
+  totalVolume?: Prisma.SortOrder
+  stage?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
 }
 
@@ -331,11 +420,16 @@ export type PaletMinOrderByAggregateInput = {
   idPalet?: Prisma.SortOrder
   tanggalSticking?: Prisma.SortOrder
   statusPalet?: Prisma.SortOrder
+  sortimen?: Prisma.SortOrder
+  grade?: Prisma.SortOrder
+  totalVolume?: Prisma.SortOrder
+  stage?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
 }
 
 export type PaletSumOrderByAggregateInput = {
   idPalet?: Prisma.SortOrder
+  totalVolume?: Prisma.SortOrder
 }
 
 export type PaletScalarRelationFilter = {
@@ -381,6 +475,10 @@ export type PaletUpdateOneWithoutDryKilnsNestedInput = {
 export type PaletCreateWithoutDetailPaletInput = {
   tanggalSticking: Date | string
   statusPalet: string
+  sortimen: string
+  grade: string
+  totalVolume?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: string
   deletedAt?: Date | string | null
   dryKilns?: Prisma.DryKilnCreateNestedManyWithoutPaletInput
 }
@@ -389,6 +487,10 @@ export type PaletUncheckedCreateWithoutDetailPaletInput = {
   idPalet?: number
   tanggalSticking: Date | string
   statusPalet: string
+  sortimen: string
+  grade: string
+  totalVolume?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: string
   deletedAt?: Date | string | null
   dryKilns?: Prisma.DryKilnUncheckedCreateNestedManyWithoutPaletInput
 }
@@ -412,6 +514,10 @@ export type PaletUpdateToOneWithWhereWithoutDetailPaletInput = {
 export type PaletUpdateWithoutDetailPaletInput = {
   tanggalSticking?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPalet?: Prisma.StringFieldUpdateOperationsInput | string
+  sortimen?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  totalVolume?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: Prisma.StringFieldUpdateOperationsInput | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dryKilns?: Prisma.DryKilnUpdateManyWithoutPaletNestedInput
 }
@@ -420,6 +526,10 @@ export type PaletUncheckedUpdateWithoutDetailPaletInput = {
   idPalet?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalSticking?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPalet?: Prisma.StringFieldUpdateOperationsInput | string
+  sortimen?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  totalVolume?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: Prisma.StringFieldUpdateOperationsInput | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   dryKilns?: Prisma.DryKilnUncheckedUpdateManyWithoutPaletNestedInput
 }
@@ -427,6 +537,10 @@ export type PaletUncheckedUpdateWithoutDetailPaletInput = {
 export type PaletCreateWithoutDryKilnsInput = {
   tanggalSticking: Date | string
   statusPalet: string
+  sortimen: string
+  grade: string
+  totalVolume?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: string
   deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletCreateNestedManyWithoutPaletInput
 }
@@ -435,6 +549,10 @@ export type PaletUncheckedCreateWithoutDryKilnsInput = {
   idPalet?: number
   tanggalSticking: Date | string
   statusPalet: string
+  sortimen: string
+  grade: string
+  totalVolume?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: string
   deletedAt?: Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedCreateNestedManyWithoutPaletInput
 }
@@ -458,6 +576,10 @@ export type PaletUpdateToOneWithWhereWithoutDryKilnsInput = {
 export type PaletUpdateWithoutDryKilnsInput = {
   tanggalSticking?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPalet?: Prisma.StringFieldUpdateOperationsInput | string
+  sortimen?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  totalVolume?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: Prisma.StringFieldUpdateOperationsInput | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUpdateManyWithoutPaletNestedInput
 }
@@ -466,6 +588,10 @@ export type PaletUncheckedUpdateWithoutDryKilnsInput = {
   idPalet?: Prisma.IntFieldUpdateOperationsInput | number
   tanggalSticking?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPalet?: Prisma.StringFieldUpdateOperationsInput | string
+  sortimen?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  totalVolume?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stage?: Prisma.StringFieldUpdateOperationsInput | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   detailPalet?: Prisma.DetailPaletUncheckedUpdateManyWithoutPaletNestedInput
 }
@@ -514,6 +640,10 @@ export type PaletSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   idPalet?: boolean
   tanggalSticking?: boolean
   statusPalet?: boolean
+  sortimen?: boolean
+  grade?: boolean
+  totalVolume?: boolean
+  stage?: boolean
   deletedAt?: boolean
   detailPalet?: boolean | Prisma.Palet$detailPaletArgs<ExtArgs>
   dryKilns?: boolean | Prisma.Palet$dryKilnsArgs<ExtArgs>
@@ -524,6 +654,10 @@ export type PaletSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   idPalet?: boolean
   tanggalSticking?: boolean
   statusPalet?: boolean
+  sortimen?: boolean
+  grade?: boolean
+  totalVolume?: boolean
+  stage?: boolean
   deletedAt?: boolean
 }, ExtArgs["result"]["palet"]>
 
@@ -531,6 +665,10 @@ export type PaletSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   idPalet?: boolean
   tanggalSticking?: boolean
   statusPalet?: boolean
+  sortimen?: boolean
+  grade?: boolean
+  totalVolume?: boolean
+  stage?: boolean
   deletedAt?: boolean
 }, ExtArgs["result"]["palet"]>
 
@@ -538,10 +676,14 @@ export type PaletSelectScalar = {
   idPalet?: boolean
   tanggalSticking?: boolean
   statusPalet?: boolean
+  sortimen?: boolean
+  grade?: boolean
+  totalVolume?: boolean
+  stage?: boolean
   deletedAt?: boolean
 }
 
-export type PaletOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idPalet" | "tanggalSticking" | "statusPalet" | "deletedAt", ExtArgs["result"]["palet"]>
+export type PaletOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"idPalet" | "tanggalSticking" | "statusPalet" | "sortimen" | "grade" | "totalVolume" | "stage" | "deletedAt", ExtArgs["result"]["palet"]>
 export type PaletInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   detailPalet?: boolean | Prisma.Palet$detailPaletArgs<ExtArgs>
   dryKilns?: boolean | Prisma.Palet$dryKilnsArgs<ExtArgs>
@@ -560,6 +702,10 @@ export type $PaletPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     idPalet: number
     tanggalSticking: Date
     statusPalet: string
+    sortimen: string
+    grade: string
+    totalVolume: runtime.Decimal
+    stage: string
     deletedAt: Date | null
   }, ExtArgs["result"]["palet"]>
   composites: {}
@@ -989,6 +1135,10 @@ export interface PaletFieldRefs {
   readonly idPalet: Prisma.FieldRef<"Palet", 'Int'>
   readonly tanggalSticking: Prisma.FieldRef<"Palet", 'DateTime'>
   readonly statusPalet: Prisma.FieldRef<"Palet", 'String'>
+  readonly sortimen: Prisma.FieldRef<"Palet", 'String'>
+  readonly grade: Prisma.FieldRef<"Palet", 'String'>
+  readonly totalVolume: Prisma.FieldRef<"Palet", 'Decimal'>
+  readonly stage: Prisma.FieldRef<"Palet", 'String'>
   readonly deletedAt: Prisma.FieldRef<"Palet", 'DateTime'>
 }
     

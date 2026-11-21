@@ -1874,6 +1874,10 @@ export const PaletScalarFieldEnum = {
   idPalet: 'idPalet',
   tanggalSticking: 'tanggalSticking',
   statusPalet: 'statusPalet',
+  sortimen: 'sortimen',
+  grade: 'grade',
+  totalVolume: 'totalVolume',
+  stage: 'stage',
   deletedAt: 'deletedAt'
 } as const
 
