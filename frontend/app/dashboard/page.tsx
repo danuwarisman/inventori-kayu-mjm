@@ -109,7 +109,7 @@ export default function OperationalDashboardPage() {
   const [customSupplier, setCustomSupplier] = useState<string>('');
   const [panjang, setPanjang] = useState<string>('');
   const [hargaSatuan, setHargaSatuan] = useState<string>('');
-  const [sortimen, setSortimen] = useState<string>('Sortimen A');
+  const [sortimen, setSortimen] = useState<string>('A4');
 
   useEffect(() => {
     let cancelled = false;
@@ -406,9 +406,9 @@ export default function OperationalDashboardPage() {
                     onChange={(e) => setSortimen(e.target.value)}
                     className="w-full h-10 px-3 bg-white border border-stone-300 rounded text-stone-800 focus:border-green-700 focus:outline-none"
                   >
-                    <option value="Sortimen A">Sortimen A</option>
-                    <option value="Sortimen B">Sortimen B</option>
-                    <option value="Sortimen C">Sortimen C</option>
+                    <option value="A4">A4</option>
+                    <option value="A3">A3</option>
+                    <option value="A2">A2</option>
                   </select>
                 </div>
 

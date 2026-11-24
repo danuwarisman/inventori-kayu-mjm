@@ -5,14 +5,16 @@ import { FileDown, Plus, ChevronDown } from 'lucide-react';
 import { DryKilnItem } from '@/types/dry-kiln';
 import DryKilnTable from '@/components/dry-kiln/DryKilnTable';
 import DryKilnModal from '@/components/dry-kiln/DryKilnModal';
+import StageEditModal from '@/components/dry-kiln/StageEditModal';
+import NewBatchModal from '@/components/dry-kiln/NewBatchModal';
 import { toISODate, formatDateID } from '@/lib/dates';
 import { exportToPdf } from '@/lib/export';
 import useSessionUser from '@/lib/useSessionUser';
 import { useGlobalSearch } from '@/lib/useGlobalSearch';
 import { can } from '@/lib/permissions';
-import { dryKilnApi, logApi, getApiErrorMessage } from '@/lib/api';
+import { dryKilnApi, praDryKilnApi, getApiErrorMessage } from '@/lib/api';
 import ErrorBanner from '@/components/ErrorBanner';
-import { DEMO_DRY_KILN, DEMO_LOGS } from '@/lib/demo-data';
+import { DEMO_DRY_KILN } from '@/lib/demo-data';
 
 export default function DryKilnPage() {
   const user = useSessionUser();
@@ -22,7 +24,7 @@ export default function DryKilnPage() {
   const canUpdate = can(user?.role, 'dry-kiln:update');
 
   const [items, setItems] = useState<DryKilnItem[]>(DEMO_DRY_KILN);
-  const [logPrices, setLogPrices] = useState<Record<string, number>>({});
+  const [praItems, setPraItems] = useState<DryKilnItem[]>([]);
   const [, setLoading] = useState(false);
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
@@ -48,46 +50,37 @@ export default function DryKilnPage() {
     fetchDryKiln();
   }, [sortimenFilter, dateFilter]);
 
-  // Harga Dry Kiln mengikuti harga log asal papan (read-only) karena
-  // backend belum menyimpan field harga pada entitas DryKiln.
   useEffect(() => {
-    let cancelled = false;
-
-    const fetchLogPrices = async () => {
-      try {
-        const logs = await logApi.list();
-        if (cancelled) return;
-
-        const prices: Record<string, number> = {};
-        logs.forEach((log) => {
-          if (log.id_log && log.harga && log.harga > 0) {
-            prices[log.id_log] = log.harga;
-          }
-        });
-        setLogPrices(prices);
-      } catch {
-        // Harga hanya informasi tambahan; kolom tetap menampilkan "-".
-      }
-    };
-
-    fetchLogPrices();
-
-    return () => {
-      cancelled = true;
-    };
+    praDryKilnApi.list({ status: 'finish pra-drykiln' })
+      .then((batches) => {
+        const mapped = batches.flatMap((batch) =>
+          batch.planks.map((plank) => ({
+            idOven: batch.idPalet,
+            id_log: plank.kodeLog || `L-${batch.idPalet}`,
+            id_plank: plank.kodePlank || `P-${plank.idPlank}`,
+            sortimen: 'A4',
+            panjang: Number(plank.panjang || 0),
+            lebar: Number(plank.lebar || 0),
+            tinggi: Number(plank.tinggi || 0),
+            volume: Number(plank.volumePlank || 0),
+            grade: plank.gradePapan as DryKilnItem['grade'],
+            stage: (plank.stage || 'finish pra-drykiln') as DryKilnItem['stage'],
+            date: batch.tanggalSticking,
+          }))
+        );
+        setPraItems(mapped.length > 0 ? mapped : DEMO_DRY_KILN.filter((item) => item.stage === 'finish drykiln'));
+      })
+      .catch(() => setPraItems(DEMO_DRY_KILN.filter((item) => item.stage === 'finish drykiln')));
   }, []);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNewBatchOpen, setIsNewBatchOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'input' | 'edit'>('input');
   const [selectedItem, setSelectedItem] = useState<DryKilnItem | null>(null);
+  const [stageEditItem, setStageEditItem] = useState<DryKilnItem | null>(null);
 
   const calculateVolume = (t: number, w: number, l: number): number => {
     return Number(((t * w * l) / 1000000).toFixed(3));
-  };
-
-  const formatHarga = (item: DryKilnItem): string => {
-    const harga = logPrices[item.id_log];
-    return harga && harga > 0 ? `Rp ${harga.toLocaleString('id-ID')}` : '-';
   };
 
   const handleOpenInput = () => {
@@ -96,10 +89,38 @@ export default function DryKilnPage() {
     setIsModalOpen(true);
   };
 
+  const handleNewBatchSubmit = async (selectedItems: DryKilnItem[]) => {
+    setIsNewBatchOpen(false);
+    setPageError(null);
+    try {
+      const savedItems = await Promise.all(
+        selectedItems.map((item) =>
+          dryKilnApi.create({
+            ...item,
+            stage: 'in-drykiln',
+            date: toISODate(),
+          })
+        )
+      );
+      setItems((prev) => [...savedItems, ...prev]);
+    } catch (err) {
+      setPageError(`Gagal memasukkan palet ke Dry-Kiln. ${getApiErrorMessage(err, 'Silakan coba lagi.')}`);
+    }
+  };
+
   const handleOpenEdit = (item: DryKilnItem) => {
-    setModalMode('edit');
-    setSelectedItem(item);
-    setIsModalOpen(true);
+    setStageEditItem(item);
+  };
+
+  const handleStageSave = async (stage: DryKilnItem['stage']) => {
+    if (!stageEditItem?.idOven) return;
+    try {
+      const saved = await dryKilnApi.update(stageEditItem.idOven, { stage });
+      setItems((prev) => prev.map((item) => item.id_plank === stageEditItem.id_plank ? { ...item, ...saved, stage } : item));
+      setStageEditItem(null);
+    } catch (err) {
+      setPageError(`Gagal mengubah stage. ${getApiErrorMessage(err, 'Silakan coba lagi.')}`);
+    }
   };
 
   const handleModalSubmit = async (
@@ -187,7 +208,6 @@ export default function DryKilnPage() {
       `${item.tinggi}cm x ${item.lebar}cm x ${item.panjang}cm`,
       item.volume.toFixed(3),
       item.grade,
-      formatHarga(item),
       item.stage,
       formatDateID(item.date),
     ]);
@@ -209,7 +229,6 @@ export default function DryKilnPage() {
             'Dimensi (T x W x L)',
             'Volume (m³)',
             'Grade',
-            'Harga Dry Kiln (Rp)',
             'Stage',
             'Tanggal',
           ],
@@ -246,9 +265,9 @@ export default function DryKilnPage() {
                 className="appearance-none pr-8 pl-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700 cursor-pointer"
               >
                 <option value="All Sortimen">All Sortimen</option>
-                <option value="Sortimen A">Sortimen A</option>
-                <option value="Sortimen B">Sortimen B</option>
-                <option value="Sortimen C">Sortimen C</option>
+                <option value="A4">A4</option>
+                <option value="A3">A3</option>
+                <option value="A2">A2</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-stone-500 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
@@ -268,7 +287,7 @@ export default function DryKilnPage() {
           {canCreate && (
             <button
               type="button"
-              onClick={handleOpenInput}
+              onClick={() => setIsNewBatchOpen(true)}
               className="px-4 py-2 bg-green-700 hover:bg-green-800 rounded text-xs font-bold text-white flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -292,8 +311,22 @@ export default function DryKilnPage() {
         totalCount={items.length}
         isManager={isManager}
         canEdit={canUpdate}
-        logPrices={logPrices}
         onEdit={handleOpenEdit}
+      />
+
+      {stageEditItem && (
+        <StageEditModal
+          item={stageEditItem}
+          onClose={() => setStageEditItem(null)}
+          onSave={handleStageSave}
+        />
+      )}
+
+      <NewBatchModal
+        isOpen={isNewBatchOpen}
+        items={praItems}
+        onClose={() => setIsNewBatchOpen(false)}
+        onSubmit={handleNewBatchSubmit}
       />
 
       <DryKilnModal
@@ -303,6 +336,7 @@ export default function DryKilnPage() {
         initialData={selectedItem}
         mode={modalMode}
         nextBatchIndex={items.length + 1}
+        availableItems={praItems}
       />
     </div>
   );

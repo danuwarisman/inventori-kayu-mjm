@@ -26,6 +26,7 @@ interface DryKilnModalProps {
   initialData?: DryKilnItem | null;
   mode: 'input' | 'edit';
   nextBatchIndex: number;
+  availableItems?: DryKilnItem[];
 }
 
 interface SelectOption {
@@ -175,9 +176,9 @@ function ModalSelect({
 }
 
 const SORTIMEN_OPTIONS: SelectOption[] = [
-  { value: 'Sortimen A', label: 'Sortimen A' },
-  { value: 'Sortimen B', label: 'Sortimen B' },
-  { value: 'Sortimen C', label: 'Sortimen C' },
+  { value: 'A4', label: 'A4' },
+  { value: 'A3', label: 'A3' },
+  { value: 'A2', label: 'A2' },
 ];
 
 const GRADE_OPTIONS: SelectOption[] = [
@@ -216,6 +217,7 @@ function DryKilnModalContent({
   initialData,
   mode,
   nextBatchIndex,
+  availableItems = [],
 }: DryKilnModalProps) {
   const currentYear = new Date().getFullYear();
   const defaultLogId = `L-${currentYear}-3-A-${nextBatchIndex}`;
@@ -236,7 +238,7 @@ function DryKilnModalContent({
       : {
           id_log: defaultLogId,
           id_plank: defaultPlankId,
-          sortimen: 'Sortimen A',
+          sortimen: 'A4',
           grade: 'Grade A',
           panjang: 240,
           lebar: 20,
@@ -246,6 +248,21 @@ function DryKilnModalContent({
   );
   const [logs, setLogs] = useState<LogItem[]>([]);
   const [planks, setPlanks] = useState<PlankItem[]>([]);
+  const eligibleItems = availableItems.filter(
+    (item) => item.stage === 'pra-drykiln' || item.stage === 'finish pra-drykiln'
+  );
+  const eligiblePlanks = eligibleItems.map((item) => ({
+    id_plank: item.id_plank,
+    id_log: item.id_log,
+    sortimen: item.sortimen,
+    tinggi: item.tinggi,
+    lebar: item.lebar,
+    panjang: item.panjang,
+    volume: item.volume,
+    grade: item.grade,
+    stage: item.stage,
+  }));
+  const sourcePlanks = planks.length > 0 ? planks : eligiblePlanks;
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -264,11 +281,18 @@ function DryKilnModalContent({
             : [];
 
         setLogs(fetchedLogs);
-        setPlanks(fetchedPlanks);
+        const eligibleFetchedPlanks = fetchedPlanks.filter(
+          (plank) =>
+            plank.stage === 'pra-drykiln' ||
+            plank.stage === 'finish pra-drykiln'
+        );
+        setPlanks(
+          eligibleFetchedPlanks.length > 0 ? eligibleFetchedPlanks : eligiblePlanks
+        );
 
         if (mode === 'input') {
-          if (fetchedPlanks.length > 0) {
-            const firstPlank = fetchedPlanks[0];
+          if (eligibleFetchedPlanks.length > 0 || eligiblePlanks.length > 0) {
+            const firstPlank = (eligibleFetchedPlanks.length > 0 ? eligibleFetchedPlanks : eligiblePlanks)[0];
             setFormData((prev) =>
               prev.id_log === defaultLogId && prev.id_plank === defaultPlankId
                 ? {
@@ -306,18 +330,20 @@ function DryKilnModalContent({
 
   const logIds = Array.from(
     new Set(
-      [
-        ...logs.map((l) => l.id_log),
-        ...planks.map((p) => p.id_log),
-        initialData?.id_log,
-        defaultLogId,
-        formData.id_log,
-      ].filter((v): v is string => Boolean(v && v.trim()))
+      (mode === 'input'
+        ? sourcePlanks.map((p) => p.id_log)
+        : [
+            ...logs.map((l) => l.id_log),
+            ...sourcePlanks.map((p) => p.id_log),
+            initialData?.id_log,
+            formData.id_log,
+          ]
+      ).filter((v): v is string => Boolean(v && v.trim()))
     )
   );
 
-  const matchingPlanks = planks.filter((p) => p.id_log === formData.id_log);
-  const otherPlanks = planks.filter((p) => p.id_log !== formData.id_log);
+  const matchingPlanks = sourcePlanks.filter((p) => p.id_log === formData.id_log);
+  const otherPlanks = sourcePlanks.filter((p) => p.id_log !== formData.id_log);
   const plankIds = Array.from(
     new Set(
       [
@@ -359,7 +385,7 @@ function DryKilnModalContent({
 
   const handleLogChange = (newLogId: string) => {
     const matchedLog = logs.find((l) => l.id_log === newLogId);
-    const matchingPlank = planks.find((p) => p.id_log === newLogId);
+    const matchingPlank = sourcePlanks.find((p) => p.id_log === newLogId);
     updateForm({
       id_log: newLogId,
       ...(matchingPlank
@@ -379,7 +405,7 @@ function DryKilnModalContent({
   };
 
   const handlePlankChange = (newPlankId: string) => {
-    const matchedPlank = planks.find((p) => p.id_plank === newPlankId);
+    const matchedPlank = sourcePlanks.find((p) => p.id_plank === newPlankId);
     updateForm({
       id_plank: newPlankId,
       ...(matchedPlank

@@ -45,6 +45,12 @@ export default function DataLogPage() {
   // State Filter & Pencarian
   const [dateFilter, setDateFilter] = useState('');
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
+
+const SORTIMEN_OPTIONS = [
+  { value: 'A2', label: 'A2: 20–29 cm' },
+  { value: 'A3', label: 'A3: 30–39 cm' },
+  { value: 'A4', label: 'A4: 40–49 cm' },
+];
   const [page, setPage] = useState(1);
   const [pageError, setPageError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -80,7 +86,7 @@ export default function DataLogPage() {
 
   // State Modal Form
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'input' | 'edit'>('input');
+  const [modalMode, setModalMode] = useState<'batch' | 'log' | 'edit'>('batch');
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
   const [selectedLogDetail, setSelectedLogDetail] = useState<LogItem | null>(null);
   const [logPlanks, setLogPlanks] = useState<PlankItem[]>([]);
@@ -93,9 +99,10 @@ export default function DataLogPage() {
 
   // Form State
   const [formIdLog, setFormIdLog] = useState('');
-  const [formSortimen, setFormSortimen] = useState('Sortimen A');
+  const [formSortimen, setFormSortimen] = useState('A2');
   const [formPanjang, setFormPanjang] = useState<number | ''>('');
   const [formDiameter, setFormDiameter] = useState<number | ''>('');
+  const [formVolume, setFormVolume] = useState<number | ''>('');
   const [formHarga, setFormHarga] = useState<number | ''>('');
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -129,21 +136,21 @@ export default function DataLogPage() {
   const canDelete = can(user?.role, 'log:delete');
   const canAct = canUpdate || canDelete;
 
-  // Hitung volume otomatis: V = (pi/4) * (d^2) * L atau rumus kubikasi standar
   const calculateVolume = (panjangCm: number, diameterCm: number): number => {
     if (!panjangCm || !diameterCm) return 0;
-    const rM = diameterCm / 200;
-    const lM = panjangCm / 100;
-    return Number((Math.PI * Math.pow(rM, 2) * lM).toFixed(3));
+    const radiusM = diameterCm / 200;
+    const lengthM = panjangCm / 100;
+    return Number((Math.PI * Math.pow(radiusM, 2) * lengthM).toFixed(3));
   };
 
   const handleOpenInput = () => {
-    setModalMode('input');
+    setModalMode('batch');
     setSelectedLogId(null);
     setFormIdLog(`L-${new Date().getFullYear()}-${logs.length + 1}`);
-    setFormSortimen('Sortimen A');
+    setFormSortimen('A2');
     setFormPanjang('');
     setFormDiameter('');
+    setFormVolume('');
     setFormHarga('');
     setSupplierSelect(suppliersList[0] || '__others__');
     setCustomSupplier('');
@@ -158,6 +165,7 @@ export default function DataLogPage() {
     setFormSortimen(item.sortimen);
     setFormPanjang(item.panjang);
     setFormDiameter(item.diameter);
+    setFormVolume(item.volume);
     setFormHarga(item.harga ? item.harga : '');
     const existing = suppliersList.find(
       (s) => s.toLowerCase() === (item.suplier || '').toLowerCase()
@@ -181,8 +189,12 @@ export default function DataLogPage() {
     const validationError = firstError(
       required(idLog, 'ID Log'),
       maxLength(idLog, 'ID Log', 50),
-      positiveNumber(formPanjang, 'Panjang'),
-      positiveNumber(formDiameter, 'Diameter'),
+      modalMode === 'batch'
+        ? positiveNumber(formVolume, 'Volume kubikasi')
+        : firstError(
+            positiveNumber(formPanjang, 'Panjang'),
+            positiveNumber(formDiameter, 'Diameter')
+          ),
       required(suplier, 'Supplier'),
       maxLength(suplier, 'Supplier', 100)
     );
@@ -192,15 +204,18 @@ export default function DataLogPage() {
       return;
     }
 
-    const p = Number(formPanjang);
-    const d = Number(formDiameter);
+    const p = modalMode === 'batch' ? 1 : Number(formPanjang) || 0;
+    const d = modalMode === 'batch' ? 1 : Number(formDiameter) || 0;
+    const volumeValue = modalMode === 'batch'
+      ? Number(formVolume)
+      : calculateVolume(p, d);
     const hargaValue = formHarga === '' ? 0 : Math.max(0, Number(formHarga));
-    const calculatedVol = calculateVolume(p, d);
+    const calculatedVol = Number(volumeValue.toFixed(3));
 
     setFormError(null);
     setPageError(null);
 
-    if (modalMode === 'input') {
+    if (modalMode === 'batch' || modalMode === 'log') {
       const newLogPayload: Partial<LogItem> = {
         id_log: idLog,
         sortimen: formSortimen,
@@ -409,10 +424,11 @@ export default function DataLogPage() {
   });
 
   const handleExportPdf = () => {
-    const columns = ['ID Kavling', 'Total Volume (m³)', 'Tanggal'];
+    const columns = ['ID Kavling', 'Sortimen', 'Total Volume (m³)', 'Tanggal'];
 
     const rows = filteredLogs.map((item) => [
       item.id_log,
+      item.sortimen,
       item.volume.toFixed(3),
       formatDateID(item.tanggal_masuk),
     ]);
@@ -473,9 +489,11 @@ export default function DataLogPage() {
                 className="appearance-none pr-8 pl-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700 cursor-pointer"
               >
                 <option value="All Sortimen">All Sortimen</option>
-                <option value="Sortimen A">Sortimen A</option>
-                <option value="Sortimen B">Sortimen B</option>
-                <option value="Sortimen C">Sortimen C</option>
+                {SORTIMEN_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-stone-500 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
@@ -537,6 +555,7 @@ export default function DataLogPage() {
             <thead>
               <tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider">
                 <th className="py-3 px-3 text-center">ID KAVLING</th>
+                <th className="py-3 px-3 text-center">SORTIMEN</th>
                 <th className="py-3 px-3 text-center">TOTAL VOLUME</th>
                 <th className="py-3 px-3 text-center">TANGGAL</th>
                 <th className="py-3 px-3 text-center w-12">DETAIL</th>
@@ -551,7 +570,7 @@ export default function DataLogPage() {
               {filteredLogs.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4 + (canAct ? 1 : 0)}
+                    colSpan={5 + (canAct ? 1 : 0)}
                     className="py-14 text-center"
                   >
                     <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
@@ -587,6 +606,9 @@ export default function DataLogPage() {
                           </span>
                         )}
                       </span>
+                    </td>
+                    <td className="py-3 px-3 text-center font-normal">
+                      {item.sortimen}
                     </td>
                     <td className="py-3 px-3 text-center font-medium">
                       {item.volume.toFixed(3)} m³
@@ -731,6 +753,7 @@ export default function DataLogPage() {
                   <thead>
                     <tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider">
                       <th className="py-2.5 px-2 text-center">ID LOG</th>
+                      <th className="py-2.5 px-2 text-center">SORTIMEN</th>
                       <th className="py-2.5 px-2 text-center">DIMENSIONS (P - D)</th>
                       <th className="py-2.5 px-2 text-center">TOTAL VOLUME</th>
                       <th className="py-2.5 px-2 text-center">RENDEMEN</th>
@@ -740,6 +763,7 @@ export default function DataLogPage() {
                   <tbody>
                     <tr className="text-green-700">
                       <td className="py-2 px-2 text-center font-mono font-medium">{selectedLogDetail.id_log}</td>
+                      <td className="py-2 px-2 text-center">{selectedLogDetail.sortimen}</td>
                       <td className="py-2 px-2 text-center">{selectedLogDetail.panjang}cm - {selectedLogDetail.diameter}cm</td>
                       <td className="py-2 px-2 text-center font-medium">{selectedLogDetail.volume.toFixed(3)} m³</td>
                       <td className="py-2 px-2 text-center font-medium">{rendement.toFixed(2)}%</td>
@@ -754,7 +778,10 @@ export default function DataLogPage() {
                   onClick={() => {
                     setSelectedLogDetail(null);
                     setSelectedLogId(null);
-                    setModalMode('input');
+                    setModalMode('log');
+                    setFormPanjang('');
+                    setFormDiameter('');
+                    setFormVolume('');
                     setFormError(null);
                     setIsModalOpen(true);
                   }}
@@ -774,7 +801,11 @@ export default function DataLogPage() {
           <div className="relative w-full max-w-[560px] p-5 bg-orange-50 rounded-[10px] border border-stone-300 shadow-xl flex flex-col gap-3">
             <div className="flex justify-between items-center pb-2 border-b border-stone-300/60">
               <h2 className="text-stone-800 text-xl font-bold font-sans">
-                {modalMode === 'input' ? 'Input Log' : 'Edit Log'}
+                {modalMode === 'batch'
+                  ? 'Input Batch'
+                  : modalMode === 'log'
+                  ? 'Input Log'
+                  : 'Edit Log'}
               </h2>
               <button
                 type="button"
@@ -797,12 +828,12 @@ export default function DataLogPage() {
             >
               {/* ID LOG */}
               <div className="flex flex-col gap-1">
-                <label className="font-semibold text-green-700">ID LOG</label>
+                <label className="font-semibold text-green-700">ID KAVLING</label>
                 <input
                   type="text"
                   required
                   maxLength={50}
-                  placeholder="L-2026-X-X-X"
+                  placeholder="KAV-2026-X-X-X"
                   value={formIdLog}
                   onChange={(e) => setFormIdLog(e.target.value)}
                   className="w-full h-10 px-3 bg-white border border-stone-800 rounded font-mono text-green-700 focus:outline-none focus:border-green-700"
@@ -818,81 +849,93 @@ export default function DataLogPage() {
                     onChange={(e) => setFormSortimen(e.target.value)}
                     className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded text-green-700 font-medium appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
                   >
-                    <option value="Sortimen A">Sortimen A</option>
-                    <option value="Sortimen B">Sortimen B</option>
-                    <option value="Sortimen C">Sortimen C</option>
+                    {SORTIMEN_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                   <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
                 </div>
               </div>
 
-              {/* Ukuran (Panjang & Diameter) */}
-              <div className="flex flex-col gap-1">
-                <span className="font-semibold text-green-700">Ukuran</span>
+              {/* Ukuran batch memakai kubikasi; input log memakai dimensi fisik */}
+              {modalMode === 'batch' ? (
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-green-700" htmlFor="volume-kubikasi">
+                    Volume Kubikasi (m³)
+                  </label>
+                  <input
+                    id="volume-kubikasi"
+                    type="number"
+                    required
+                    min={0.001}
+                    step="0.001"
+                    placeholder="Contoh: 2.500"
+                    value={formVolume}
+                    onChange={(e) =>
+                      setFormVolume(e.target.value === '' ? '' : Number(e.target.value))
+                    }
+                    className="w-full h-9 px-3 bg-white border border-stone-300 rounded text-green-700 focus:outline-none focus:border-green-700"
+                  />
+                </div>
+              ) : (
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-0.5">
-                    <label className="text-[11px] text-green-700">
-                      Panjang (cm)
-                    </label>
+                    <label className="text-[11px] text-green-700" htmlFor="panjang-log">Panjang (cm)</label>
                     <input
+                      id="panjang-log"
                       type="number"
                       required
                       min={0.1}
                       step="any"
                       placeholder="100"
                       value={formPanjang}
-                      onChange={(e) =>
-                        setFormPanjang(
-                          e.target.value === '' ? '' : Number(e.target.value)
-                        )
-                      }
+                      onChange={(e) => setFormPanjang(e.target.value === '' ? '' : Number(e.target.value))}
                       className="w-full h-9 px-3 bg-white border border-stone-300 rounded text-green-700 focus:outline-none focus:border-green-700"
                     />
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <label className="text-[11px] text-green-700">
-                      Diameter (cm)
-                    </label>
+                    <label className="text-[11px] text-green-700" htmlFor="diameter-log">Diameter (cm)</label>
                     <input
+                      id="diameter-log"
                       type="number"
                       required
                       min={0.1}
                       step="any"
                       placeholder="20"
                       value={formDiameter}
-                      onChange={(e) =>
-                        setFormDiameter(
-                          e.target.value === '' ? '' : Number(e.target.value)
-                        )
-                      }
+                      onChange={(e) => setFormDiameter(e.target.value === '' ? '' : Number(e.target.value))}
                       className="w-full h-9 px-3 bg-white border border-stone-300 rounded text-green-700 focus:outline-none focus:border-green-700"
                     />
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Harga Satuan Opsional */}
-              <div className="flex flex-col gap-1">
-                <label className="font-semibold text-green-700">
-                  Harga Satuan (Rp){' '}
-                  <span className="font-normal text-stone-500 text-[11px]">
-                    (Opsional)
-                  </span>
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  step="any"
-                  placeholder="Contoh: 1500000 (kosongkan jika 0)"
-                  value={formHarga}
-                  onChange={(e) =>
-                    setFormHarga(
-                      e.target.value === '' ? '' : Number(e.target.value)
-                    )
-                  }
-                  className="w-full h-9 px-3 bg-white border border-stone-300 rounded text-green-700 focus:outline-none focus:border-green-700"
-                />
-              </div>
+              {/* Harga hanya untuk batch/edit, bukan input log */}
+              {modalMode !== 'log' && (
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-green-700">
+                    Harga Satuan (Rp){' '}
+                    <span className="font-normal text-stone-500 text-[11px]">
+                      (Opsional)
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step="any"
+                    placeholder="Contoh: 1500000 (kosongkan jika 0)"
+                    value={formHarga}
+                    onChange={(e) =>
+                      setFormHarga(
+                        e.target.value === '' ? '' : Number(e.target.value)
+                      )
+                    }
+                    className="w-full h-9 px-3 bg-white border border-stone-300 rounded text-green-700 focus:outline-none focus:border-green-700"
+                  />
+                </div>
+              )}
 
               {/* Suplier Dropdown & Aksi Submit */}
               <div className="flex flex-col gap-1.5">
@@ -918,15 +961,20 @@ export default function DataLogPage() {
                     type="submit"
                     className="h-10 px-4 bg-green-700 hover:bg-green-800 text-white font-bold rounded flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer shadow-2xs"
                   >
-                    {modalMode === 'input' ? (
+                    {modalMode === 'batch' ? (
                       <>
                         <Plus className="w-3.5 h-3.5" />
-                        <span>New Batch</span>
+                        <span>Simpan Batch</span>
+                      </>
+                    ) : modalMode === 'log' ? (
+                      <>
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Simpan Log</span>
                       </>
                     ) : (
                       <>
                         <Check className="w-3.5 h-3.5" />
-                        <span>Save Batch</span>
+                        <span>Simpan Perubahan</span>
                       </>
                     )}
                   </button>

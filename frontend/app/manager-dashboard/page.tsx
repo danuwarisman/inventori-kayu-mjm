@@ -233,7 +233,7 @@ export default function ManagerDashboardPage() {
     const activeLogs = logs.filter(
       (l) => l.stage === 'Log' || l.statusLog === 'Log'
     );
-    const sortimenGroups = ['Sortimen A', 'Sortimen B', 'Sortimen C'].map(
+    const sortimenGroups = ['A4', 'A3', 'A2'].map(
       (sortimen) => {
         const count = activeLogs.filter((l) => l.sortimen === sortimen).length;
         return {

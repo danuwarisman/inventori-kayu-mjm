@@ -176,9 +176,9 @@ function ModalSelect({
 }
 
 const SORTIMEN_OPTIONS: SelectOption[] = [
-  { value: 'Sortimen A', label: 'Sortimen A' },
-  { value: 'Sortimen B', label: 'Sortimen B' },
-  { value: 'Sortimen C', label: 'Sortimen C' },
+  { value: 'A4', label: 'A4' },
+  { value: 'A3', label: 'A3' },
+  { value: 'A2', label: 'A2' },
 ];
 
 const GRADE_OPTIONS: SelectOption[] = [
@@ -233,7 +233,7 @@ function BatchModalContent({
       : {
           id_plank: defaultPlankId,
           id_log: initialData?.id_log || defaultLogId,
-          sortimen: initialData?.sortimen || 'Sortimen A',
+          sortimen: initialData?.sortimen || 'A4',
           grade: initialData?.grade || 'Grade A',
           panjang: initialData?.panjang || 240,
           lebar: initialData?.lebar || 20,

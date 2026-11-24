@@ -34,7 +34,7 @@ const PAGE_SIZE = 10;
 const INITIAL_STOCKS: StockReportItem[] = [
   {
     id_log: 'L-2026-004',
-    sortimen: 'Sortimen A',
+    sortimen: 'A4',
     grade: 'Grade A',
     thickness: 50,
     width: 200,
@@ -46,7 +46,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
   },
   {
     id_log: 'L-2026-005',
-    sortimen: 'Sortimen A',
+    sortimen: 'A4',
     grade: 'Grade A',
     thickness: 50,
     width: 250,
@@ -58,7 +58,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
   },
   {
     id_log: 'L-2026-006',
-    sortimen: 'Sortimen B',
+    sortimen: 'A3',
     grade: 'Grade B',
     thickness: 40,
     width: 180,
@@ -70,7 +70,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
   },
   {
     id_log: 'L-2026-007',
-    sortimen: 'Sortimen B',
+    sortimen: 'A3',
     grade: 'Grade B',
     thickness: 45,
     width: 200,
@@ -82,7 +82,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
   },
   {
     id_log: 'L-2026-008',
-    sortimen: 'Sortimen C',
+    sortimen: 'A2',
     grade: 'Grade C',
     thickness: 30,
     width: 150,
@@ -94,7 +94,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
   },
   {
     id_log: 'L-2026-009',
-    sortimen: 'Sortimen A',
+    sortimen: 'A4',
     grade: 'Grade A',
     thickness: 60,
     width: 220,
@@ -106,7 +106,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
   },
   {
     id_log: 'L-2026-010',
-    sortimen: 'Sortimen A',
+    sortimen: 'A4',
     grade: 'Grade A',
     thickness: 50,
     width: 250,
@@ -118,7 +118,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
   },
   {
     id_log: 'L-2026-011',
-    sortimen: 'Sortimen B',
+    sortimen: 'A3',
     grade: 'Grade A',
     thickness: 40,
     width: 200,
@@ -130,7 +130,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
   },
   {
     id_log: 'L-2026-012',
-    sortimen: 'Sortimen C',
+    sortimen: 'A2',
     grade: 'Grade C',
     thickness: 25,
     width: 120,
@@ -142,7 +142,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
   },
   {
     id_log: 'L-2026-013',
-    sortimen: 'Sortimen A',
+    sortimen: 'A4',
     grade: 'Grade B',
     thickness: 50,
     width: 200,
@@ -177,7 +177,7 @@ export default function StockReportsPage() {
   // Form State
   const [formData, setFormData] = useState<StockReportFormData>({
     id_log: '',
-    sortimen: 'Sortimen A',
+    sortimen: 'A4',
     grade: 'Grade A',
     thickness: 50,
     width: 200,
@@ -196,7 +196,7 @@ export default function StockReportsPage() {
     if (!canCreate) return;
     setFormData({
       id_log: `L-${currentYear}-3-A-${stocks.length + 1}`,
-      sortimen: 'Sortimen A',
+      sortimen: 'A4',
       grade: 'Grade A',
       thickness: 50,
       width: 200,
@@ -345,9 +345,9 @@ export default function StockReportsPage() {
                 className="appearance-none pr-8 pl-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700 cursor-pointer"
               >
                 <option value="All Sortimen">All Sortimen</option>
-                <option value="Sortimen A">Sortimen A</option>
-                <option value="Sortimen B">Sortimen B</option>
-                <option value="Sortimen C">Sortimen C</option>
+                <option value="A4">A4</option>
+                <option value="A3">A3</option>
+                <option value="A2">A2</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-stone-500 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
@@ -546,9 +546,9 @@ export default function StockReportsPage() {
                       }
                       className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded text-green-700 appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
                     >
-                      <option value="Sortimen A">Sortimen A</option>
-                      <option value="Sortimen B">Sortimen B</option>
-                      <option value="Sortimen C">Sortimen C</option>
+                      <option value="A4">A4</option>
+                      <option value="A3">A3</option>
+                      <option value="A2">A2</option>
                     </select>
                     <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
                   </div>

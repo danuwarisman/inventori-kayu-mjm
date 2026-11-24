@@ -105,7 +105,7 @@ export default function DataSawmillPage() {
 
   // Form Batch Sawmill (Log Asal)
   const [formIdLog, setFormIdLog] = useState('');
-  const [formSortimen, setFormSortimen] = useState('Sortimen A');
+  const [formSortimen, setFormSortimen] = useState('A4');
   const [formPanjang, setFormPanjang] = useState<number | ''>('');
   const [formDiameter, setFormDiameter] = useState<number | ''>('');
   const [formSuplier, setFormSuplier] = useState('PT. Suplier');
@@ -146,7 +146,7 @@ export default function DataSawmillPage() {
       .catch(() => {});
 
     setFormIdLog('');
-    setFormSortimen('Sortimen A');
+    setFormSortimen('A4');
     setFormPanjang('');
     setFormDiameter('');
     setFormSuplier('');
@@ -581,9 +581,9 @@ export default function DataSawmillPage() {
                 className="appearance-none pr-8 pl-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700 cursor-pointer"
               >
                 <option value="All Sortimen">All Sortimen</option>
-                <option value="Sortimen A">Sortimen A</option>
-                <option value="Sortimen B">Sortimen B</option>
-                <option value="Sortimen C">Sortimen C</option>
+                <option value="A4">A4</option>
+                <option value="A3">A3</option>
+                <option value="A2">A2</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-stone-500 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
@@ -629,7 +629,6 @@ export default function DataSawmillPage() {
             <thead>
               <tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider">
                 <th className="py-3 px-3 text-center">ID LOG</th>
-                <th className="py-3 px-3 text-center">Sortimen</th>
                 <th className="py-3 px-3 text-center">DIMENSIONS (T X W)</th>
                 <th className="py-3 px-3 text-center">Total Volume</th>
                 <th className="py-3 px-3 text-center">Stage</th>
@@ -656,7 +655,7 @@ export default function DataSawmillPage() {
               {filteredItems.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7 + (isManager ? 2 : 0) + (canUpdate ? 1 : 0)}
+                    colSpan={6 + (isManager ? 2 : 0) + (canUpdate ? 1 : 0)}
                     className="py-14 text-center"
                   >
                     <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
@@ -682,9 +681,6 @@ export default function DataSawmillPage() {
                   >
                     <td className="py-3 px-3 text-center font-mono font-medium">
                       {item.id_log_asal}
-                    </td>
-                    <td className="py-3 px-3 text-center font-normal">
-                      {item.sortimen}
                     </td>
                     <td className="py-3 px-3 text-center font-medium">
                       {item.diameter}mm x {item.panjang}mm
@@ -978,7 +974,6 @@ export default function DataSawmillPage() {
                   <thead>
                     <tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider">
                       <th className="py-2.5 px-2 text-center">ID PLANK</th>
-                      <th className="py-2.5 px-2 text-center">Sortimen</th>
                       <th className="py-2.5 px-2 text-center">
                         DIMENSIONS (T X W X L)
                       </th>
@@ -994,7 +989,7 @@ export default function DataSawmillPage() {
                     {selectedSawmill.planks.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={6 + (canManagePlanks ? 1 : 0)}
+                          colSpan={5 + (canManagePlanks ? 1 : 0)}
                           className="py-8 text-center text-stone-400"
                         >
                           <div className="flex flex-col items-center justify-center gap-1">
@@ -1012,7 +1007,6 @@ export default function DataSawmillPage() {
                             <td className="py-2 px-2 text-center font-mono font-medium">
                               {plank.id_plank}
                             </td>
-                            <td className="py-2 px-2 text-center">{plank.sortimen}</td>
                             <td className="py-2 px-2 text-center whitespace-nowrap">
                               {plank.tinggi}cm x {plank.lebar}cm x {plank.panjang}cm
                             </td>

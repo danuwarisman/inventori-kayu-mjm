@@ -26,6 +26,18 @@ export interface PraDryKilnFormData {
   stage: PraDryKilnStage;
 }
 
+export interface PraDryKilnBatchFormData {
+  id_palet: string;
+  ketebalan_min: number | '';
+  ketebalan_max: number | '';
+  panjang_min: number | '';
+  panjang_max: number | '';
+  lebar_min: number | '';
+  lebar_max: number | '';
+  grade: PlankGrade;
+  stage: PraDryKilnStage;
+}
+
 /* ------------------------------------------------------------------ */
 /* Kontrak backend Pra Dry Kiln (model `Palet` + `DetailPalet`)        */
 /* ------------------------------------------------------------------ */
@@ -49,6 +61,11 @@ export interface PraDryKilnPlank {
   kodePlank?: string | null;
   gradePapan: string;
   volumePlank: number;
+  panjang?: number | string | null;
+  lebar?: number | string | null;
+  tinggi?: number | string | null;
+  idLog?: number | null;
+  kodeLog?: string | null;
   stage?: string | null;
 }
 

@@ -8,6 +8,8 @@ import { DryKilnItem, DryKilnStage } from '@/types/dry-kiln';
 import { PraDryKilnItem } from '@/types/pra-dry-kiln';
 import PlankTable from '@/components/pra-dry-kiln/PlankTable';
 import BatchModal from '@/components/pra-dry-kiln/BatchModal';
+import NewBatchModal from '@/components/pra-dry-kiln/NewBatchModal';
+import { PraDryKilnBatchFormData } from '@/types/pra-dry-kiln';
 import { toISODate, formatDateID } from '@/lib/dates';
 import { exportToPdf } from '@/lib/export';
 import useSessionUser from '@/lib/useSessionUser';
@@ -18,7 +20,7 @@ const INITIAL_PRA_DRY_KILN: PraDryKilnItem[] = [
   {
     id_plank: 'P-2026-004-A1',
     id_log: 'L-2026-004',
-    sortimen: 'Sortimen A',
+    sortimen: 'A4',
     panjang: 250,
     lebar: 20,
     tinggi: 5,
@@ -30,7 +32,7 @@ const INITIAL_PRA_DRY_KILN: PraDryKilnItem[] = [
   {
     id_plank: 'P-2026-004-A2',
     id_log: 'L-2026-004',
-    sortimen: 'Sortimen A',
+    sortimen: 'A4',
     panjang: 250,
     lebar: 18,
     tinggi: 5,
@@ -42,7 +44,7 @@ const INITIAL_PRA_DRY_KILN: PraDryKilnItem[] = [
   {
     id_plank: 'P-2026-005-B1',
     id_log: 'L-2026-005',
-    sortimen: 'Sortimen A',
+    sortimen: 'A4',
     panjang: 300,
     lebar: 25,
     tinggi: 5,
@@ -54,7 +56,7 @@ const INITIAL_PRA_DRY_KILN: PraDryKilnItem[] = [
   {
     id_plank: 'P-2026-006-A1',
     id_log: 'L-2026-006',
-    sortimen: 'Sortimen B',
+    sortimen: 'A3',
     panjang: 220,
     lebar: 15,
     tinggi: 4,
@@ -66,7 +68,7 @@ const INITIAL_PRA_DRY_KILN: PraDryKilnItem[] = [
   {
     id_plank: 'P-2026-007-B1',
     id_log: 'L-2026-007',
-    sortimen: 'Sortimen B',
+    sortimen: 'A3',
     panjang: 260,
     lebar: 20,
     tinggi: 4,
@@ -78,7 +80,7 @@ const INITIAL_PRA_DRY_KILN: PraDryKilnItem[] = [
   {
     id_plank: 'P-2026-008-C1',
     id_log: 'L-2026-008',
-    sortimen: 'Sortimen C',
+    sortimen: 'A2',
     panjang: 200,
     lebar: 15,
     tinggi: 3,
@@ -90,7 +92,7 @@ const INITIAL_PRA_DRY_KILN: PraDryKilnItem[] = [
   {
     id_plank: 'P-2026-010-A1',
     id_log: 'L-2026-010',
-    sortimen: 'Sortimen A',
+    sortimen: 'A4',
     panjang: 320,
     lebar: 25,
     tinggi: 6,
@@ -118,6 +120,7 @@ export default function PraDryKilnPage() {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNewBatchOpen, setIsNewBatchOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'input' | 'edit'>('input');
   const [selectedItem, setSelectedItem] = useState<PraDryKilnItem | null>(null);
 
@@ -176,6 +179,11 @@ export default function PraDryKilnPage() {
     setModalMode('input');
     setSelectedItem(palletItem ?? null);
     setIsModalOpen(true);
+  };
+
+  const handleNewBatchSubmit = (data: PraDryKilnBatchFormData) => {
+    setIsNewBatchOpen(false);
+    setTransferSuccess(`Batch ${data.id_palet} berhasil disiapkan dengan range ${data.ketebalan_min}-${data.ketebalan_max} cm, ${data.panjang_min}-${data.panjang_max} cm, ${data.lebar_min}-${data.lebar_max} cm (${data.grade}).`);
   };
 
   const handleOpenEdit = (item: PraDryKilnItem) => {
@@ -391,9 +399,9 @@ export default function PraDryKilnPage() {
                 className="appearance-none pr-8 pl-3 py-1.5 text-xs text-green-700 font-medium bg-white rounded border border-stone-300 focus:outline-none focus:border-green-700 cursor-pointer"
               >
                 <option value="All Sortimen">All Sortimen</option>
-                <option value="Sortimen A">Sortimen A</option>
-                <option value="Sortimen B">Sortimen B</option>
-                <option value="Sortimen C">Sortimen C</option>
+                <option value="A4">A4</option>
+                <option value="A3">A3</option>
+                <option value="A2">A2</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-stone-500 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
@@ -414,7 +422,7 @@ export default function PraDryKilnPage() {
           {canCreate && (
             <button
               type="button"
-              onClick={() => handleOpenInput()}
+              onClick={() => setIsNewBatchOpen(true)}
               className="px-4 py-2 bg-green-700 hover:bg-green-800 rounded text-xs font-bold text-white flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -461,7 +469,14 @@ export default function PraDryKilnPage() {
         onAddPlank={canCreate ? handleOpenInput : undefined}
       />
 
-      {/* Input / Edit Batch Modal */}
+      {/* New Batch hanya metadata palet; Input Plank tetap memakai modal lama. */}
+      <NewBatchModal
+        isOpen={isNewBatchOpen}
+        onClose={() => setIsNewBatchOpen(false)}
+        onSubmit={handleNewBatchSubmit}
+      />
+
+      {/* Input / Edit Plank Modal */}
       <BatchModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
