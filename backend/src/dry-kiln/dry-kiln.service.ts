@@ -14,9 +14,12 @@ export class DryKilnService {
     const v = item.volume ? Number(item.volume) : 0;
     const kodeLog = item.kodeLog || 'L-0';
     const kodePlank = item.kodePlank || `P-${item.idOven}`;
+    const year = new Date().getFullYear();
+    const palletSequence = String(item.idPalet || item.idOven).padStart(3, '0');
 
     return {
       idOven: item.idOven,
+      id_palet: `PAL-L-${year}-${palletSequence}`,
       id_log: kodeLog,
       id_plank: kodePlank,
       kodeOven: item.kodeOven,

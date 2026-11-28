@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  X, Building2, User, Calendar, FileText,
-  CheckCircle2, XCircle, Check, Printer,
+  X, Building2, User, FileText,
+  Printer,
 } from 'lucide-react';
 import { PurchaseOrder } from '@/types/purchase';
 import { formatDateID } from '@/lib/dates';
@@ -13,8 +13,6 @@ interface PurchaseDetailModalProps {
   onClose: () => void;
   order: PurchaseOrder | null;
   onPrint?: (order: PurchaseOrder) => void;
-  onApprove?: (order: PurchaseOrder) => void;
-  onReject?: (order: PurchaseOrder) => void;
 }
 
 export default function PurchaseDetailModal({
@@ -22,28 +20,17 @@ export default function PurchaseDetailModal({
   onClose,
   order,
   onPrint,
-  onApprove,
-  onReject,
 }: PurchaseDetailModalProps) {
-  const [confirmReject, setConfirmReject] = useState(false);
 
   if (!isOpen || !order) return null;
 
   const poNumber = `PO-${String(order.idPembelian).padStart(4, '0')}`;
   const details = order.detailPembelian ?? [];
 
-  const totalLogs = details.reduce(
-    (sum, d) => sum + (d.jumlahDipesan || 0),
-    0
-  );
+  const totalVolume = details.reduce((sum, d) => sum + (d.volume || 0), 0);
 
-  const isPending =
-    order.statusVerifikasi === 'PENDING' ||
-    order.statusPembelian === 'MENUNGGU';
 
-  const isApproved =
-    order.statusPembelian === 'DISETUJUI' ||
-    order.statusPembelian === 'DITERIMA';
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs animate-in fade-in duration-150 font-sans">
@@ -101,34 +88,14 @@ export default function PurchaseDetailModal({
               </span>
             </div>
 
-            <div className="p-3 rounded-lg border border-stone-200 bg-stone-50/50 flex flex-col gap-1">
-              <span className="text-[11px] font-semibold text-stone-500 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-stone-400" />
-                Status Transaksi
-              </span>
-              <div>
-                {isApproved ? (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">
-                    Disetujui (Stok Log)
-                  </span>
-                ) : order.statusPembelian === 'DITOLAK' ? (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-100 text-rose-800">
-                    Ditolak
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800">
-                    Menunggu Approval
-                  </span>
-                )}
-              </div>
-            </div>
+
           </div>
 
           {/* Rincian Kayu Log yang Dipesan */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <h4 className="font-bold text-stone-800 text-xs uppercase tracking-wider">
-                Rincian Kayu Log ({details.length} jenis, total {totalLogs} batang)
+                Rincian Kayu Log ({details.length} jenis, total {totalVolume.toFixed(3)} m³)
               </h4>
               <span className="text-[11px] font-semibold text-stone-500">
                 Total Biaya: <strong className="text-emerald-700">Rp {(order.totalHarga || 0).toLocaleString('id-ID')}</strong>
@@ -141,9 +108,8 @@ export default function PurchaseDetailModal({
                   <tr>
                     <th className="py-2.5 px-3">No</th>
                     <th className="py-2.5 px-3">Sortimen</th>
-                    <th className="py-2.5 px-3 text-center">Ukuran (P x D)</th>
-                    <th className="py-2.5 px-3 text-center">Jumlah Batang</th>
-                    <th className="py-2.5 px-3 text-right">Harga per Log</th>
+                    <th className="py-2.5 px-3 text-center">Volume (m³)</th>
+                    <th className="py-2.5 px-3 text-right">Harga per m³</th>
                     <th className="py-2.5 px-3 text-right">Subtotal</th>
                   </tr>
                 </thead>
@@ -156,7 +122,7 @@ export default function PurchaseDetailModal({
                     </tr>
                   ) : (
                     details.map((detail, idx) => {
-                      const subtotal = (detail.jumlahDipesan || 0) * (detail.hargaPerLog || 0);
+                      const subtotal = (detail.volume || 0) * (detail.hargaPerKubik || 0);
                       return (
                         <tr key={detail.idDetailPembelian || idx} className="hover:bg-stone-50/50">
                           <td className="py-2.5 px-3 text-stone-400 font-mono">
@@ -166,13 +132,10 @@ export default function PurchaseDetailModal({
                             {detail.asalSortimen}
                           </td>
                           <td className="py-2.5 px-3 text-center text-stone-600 font-mono">
-                            {detail.panjang} x {detail.diameter} cm
-                          </td>
-                          <td className="py-2.5 px-3 text-center font-bold text-stone-900">
-                            {detail.jumlahDipesan}
+                            {(detail.volume || 0).toFixed(3)} m³
                           </td>
                           <td className="py-2.5 px-3 text-right text-stone-600">
-                            Rp {(detail.hargaPerLog || 0).toLocaleString('id-ID')}
+                            Rp {(detail.hargaPerKubik || 0).toLocaleString('id-ID')}
                           </td>
                           <td className="py-2.5 px-3 text-right font-bold text-emerald-700">
                             Rp {subtotal.toLocaleString('id-ID')}
@@ -186,14 +149,14 @@ export default function PurchaseDetailModal({
             </div>
           </div>
 
-          {/* Riwayat Approval */}
-          {(order.approvals ?? []).length > 0 && (
+          {/* Riwayat approval dihapus dari tampilan pembelian. */}
+          {false && (
             <div className="flex flex-col gap-2">
               <h4 className="font-bold text-stone-800 text-xs uppercase tracking-wider">
                 Catatan & Keputusan Manager
               </h4>
               <div className="flex flex-col gap-2">
-                {(order.approvals ?? []).map((app) => (
+                {(order?.approvals ?? []).map((app) => (
                   <div
                     key={app.idApproval}
                     className="p-3 rounded-lg border border-stone-200 bg-stone-50/50 flex flex-col gap-1 text-xs"
@@ -245,36 +208,9 @@ export default function PurchaseDetailModal({
             >
               Tutup
             </button>
-            {isPending && (
-              <>
-                {onApprove && (
-                  <button
-                    type="button"
-                    onClick={() => onApprove(order)}
-                    className="inline-flex items-center gap-1.5 h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded transition-colors cursor-pointer shadow-2xs"
-                  >
-                    <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                    Approve (ACC) ke Stok Log
-                  </button>
-                )}
-                {onReject && (
-                  <button
-                    type="button"
-                    onClick={() => setConfirmReject(true)}
-                    className="inline-flex items-center gap-1.5 h-9 px-4 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded transition-colors cursor-pointer"
-                  >
-                    <XCircle className="w-3.5 h-3.5" />
-                    Tolak
-                  </button>
-                )}
-              </>
-            )}
-            {isApproved && (
-              <div className="inline-flex items-center gap-1.5 h-9 px-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded select-none">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                Disetujui (Sudah Masuk Stok Log)
-              </div>
-            )}
+
+
+
             {order.statusPembelian === 'DITOLAK' && (
               <div className="h-9 px-4 bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold rounded select-none flex items-center">
                 Ditolak
@@ -287,41 +223,7 @@ export default function PurchaseDetailModal({
             )}
           </div>
 
-          {confirmReject && onReject && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-              <div className="bg-white rounded-lg shadow-xl border border-stone-200 w-full max-w-sm p-5">
-                <div className="flex items-start gap-3">
-                  <XCircle className="w-5 h-5 text-rose-600 shrink-0" />
-                  <p className="text-stone-800 text-sm font-medium">
-                    Konfirmasi penolakan
-                  </p>
-                </div>
-                <p className="text-stone-600 text-xs mt-2">
-                  Apakah Anda yakin ingin menolak pembelian {poNumber}?
-                  Catatan penolakan dapat disertakan.
-                </p>
-                <div className="flex justify-end gap-2 mt-4">
-                  <button
-                    type="button"
-                    onClick={() => setConfirmReject(false)}
-                    className="h-8 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold rounded text-xs transition-colors cursor-pointer"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setConfirmReject(false);
-                      onReject(order);
-                    }}
-                    className="h-8 px-4 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded transition-colors cursor-pointer"
-                  >
-                    Ya, Tolak
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+
         </div>
       </div>
     </div>

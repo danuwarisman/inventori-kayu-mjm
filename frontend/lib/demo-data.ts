@@ -29,12 +29,12 @@ export const DEMO_SAWMILL: SawmillItem[] = [
 ];
 
 export const DEMO_DRY_KILN: DryKilnItem[] = [
-  { idOven: 1, id_backend: 1, id_log: 'L-2026-004', id_plank: 'P-2026-004-A1', sortimen: 'A4', panjang: 250, lebar: 20, tinggi: 5, volume: 0.025, grade: 'Grade A', stage: 'in-drykiln', date: '2026-11-16' },
-  { idOven: 2, id_backend: 2, id_log: 'L-2026-005', id_plank: 'P-2026-005-B1', sortimen: 'A4', panjang: 300, lebar: 25, tinggi: 5, volume: 0.038, grade: 'Grade A', stage: 'finish drykiln', date: '2026-11-17' },
-  { idOven: 3, id_backend: 3, id_log: 'L-2026-006', id_plank: 'P-2026-006-A1', sortimen: 'A3', panjang: 220, lebar: 15, tinggi: 4, volume: 0.013, grade: 'Grade B', stage: 'in-drykiln', date: '2026-11-18' },
+  { idOven: 1, id_backend: 1, id_palet: 'PAL-L-2026-004', id_log: 'L-2026-004', id_plank: 'P-2026-004-A1', sortimen: 'A4', panjang: 250, lebar: 20, tinggi: 5, volume: 0.025, grade: 'Grade A', stage: 'in-drykiln', date: '2026-11-16' },
+  { idOven: 2, id_backend: 2, id_palet: 'PAL-L-2026-005', id_log: 'L-2026-005', id_plank: 'P-2026-005-B1', sortimen: 'A4', panjang: 300, lebar: 25, tinggi: 5, volume: 0.038, grade: 'Grade A', stage: 'finish drykiln', date: '2026-11-17' },
+  { idOven: 3, id_backend: 3, id_palet: 'PAL-L-2026-006', id_log: 'L-2026-006', id_plank: 'P-2026-006-A1', sortimen: 'A3', panjang: 220, lebar: 15, tinggi: 4, volume: 0.013, grade: 'Grade B', stage: 'in-drykiln', date: '2026-11-18' },
 ];
 
 export const DEMO_PURCHASES: PurchaseOrder[] = [
-  { idPembelian: 1, idSupplier: 1, idUser: 1, tanggalBeli: '2026-11-08', statusVerifikasi: 'DISETUJUI', statusPembelian: 'DISETUJUI', supplier: { idSupplier: 1, namaSupplier: 'Perhutani Jawa Barat', alamat: 'Garut', noTelepon: '081111222333' }, user: { id: 1, nama: 'Admin Lapangan' }, detailPembelian: [{ idDetailPembelian: 1, idPembelian: 1, asalSortimen: 'A4', panjang: 400, diameter: 45, dimensiLog: '400 x 45 cm', jumlahDipesan: 10, hargaPerLog: 1250000 }], approvals: [], totalHarga: 12500000 },
-  { idPembelian: 2, idSupplier: 2, idUser: 1, tanggalBeli: '2026-11-12', statusVerifikasi: 'PENDING', statusPembelian: 'MENUNGGU', supplier: { idSupplier: 2, namaSupplier: 'CV Kayu Makmur', alamat: 'Sukabumi', noTelepon: '082222333444' }, user: { id: 1, nama: 'Admin Lapangan' }, detailPembelian: [{ idDetailPembelian: 2, idPembelian: 2, asalSortimen: 'A3', panjang: 350, diameter: 38, dimensiLog: '350 x 38 cm', jumlahDipesan: 8, hargaPerLog: 950000 }], approvals: [], totalHarga: 7600000 },
+  { idPembelian: 1, idSupplier: 1, idUser: 1, tanggalBeli: '2026-11-08', statusVerifikasi: 'DISETUJUI', statusPembelian: 'DISETUJUI', supplier: { idSupplier: 1, namaSupplier: 'Perhutani Jawa Barat', alamat: 'Garut', noTelepon: '081111222333' }, user: { id: 1, nama: 'Admin Lapangan' }, detailPembelian: [{ idDetailPembelian: 1, idPembelian: 1, asalSortimen: 'A4', volume: 12.5, hargaPerKubik: 1250000 }], approvals: [], totalHarga: 12500000 },
+  { idPembelian: 2, idSupplier: 2, idUser: 1, tanggalBeli: '2026-11-12', statusVerifikasi: 'PENDING', statusPembelian: 'MENUNGGU', supplier: { idSupplier: 2, namaSupplier: 'CV Kayu Makmur', alamat: 'Sukabumi', noTelepon: '082222333444' }, user: { id: 1, nama: 'Admin Lapangan' }, detailPembelian: [{ idDetailPembelian: 2, idPembelian: 2, asalSortimen: 'A3', volume: 8.4, hargaPerKubik: 950000 }], approvals: [], totalHarga: 7600000 },
 ];

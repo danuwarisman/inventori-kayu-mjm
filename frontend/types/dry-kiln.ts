@@ -3,6 +3,7 @@ export type DryKilnStage = 'in-drykiln' | 'finish drykiln' | 'pra-drykiln' | 'fi
 
 export interface DryKilnItem {
   idOven?: number;
+  id_palet?: string;
   id_backend?: number;
   id_log: string;
   id_plank: string;

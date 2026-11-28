@@ -15,17 +15,8 @@ export default function PurchaseStatCards({ orders }: PurchaseStatCardsProps) {
     return sum + (order.totalHarga ?? 0);
   }, 0);
 
-  const pendingCount = orders.filter(
-    (o) =>
-      o.statusPembelian === 'MENUNGGU' ||
-      o.statusVerifikasi === 'PENDING'
-  ).length;
-
-  const approvedCount = orders.filter(
-    (o) =>
-      o.statusPembelian === 'DISETUJUI' ||
-      o.statusPembelian === 'DITERIMA' ||
-      o.statusVerifikasi === 'DISETUJUI'
+  const activeCount = orders.filter(
+    (o) => o.statusPembelian !== 'DIBATALKAN' && o.statusPembelian !== 'DITOLAK'
   ).length;
 
   return (
@@ -74,7 +65,7 @@ export default function PurchaseStatCards({ orders }: PurchaseStatCardsProps) {
       <div className="p-4 bg-white rounded-xl shadow-xs border border-neutral-200 flex flex-col justify-between gap-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-            Menunggu Approval
+            Pesanan Aktif
           </span>
           <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
             <Clock className="w-4 h-4" />
@@ -82,7 +73,7 @@ export default function PurchaseStatCards({ orders }: PurchaseStatCardsProps) {
         </div>
         <div>
           <div className="text-2xl font-bold text-amber-600">
-            {pendingCount.toLocaleString('id-ID')}
+            {activeCount.toLocaleString('id-ID')}
           </div>
           <p className="text-[11px] text-stone-400 mt-0.5">
             Draft & verifikasi berjalan
@@ -94,7 +85,7 @@ export default function PurchaseStatCards({ orders }: PurchaseStatCardsProps) {
       <div className="p-4 bg-white rounded-xl shadow-xs border border-neutral-200 flex flex-col justify-between gap-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-            Disetujui / Selesai
+            Selesai / Diterima
           </span>
           <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-700">
             <CheckCircle2 className="w-4 h-4" />
@@ -102,7 +93,7 @@ export default function PurchaseStatCards({ orders }: PurchaseStatCardsProps) {
         </div>
         <div>
           <div className="text-2xl font-bold text-teal-700">
-            {approvedCount.toLocaleString('id-ID')}
+            {orders.filter((o) => o.statusPembelian === 'DISETUJUI' || o.statusPembelian === 'DITERIMA').length.toLocaleString('id-ID')}
           </div>
           <p className="text-[11px] text-stone-400 mt-0.5">
             Pesanan disetujui / diterima

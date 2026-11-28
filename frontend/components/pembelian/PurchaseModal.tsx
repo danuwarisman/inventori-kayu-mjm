@@ -10,10 +10,7 @@ import { firstError, required } from '@/lib/validation';
 
 interface PurchaseDetailRow {
   asalSortimen: string;
-  panjang: string;
-  diameter: string;
-  jumlahDipesan: string;
-  hargaPerLog: string;
+  volume: string;
 }
 
 interface PurchaseModalProps {
@@ -29,11 +26,10 @@ interface PurchaseModalProps {
 
 const DEFAULT_ROW: PurchaseDetailRow = {
   asalSortimen: '',
-  panjang: '',
-  diameter: '',
-  jumlahDipesan: '1',
-  hargaPerLog: '0',
+  volume: '',
 };
+
+const DEFAULT_PRICE_PER_CUBIC = '0';
 
 export default function PurchaseModal({
   isOpen,
@@ -50,6 +46,7 @@ export default function PurchaseModal({
   const [detailRows, setDetailRows] = useState<PurchaseDetailRow[]>([
     { ...DEFAULT_ROW },
   ]);
+  const [hargaPerKubik, setHargaPerKubik] = useState(DEFAULT_PRICE_PER_CUBIC);
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,14 +55,12 @@ export default function PurchaseModal({
       setTanggalBeli(
         initialData.tanggalBeli ? initialData.tanggalBeli.slice(0, 10) : toISODate()
       );
+      setHargaPerKubik(String(initialData.detailPembelian?.[0]?.hargaPerKubik ?? initialData.detailPembelian?.[0]?.hargaPerLog ?? 0));
       if (initialData.detailPembelian && initialData.detailPembelian.length > 0) {
         setDetailRows(
           initialData.detailPembelian.map((d) => ({
             asalSortimen: d.asalSortimen || '',
-            panjang: String(d.panjang || ''),
-            diameter: String(d.diameter || ''),
-            jumlahDipesan: String(d.jumlahDipesan || 1),
-            hargaPerLog: String(d.hargaPerLog || 0),
+            volume: String(d.volume || 0),
           }))
         );
       } else {
@@ -74,6 +69,7 @@ export default function PurchaseModal({
     } else {
       setIdSupplier(suppliers.length > 0 ? String(suppliers[0].id_backend) : '');
       setTanggalBeli(toISODate());
+      setHargaPerKubik(DEFAULT_PRICE_PER_CUBIC);
       setDetailRows([{ ...DEFAULT_ROW }]);
     }
   }, [initialData, mode, isOpen, suppliers]);
@@ -105,19 +101,8 @@ export default function PurchaseModal({
     if (formError) setFormError(null);
   };
 
-  // Kalkulasi total batang dan total biaya
-  const totalLogs = detailRows.reduce((sum, row) => {
-    const qty = parseInt(row.jumlahDipesan, 10);
-    return sum + (isNaN(qty) || qty < 0 ? 0 : qty);
-  }, 0);
-
-  const totalCost = detailRows.reduce((sum, row) => {
-    const qty = parseInt(row.jumlahDipesan, 10);
-    const price = parseFloat(row.hargaPerLog);
-    const validQty = isNaN(qty) || qty < 0 ? 0 : qty;
-    const validPrice = isNaN(price) || price < 0 ? 0 : price;
-    return sum + validQty * validPrice;
-  }, 0);
+  const totalVolume = detailRows.reduce((sum, row) => sum + (parseFloat(row.volume) || 0), 0);
+  const totalCost = detailRows.reduce((sum, row) => sum + (parseFloat(row.volume) || 0) * (parseFloat(hargaPerKubik) || 0), 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,26 +133,17 @@ export default function PurchaseModal({
         setFormError(`Baris #${i + 1}: Asal Sortimen kayu wajib diisi.`);
         return;
       }
-      const panjang = parseFloat(row.panjang);
-      if (isNaN(panjang) || panjang <= 0) {
-        setFormError(`Baris #${i + 1}: Panjang harus berupa angka lebih dari 0.`);
+      const volume = parseFloat(row.volume);
+      if (isNaN(volume) || volume <= 0) {
+        setFormError(`Baris #${i + 1}: Volume harus berupa angka lebih dari 0 m³.`);
         return;
       }
-      const diameter = parseFloat(row.diameter);
-      if (isNaN(diameter) || diameter <= 0) {
-        setFormError(`Baris #${i + 1}: Diameter harus berupa angka lebih dari 0.`);
-        return;
-      }
-      const qty = parseInt(row.jumlahDipesan, 10);
-      if (isNaN(qty) || qty < 1) {
-        setFormError(`Baris #${i + 1}: Jumlah pesanan minimal 1 batang.`);
-        return;
-      }
-      const harga = parseFloat(row.hargaPerLog);
-      if (isNaN(harga) || harga < 0) {
-        setFormError(`Baris #${i + 1}: Harga per log tidak boleh negatif.`);
-        return;
-      }
+    }
+
+    const harga = parseFloat(hargaPerKubik);
+    if (isNaN(harga) || harga < 0) {
+      setFormError('Harga per kubik tidak boleh negatif.');
+      return;
     }
 
     setFormError(null);
@@ -177,11 +153,8 @@ export default function PurchaseModal({
       tanggalBeli,
       detailPembelian: detailRows.map((row) => ({
         asalSortimen: row.asalSortimen.trim(),
-        panjang: Number(parseFloat(row.panjang).toFixed(2)),
-        diameter: Number(parseFloat(row.diameter).toFixed(2)),
-        dimensiLog: `${row.panjang} x ${row.diameter}`,
-        jumlahDipesan: parseInt(row.jumlahDipesan, 10),
-        hargaPerLog: Number(parseFloat(row.hargaPerLog).toFixed(2)),
+        volume: Number(parseFloat(row.volume).toFixed(3)),
+        hargaPerKubik: Number(parseFloat(hargaPerKubik).toFixed(2)),
       })),
     };
 
@@ -290,8 +263,8 @@ export default function PurchaseModal({
             <div className="flex flex-col gap-2.5 max-h-[320px] overflow-y-auto pr-1">
               {detailRows.map((row, index) => {
                 const subtotal =
-                  (parseInt(row.jumlahDipesan, 10) || 0) *
-                  (parseFloat(row.hargaPerLog) || 0);
+                  (parseFloat(row.volume) || 0) *
+                  (parseFloat(hargaPerKubik) || 0);
 
                 return (
                   <div
@@ -314,7 +287,7 @@ export default function PurchaseModal({
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 items-end">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
                       <div className="sm:col-span-2 flex flex-col gap-1">
                         <label className="text-[11px] font-medium text-stone-600">
                           Asal Sortimen / Jenis Kayu
@@ -333,93 +306,21 @@ export default function PurchaseModal({
                       </div>
 
                       <div className="flex flex-col gap-1">
-                        <label className="text-[11px] font-medium text-stone-600">
-                          Panjang (cm)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          required
-                          placeholder="cth. 250"
-                          value={row.panjang}
-                          disabled={mode === 'edit'}
-                          onChange={(e) =>
-                            handleUpdateRow(index, 'panjang', e.target.value)
-                          }
-                          className="h-8 px-2.5 bg-white border border-stone-300 rounded text-stone-900 text-xs focus:outline-none focus:border-green-700 disabled:bg-stone-100"
-                        />
+                        <label className="text-[11px] font-medium text-stone-600">Volume (m³)</label>
+                        <input type="number" step="0.001" min="0.001" required placeholder="cth. 2.5" value={row.volume} disabled={mode === 'edit'} onChange={(e) => handleUpdateRow(index, 'volume', e.target.value)} className="h-8 px-2.5 bg-white border border-stone-300 rounded text-stone-900 text-xs focus:outline-none focus:border-green-700 disabled:bg-stone-100" />
                       </div>
-
                       <div className="flex flex-col gap-1">
-                        <label className="text-[11px] font-medium text-stone-600">
-                          Diameter (cm)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          required
-                          placeholder="cth. 30"
-                          value={row.diameter}
-                          disabled={mode === 'edit'}
-                          onChange={(e) =>
-                            handleUpdateRow(index, 'diameter', e.target.value)
-                          }
-                          className="h-8 px-2.5 bg-white border border-stone-300 rounded text-stone-900 text-xs focus:outline-none focus:border-green-700 disabled:bg-stone-100"
-                        />
-                      </div>
-
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[11px] font-medium text-stone-600">
-                          Qty (Batang)
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          required
-                          value={row.jumlahDipesan}
-                          disabled={mode === 'edit'}
-                          onChange={(e) =>
-                            handleUpdateRow(index, 'jumlahDipesan', e.target.value)
-                          }
-                          className="h-8 px-2.5 bg-white border border-stone-300 rounded text-stone-900 text-xs focus:outline-none focus:border-green-700 disabled:bg-stone-100"
-                        />
+                        <label className="text-[11px] font-medium text-stone-600">Harga per m³ (satu harga)</label>
+                        <input type="number" step="1000" min="0" required placeholder="Rp 0" value={hargaPerKubik} onChange={(e) => setHargaPerKubik(e.target.value)} className="h-8 px-2.5 bg-white border border-stone-300 rounded text-stone-900 text-xs focus:outline-none focus:border-green-700 font-mono" />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 items-center pt-1 border-t border-stone-200/60 text-xs">
-                      <div className="flex items-center gap-2">
-                        <label className="text-[11px] font-medium text-stone-600 whitespace-nowrap">
-                          Harga / Log:
-                        </label>
-                        <div className="relative flex-1">
-                          <span className="absolute left-2.5 top-2 text-stone-400 text-xs">
-                            Rp
-                          </span>
-                          <input
-                            type="number"
-                            step="1000"
-                            min="0"
-                            required
-                            placeholder="0"
-                            value={row.hargaPerLog}
-                            disabled={mode === 'edit'}
-                            onChange={(e) =>
-                              handleUpdateRow(index, 'hargaPerLog', e.target.value)
-                            }
-                            className="w-full h-8 pl-8 pr-2.5 bg-white border border-stone-300 rounded text-stone-900 text-xs focus:outline-none focus:border-green-700 disabled:bg-stone-100 font-mono"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-end gap-1.5 text-stone-600">
+                    <div className="flex items-center justify-end gap-1.5 text-stone-600 pt-2 border-t border-stone-200/60 text-xs">
                         <span className="text-[11px]">Subtotal:</span>
                         <span className="font-semibold text-emerald-700 font-mono">
                           Rp {subtotal.toLocaleString('id-ID')}
                         </span>
                       </div>
-                    </div>
                   </div>
                 );
               })}
@@ -436,7 +337,7 @@ export default function PurchaseModal({
               <span className="text-stone-600">
                 Total:{' '}
                 <strong className="text-stone-900">
-                  {totalLogs.toLocaleString('id-ID')} batang log
+                  {totalVolume.toFixed(3)} m³
                 </strong>
               </span>
               <span className="text-sm font-bold text-emerald-800 font-mono">

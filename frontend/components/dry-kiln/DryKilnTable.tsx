@@ -27,11 +27,12 @@ export default function DryKilnTable({
   const pallets = useMemo(() => {
     const grouped = new Map<string, DryKilnItem[]>();
     items.forEach((item) => {
-      const key = item.id_log || item.id_plank;
+      const key = item.id_palet || item.id_log || item.id_plank;
       grouped.set(key, [...(grouped.get(key) ?? []), item]);
     });
     return Array.from(grouped.entries()).map(([key, palletItems]) => ({
       key,
+      palletId: palletItems[0].id_palet || `PAL-L-${new Date().getFullYear()}-${String(palletItems[0].idOven || 0).padStart(3, '0')}`,
       items: palletItems,
       totalVolume: palletItems.reduce((sum, item) => sum + item.volume, 0),
       thickness: `${Math.min(...palletItems.map((item) => item.tinggi))}cm-${Math.max(...palletItems.map((item) => item.tinggi))}cm`,
@@ -78,7 +79,7 @@ export default function DryKilnTable({
                 const first = pallet.items[0];
                 return (
                   <tr key={pallet.key} className="text-green-700 hover:bg-stone-50 transition-colors">
-                    <td className="py-3 px-3 text-center font-mono font-medium whitespace-nowrap">PAL-{pallet.key}</td>
+                    <td className="py-3 px-3 text-center font-mono font-medium whitespace-nowrap">{pallet.palletId}</td>
                     <td className="py-3 px-3 text-center whitespace-nowrap">{pallet.thickness}</td>
                     <td className="py-3 px-3 text-center whitespace-nowrap">{pallet.length}</td>
                     <td className="py-3 px-3 text-center whitespace-nowrap">{pallet.width}</td>
@@ -101,7 +102,7 @@ export default function DryKilnTable({
           <div className="relative w-full max-w-[1000px] p-5 bg-orange-50 rounded-[10px] border border-stone-300 shadow-xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-2 border-b border-stone-300/60"><h2 className="text-stone-800 text-xl font-bold">Detail Palet Dry-Kiln</h2><button type="button" onClick={() => setDetailItems(null)} className="p-1 text-stone-500 hover:text-stone-900"><X className="w-5 h-5" /></button></div>
             <div className="p-4 bg-white/80 rounded-[10px] border border-stone-800/80 text-xs overflow-x-auto">
-              <div className="flex flex-col gap-1 mb-4"><label className="font-semibold text-green-700">ID PALET</label><div className="w-full h-10 px-4 flex items-center bg-white border border-stone-900 rounded font-mono font-medium text-green-700">PAL-{detail[0]?.id_log}</div></div>
+              <div className="flex flex-col gap-1 mb-4"><label className="font-semibold text-green-700">ID PALET</label><div className="w-full h-10 px-4 flex items-center bg-white border border-stone-900 rounded font-mono font-medium text-green-700">{detail[0]?.id_palet || `PAL-L-${new Date().getFullYear()}-${String(detail[0]?.idOven || 0).padStart(3, '0')}`}</div></div>
               <table className="w-full text-xs text-left"><thead><tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider whitespace-nowrap"><th className="py-2.5 px-2 text-center">ID LOG</th><th className="py-2.5 px-2 text-center">ID PLANK</th><th className="py-2.5 px-2 text-center">DIMENSION</th><th className="py-2.5 px-2 text-center">TOTAL VOLUME</th><th className="py-2.5 px-2 text-center">GRADE</th><th className="py-2.5 px-2 text-center">STAGE</th><th className="py-2.5 px-2 text-center">TANGGAL</th></tr></thead><tbody className="divide-y divide-stone-100">{detail.map((item) => <tr key={item.id_plank} className="text-green-700"><td className="py-2 px-2 text-center font-mono">{item.id_log}</td><td className="py-2 px-2 text-center font-mono">{item.id_plank}</td><td className="py-2 px-2 text-center whitespace-nowrap">{item.tinggi}cm x {item.lebar}cm x {item.panjang}cm</td><td className="py-2 px-2 text-center font-medium">{item.volume.toFixed(3)} m³</td><td className="py-2 px-2 text-center">{item.grade}</td><td className="py-2 px-2 text-center">{item.stage}</td><td className="py-2 px-2 text-center text-stone-600">{formatDateID(item.date)}</td></tr>)}</tbody></table>
             </div>
           </div>

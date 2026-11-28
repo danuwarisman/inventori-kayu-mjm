@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Search, Plus, RefreshCw, AlertCircle, Filter, CheckCircle2, X } from 'lucide-react';
+import { Search, Plus, RefreshCw, AlertCircle, CheckCircle2, X } from 'lucide-react';
 import { PurchaseOrder, PurchaseCreatePayload } from '@/types/purchase';
 import { SupplierItem } from '@/types/supplier';
 import PurchaseStatCards from '@/components/pembelian/PurchaseStatCards';
@@ -22,8 +22,6 @@ export default function PembelianPage() {
   const canCreate = can(user?.role, 'purchase:create');
   const canUpdate = can(user?.role, 'purchase:update');
   const canDelete = can(user?.role, 'purchase:delete');
-  const canApprove = can(user?.role, 'purchase:approve');
-  const canReject = can(user?.role, 'purchase:reject');
 
   // State data utama
   const [orders, setOrders] = useState<PurchaseOrder[]>(DEMO_PURCHASES);
@@ -36,7 +34,6 @@ export default function PembelianPage() {
 
   // Filter & Search
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -120,10 +117,10 @@ export default function PembelianPage() {
   const handlePrintPO = (order: PurchaseOrder) => {
     const poNumber = `PO-${String(order.idPembelian).padStart(4, '0')}`;
     const details = order.detailPembelian ?? [];
-    const totalBatang = details.reduce((sum, d) => sum + (d.jumlahDipesan || 0), 0);
+    const totalVolume = details.reduce((sum, d) => sum + (d.volume || 0), 0);
     const grandTotal =
-      order.totalHarga ??
-      details.reduce((sum, d) => sum + (d.jumlahDipesan || 0) * (d.hargaPerLog || 0), 0);
+    order.totalHarga ??
+    details.reduce((sum, d) => sum + (d.volume || 0) * (d.hargaPerKubik || 0), 0);
 
     const statusText =
       order.statusPembelian === 'DISETUJUI' || order.statusPembelian === 'DITERIMA'
@@ -148,7 +145,7 @@ export default function PembelianPage() {
       recipientPhone: order.supplier?.noTelepon,
       meta: [
         { label: 'Diajukan Oleh', value: order.user?.nama || 'Admin Kantor' },
-        { label: 'Total Batang', value: `${totalBatang.toLocaleString('id-ID')} Batang` },
+        { label: 'Total Batang', value: `${totalVolume.toFixed(3)} m³` },
       ],
       columns: [
         'No',
@@ -172,7 +169,7 @@ export default function PembelianPage() {
       summaryRows: [
         {
           label: 'Total Batang Dipesan',
-          value: `${totalBatang.toLocaleString('id-ID')} Batang`,
+          value: `${totalVolume.toFixed(3)} m³`,
         },
         {
           label: 'TOTAL NILAI PURCHASE ORDER',
@@ -274,11 +271,8 @@ export default function PembelianPage() {
     }
   };
 
-  // Approval Pembelian — Manager setuju (POST /pembelian/:id/approval { status: 'DISETUJUI' })
-  // Proses akhir: backend secara otomatis mencatat item ke Stok Log saat Manager meng-ACC
+  /* Approval pembelian dihapus dari alur FE. */
   const handleApprove = async (item: PurchaseOrder) => {
-    if (!canApprove) return;
-
     const poNumber = `PO-${String(item.idPembelian).padStart(4, '0')}`;
     const ok = await confirm({
       title: 'Setujui Purchase Order (ACC)',
@@ -319,9 +313,8 @@ export default function PembelianPage() {
     }
   };
 
-  // Tolak Pembelian — Manager (POST /pembelian/:id/approval { status: 'DITOLAK' })
+  // Penolakan/approval tidak lagi ditampilkan di halaman pembelian.
   const handleReject = async (item: PurchaseOrder) => {
-    if (!canReject) return;
 
     const poNumber = `PO-${String(item.idPembelian).padStart(4, '0')}`;
     const reason = window.prompt(`Alasan penolakan pesanan ${poNumber} (wajib diisi):`);
@@ -369,26 +362,7 @@ export default function PembelianPage() {
       supplierName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       creatorName.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (!matchesSearch) return false;
-
-    if (statusFilter === 'ALL') return true;
-    if (statusFilter === 'DISETUJUI') {
-      return (
-        order.statusPembelian === 'DISETUJUI' ||
-        order.statusPembelian === 'DITERIMA' ||
-        order.statusVerifikasi === 'DISETUJUI'
-      );
-    }
-    if (statusFilter === 'MENUNGGU') {
-      return (
-        order.statusPembelian === 'MENUNGGU' ||
-        order.statusVerifikasi === 'PENDING'
-      );
-    }
-    return (
-      order.statusPembelian === statusFilter ||
-      order.statusVerifikasi === statusFilter
-    );
+    return matchesSearch;
   });
 
   return (
@@ -447,20 +421,7 @@ export default function PembelianPage() {
             />
           </div>
 
-          {/* Filter Status */}
-          <div className="flex items-center gap-1.5 text-xs">
-            <Filter className="w-3.5 h-3.5 text-stone-400" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-9 px-2.5 bg-white border border-stone-300 rounded text-stone-700 text-xs focus:outline-none focus:border-green-700 cursor-pointer"
-            >
-              <option value="ALL">Semua Status</option>
-              <option value="MENUNGGU">Menunggu Approval</option>
-              <option value="DISETUJUI">Disetujui (Stok Log)</option>
-              <option value="DITOLAK">Ditolak</option>
-            </select>
-          </div>
+
         </div>
 
         <div className="flex items-center gap-2">
@@ -496,14 +457,10 @@ export default function PembelianPage() {
         isLoading={isLoading}
         canEdit={canUpdate}
         canDelete={canDelete}
-        canApprove={canApprove}
-        canReject={canReject}
         onView={handleViewDetail}
         onPrint={handlePrintPO}
         onEdit={handleOpenEdit}
         onDelete={handleDelete}
-        onApprove={handleApprove}
-        onReject={handleReject}
       />
 
       {/* Modal Input & Edit */}
@@ -527,8 +484,6 @@ export default function PembelianPage() {
           }}
           order={detailOrder}
           onPrint={handlePrintPO}
-          onApprove={handleApprove}
-          onReject={handleReject}
         />
       )}
 

@@ -25,7 +25,7 @@ export default function NewBatchModal({ isOpen, onClose, onSubmit }: NewBatchMod
   useEffect(() => {
     if (!isOpen) return;
     const year = new Date().getFullYear();
-    const generatedId = `PAL-${year}-${String(Date.now()).slice(-4)}`;
+    const generatedId = `PAL-L-${year}-${String(Date.now()).slice(-4)}`;
     setIdPalet(generatedId);
     setError(null);
   }, [isOpen]);

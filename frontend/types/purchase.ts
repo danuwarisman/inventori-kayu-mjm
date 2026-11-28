@@ -22,22 +22,22 @@ export interface PurchaseDetail {
   idDetailPembelian: number;
   idPembelian: number;
   asalSortimen: string;
-  panjang: number;
-  diameter: number;
-  dimensiLog: string;
-  jumlahDipesan: number;
-  hargaPerLog: number;
+  volume?: number;
+  hargaPerKubik?: number;
+  // Field legacy tetap dibaca agar data lama tetap tampil.
+  panjang?: number;
+  diameter?: number;
+  dimensiLog?: string;
+  jumlahDipesan?: number;
+  hargaPerLog?: number;
   createdAt?: string;
 }
 
 /** Body detail pada CreatePurchaseDto. */
 export interface PurchaseDetailPayload {
   asalSortimen: string;
-  panjang: number;
-  diameter: number;
-  dimensiLog?: string;
-  jumlahDipesan: number;
-  hargaPerLog: number;
+  volume: number;
+  hargaPerKubik: number;
 }
 
 /** Body CreatePurchaseDto. */

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   FileDown,
   Plus,
@@ -14,12 +14,16 @@ import { exportToPdf } from '@/lib/export';
 import useSessionUser from '@/lib/useSessionUser';
 import { useGlobalSearch } from '@/lib/useGlobalSearch';
 import { can } from '@/lib/permissions';
+import { dryKilnApi, getApiErrorMessage } from '@/lib/api';
+import { DEMO_DRY_KILN } from '@/lib/demo-data';
 import Pagination from '@/components/Pagination';
 import {
   StockReportItem,
   StockReportFormData,
   StockStatus,
 } from '@/types/stock-report';
+import { DryKilnItem } from '@/types/dry-kiln';
+import { PlankGrade } from '@/types/dry-kiln';
 import FormError from '@/components/FormError';
 import {
   firstError,
@@ -30,9 +34,29 @@ import {
 
 const PAGE_SIZE = 10;
 
+type EligiblePallet = {
+  id: string;
+  items: DryKilnItem[];
+  thickness: string;
+  length: string;
+  width: string;
+  grade: string;
+};
+
+function range(values: number[], unit = 'cm') {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  return min === max ? `${min} ${unit}` : `${min}–${max} ${unit}`;
+}
+
+function ReadOnly({ label, value }: { label: string; value: string }) {
+  return <label className="flex flex-col gap-1 text-[11px] font-medium text-stone-600">{label}<span className="h-10 px-3 flex items-center bg-stone-100 border border-stone-300 rounded font-mono text-stone-600">{value}</span></label>;
+}
+
 // Data stok fisik gudang dan olahan aktif (Sample Data)
 const INITIAL_STOCKS: StockReportItem[] = [
   {
+    id_palet: 'PAL-L-2026-004',
     id_log: 'L-2026-004',
     sortimen: 'A4',
     grade: 'Grade A',
@@ -41,10 +65,13 @@ const INITIAL_STOCKS: StockReportItem[] = [
     length: 2500,
     dimensions: '50 x 200 x 2500',
     volume: 0.025,
-    status: 'Available',
+    availablePlanks: 15,
+    totalPlanks: 20,
+    status: 'Low Stock',
     date: '2026-11-04',
   },
   {
+    id_palet: 'PAL-L-2026-005',
     id_log: 'L-2026-005',
     sortimen: 'A4',
     grade: 'Grade A',
@@ -57,6 +84,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
     date: '2026-11-04',
   },
   {
+    id_palet: 'PAL-L-2026-006',
     id_log: 'L-2026-006',
     sortimen: 'A3',
     grade: 'Grade B',
@@ -69,6 +97,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
     date: '2026-11-05',
   },
   {
+    id_palet: 'PAL-L-2026-007',
     id_log: 'L-2026-007',
     sortimen: 'A3',
     grade: 'Grade B',
@@ -81,6 +110,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
     date: '2026-11-05',
   },
   {
+    id_palet: 'PAL-L-2026-008',
     id_log: 'L-2026-008',
     sortimen: 'A2',
     grade: 'Grade C',
@@ -93,6 +123,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
     date: '2026-11-06',
   },
   {
+    id_palet: 'PAL-L-2026-009',
     id_log: 'L-2026-009',
     sortimen: 'A4',
     grade: 'Grade A',
@@ -105,6 +136,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
     date: '2026-11-06',
   },
   {
+    id_palet: 'PAL-L-2026-010',
     id_log: 'L-2026-010',
     sortimen: 'A4',
     grade: 'Grade A',
@@ -117,6 +149,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
     date: '2026-11-06',
   },
   {
+    id_palet: 'PAL-L-2026-011',
     id_log: 'L-2026-011',
     sortimen: 'A3',
     grade: 'Grade A',
@@ -129,6 +162,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
     date: '2026-11-07',
   },
   {
+    id_palet: 'PAL-L-2026-012',
     id_log: 'L-2026-012',
     sortimen: 'A2',
     grade: 'Grade C',
@@ -141,6 +175,7 @@ const INITIAL_STOCKS: StockReportItem[] = [
     date: '2026-11-07',
   },
   {
+    id_palet: 'PAL-L-2026-013',
     id_log: 'L-2026-013',
     sortimen: 'A4',
     grade: 'Grade B',
@@ -164,6 +199,34 @@ export default function StockReportsPage() {
 
   // State data inventori (Zero Dummy Data)
   const [stocks, setStocks] = useState<StockReportItem[]>(INITIAL_STOCKS);
+  const [finishedDryKiln, setFinishedDryKiln] = useState<DryKilnItem[]>([]);
+  const [selectedPalletId, setSelectedPalletId] = useState('');
+  const [pageError, setPageError] = useState<string | null>(null);
+
+  useEffect(() => {
+    dryKilnApi.list({ stage: 'oven' })
+      .then((items) => setFinishedDryKiln(items.filter((item) => item.stage === 'finish drykiln')))
+      .catch(() => setFinishedDryKiln(DEMO_DRY_KILN.filter((item) => item.stage === 'finish drykiln')));
+  }, []);
+
+  const eligiblePallets = useMemo<EligiblePallet[]>(() => {
+    const groups = new Map<string, DryKilnItem[]>();
+    finishedDryKiln.forEach((item) => {
+      const fallbackSequence = item.idOven ? String(item.idOven).padStart(3, '0') : '';
+      const id = item.id_palet || (fallbackSequence
+        ? `PAL-L-${new Date().getFullYear()}-${fallbackSequence}`
+        : '');
+      if (id) groups.set(id, [...(groups.get(id) ?? []), item]);
+    });
+    return Array.from(groups, ([id, items]) => ({
+      id,
+      items,
+      thickness: range(items.map((item) => item.tinggi)),
+      length: range(items.map((item) => item.panjang)),
+      width: range(items.map((item) => item.lebar)),
+      grade: items.every((item) => item.grade === items[0].grade) ? items[0].grade : 'Campuran',
+    }));
+  }, [finishedDryKiln]);
 
   // Filter States
   const [sortimenFilter, setSortimenFilter] = useState('All Sortimen');
@@ -183,6 +246,8 @@ export default function StockReportsPage() {
     width: 200,
     length: 2400,
     status: 'Available',
+    availablePlanks: 20,
+    totalPlanks: 20,
   });
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -190,6 +255,20 @@ export default function StockReportsPage() {
   const calculateVolume = (t: number, w: number, l: number): number => {
     if (!t || !w || !l) return 0;
     return Number(((t * w * l) / 1000000000).toFixed(3));
+  };
+
+  const getStockStatus = (available: number, total: number): StockStatus => {
+    if (available <= 0) return 'Out of Stock';
+    if (available < total) return 'Low Stock';
+    return 'Available';
+  };
+
+  const getPlankCount = (item: StockReportItem) => {
+    const total = item.totalPlanks ?? 20;
+    const available = item.availablePlanks ?? (
+      item.status === 'Out of Stock' ? 0 : item.status === 'Low Stock' ? 5 : total
+    );
+    return `${available}/${total}`;
   };
 
   const handleOpenModal = () => {
@@ -202,7 +281,10 @@ export default function StockReportsPage() {
       width: 200,
       length: 2400,
       status: 'Available',
+      availablePlanks: 20,
+      totalPlanks: 20,
     });
+    setSelectedPalletId('');
     setFormError(null);
     setIsModalOpen(true);
   };
@@ -211,13 +293,19 @@ export default function StockReportsPage() {
     e.preventDefault();
     if (!canCreate) return;
 
-    const idLog = formData.id_log.trim();
+    const selectedPallet = eligiblePallets.find((pallet) => pallet.id === selectedPalletId);
+    const sourceItem = selectedPallet?.items[0];
+    if (!selectedPallet || !sourceItem) {
+      setFormError('Pilih ID palet yang sudah selesai Dry-Kiln.');
+      return;
+    }
+    const idLog = sourceItem.id_log;
     const validationError = firstError(
       required(idLog, 'ID Log'),
       maxLength(idLog, 'ID Log', 50),
-      positiveNumber(formData.thickness, 'Thickness'),
-      positiveNumber(formData.width, 'Width'),
-      positiveNumber(formData.length, 'Length'),
+      stocks.some((item) => item.id_palet === selectedPallet.id)
+        ? 'ID Palet tersebut sudah terdaftar di Stock Reports.'
+        : null,
       stocks.some((item) => item.id_log.toLowerCase() === idLog.toLowerCase())
         ? 'ID Log sudah terdaftar. Gunakan ID lain.'
         : null
@@ -235,14 +323,17 @@ export default function StockReportsPage() {
 
     const newItem: StockReportItem = {
       id_log: idLog,
-      sortimen: formData.sortimen,
-      grade: formData.grade,
+      id_palet: selectedPallet.id,
+      sortimen: sourceItem.sortimen,
+      grade: sourceItem.grade,
       thickness: t,
       width: w,
       length: l,
       dimensions: `${t}mm x ${w}mm x ${l}mm`,
       volume: vol,
-      status: formData.status,
+      availablePlanks: selectedPallet.items.length,
+      totalPlanks: selectedPallet.items.length,
+      status: 'Available',
       date: toISODate(),
     };
 
@@ -278,12 +369,11 @@ export default function StockReportsPage() {
   const handleExportPdf = () => {
     const rows = filteredStocks.map((item) => [
       item.id_log,
-      item.sortimen,
+      String(item.thickness),
+      String(item.length),
+      String(item.width),
       item.grade,
-      item.dimensions,
-      item.volume.toFixed(3),
-      item.status,
-      formatDateID(item.date),
+      `${getPlankCount(item)} - ${item.status}`,
     ]);
 
     exportToPdf({
@@ -298,12 +388,11 @@ export default function StockReportsPage() {
           title: 'Data Stok Kayu',
           columns: [
             'ID Log',
-            'Sortimen',
+            'Ketebalan',
+            'Panjang',
+            'Lebar',
             'Grade',
-            'Dimensi',
-            'Volume (m³)',
-            'Status',
-            'Tanggal',
+            'Status Stock',
           ],
           rows,
         },
@@ -422,17 +511,18 @@ export default function StockReportsPage() {
           <table className="w-full text-xs text-left">
             <thead>
               <tr className="border-b border-green-700 text-green-700 font-bold uppercase tracking-wider">
-                <th className="py-3 px-3 text-center">ID LOG</th>
-                <th className="py-3 px-3 text-center">Sortimen</th>
-                <th className="py-3 px-3 text-center">DIMENSIONS (T X W X L)</th>
-                <th className="py-3 px-3 text-center">Total Volume</th>
-                <th className="py-3 px-3 text-center">Status Stok</th>
+                <th className="py-3 px-3 text-center">ID PALET</th>
+                <th className="py-3 px-3 text-center">KETEBALAN</th>
+                <th className="py-3 px-3 text-center">PANJANG</th>
+                <th className="py-3 px-3 text-center">LEBAR</th>
+                <th className="py-3 px-3 text-center">GRADE</th>
+                <th className="py-3 px-3 text-center">STATUS STOCK</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
               {filteredStocks.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-14 text-center">
+                  <td colSpan={6} className="py-14 text-center">
                     <div className="flex flex-col items-center justify-center gap-2 text-stone-400">
                       <Inbox className="w-8 h-8 stroke-[1.5]" />
                       <p className="text-sm font-semibold text-stone-600">
@@ -455,16 +545,21 @@ export default function StockReportsPage() {
                     className="text-green-700 hover:bg-stone-50 transition-colors"
                   >
                     <td className="py-3 px-3 text-center font-mono font-medium">
-                      {item.id_log}
+                      {item.id_palet ?? '-'}
                     </td>
-                    <td className="py-3 px-3 text-center font-normal">
-                      {item.sortimen}
+                    <td className="py-3 px-3 text-center whitespace-nowrap">
+                      {item.thickness} mm
                     </td>
-                    <td className="py-3 px-3 text-center font-medium whitespace-nowrap">
-                      {item.dimensions}
+                    <td className="py-3 px-3 text-center whitespace-nowrap">
+                      {item.length} mm
                     </td>
-                    <td className="py-3 px-3 text-center font-medium">
-                      {item.volume.toFixed(3)} m³
+                    <td className="py-3 px-3 text-center whitespace-nowrap">
+                      {item.width} mm
+                    </td>
+                    <td className="py-3 px-3 text-center">
+                      <span className="inline-block px-2 py-0.5 border border-green-700 rounded-xs text-[11px] font-semibold">
+                        {item.grade}
+                      </span>
                     </td>
                     <td className="py-3 px-3 text-center">
                       <span
@@ -472,7 +567,7 @@ export default function StockReportsPage() {
                           item.status
                         )}`}
                       >
-                        {item.status}
+                        {getPlankCount(item)}
                       </span>
                     </td>
                   </tr>
@@ -518,153 +613,47 @@ export default function StockReportsPage() {
               }}
               className="p-4 bg-white/80 rounded-[10px] border border-stone-800 flex flex-col gap-3 text-xs"
             >
-              {/* ID LOG */}
               <div className="flex flex-col gap-1">
-                <label className="font-semibold text-green-700">ID LOG</label>
-                <input
-                  type="text"
+                <label className="font-semibold text-green-700">ID PALET</label>
+                <select
                   required
-                  maxLength={50}
-                  placeholder="L-2026-X-X-X"
-                  value={formData.id_log}
-                  onChange={(e) =>
-                    setFormData({ ...formData, id_log: e.target.value })
-                  }
-                  className="w-full h-10 px-3 bg-white border border-stone-800 rounded font-mono text-green-700 font-medium focus:outline-none focus:border-green-700"
-                />
-              </div>
-
-              {/* Sortimen & Grade */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="font-semibold text-green-700">Sortimen</label>
-                  <div className="relative">
-                    <select
-                      value={formData.sortimen}
-                      onChange={(e) =>
-                        setFormData({ ...formData, sortimen: e.target.value })
-                      }
-                      className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded text-green-700 appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
-                    >
-                      <option value="A4">A4</option>
-                      <option value="A3">A3</option>
-                      <option value="A2">A2</option>
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="font-semibold text-green-700">Grade</label>
-                  <div className="relative">
-                    <select
-                      value={formData.grade}
-                      onChange={(e) =>
-                        setFormData({ ...formData, grade: e.target.value })
-                      }
-                      className="w-full h-10 pl-3 pr-8 bg-white border border-stone-300 rounded text-green-700 font-medium appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
-                    >
-                      <option value="Grade A">Grade A</option>
-                      <option value="Grade B">Grade B</option>
-                      <option value="Grade C">Grade C</option>
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Dimensions: Thickness, Width, Length in mm */}
-              <div className="flex flex-col gap-1">
-                <span className="font-semibold text-green-700">Dimensions</span>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="flex flex-col gap-0.5">
-                    <label className="text-[11px] text-green-700">
-                      Thickness (T) mm
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min={0.1}
-                      step="any"
-                      placeholder="50"
-                      value={formData.thickness}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          thickness:
-                            e.target.value === '' ? '' : Number(e.target.value),
-                        })
-                      }
-                      className="w-full h-9 px-2.5 bg-white border border-stone-300 rounded text-green-700 focus:outline-none focus:border-green-700"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-0.5">
-                    <label className="text-[11px] text-green-700">
-                      Width (W) mm
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min={0.1}
-                      step="any"
-                      placeholder="200"
-                      value={formData.width}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          width:
-                            e.target.value === '' ? '' : Number(e.target.value),
-                        })
-                      }
-                      className="w-full h-9 px-2.5 bg-white border border-stone-300 rounded text-green-700 focus:outline-none focus:border-green-700"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-0.5">
-                    <label className="text-[11px] text-green-700">
-                      Length (L) mm
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min={0.1}
-                      step="any"
-                      placeholder="2400"
-                      value={formData.length}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          length:
-                            e.target.value === '' ? '' : Number(e.target.value),
-                        })
-                      }
-                      className="w-full h-9 px-2.5 bg-white border border-stone-300 rounded text-green-700 focus:outline-none focus:border-green-700"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Stock Status */}
-              <div className="flex flex-col gap-1">
-                <label className="font-semibold text-green-700">Stock Status</label>
-                <div className="relative">
-                  <select
-                    value={formData.status}
-                    onChange={(e) =>
+                  value={selectedPalletId}
+                  onChange={(e) => {
+                    const pallet = eligiblePallets.find((item) => item.id === e.target.value);
+                    const source = pallet?.items[0];
+                    setSelectedPalletId(e.target.value);
+                    if (pallet && source) {
                       setFormData({
                         ...formData,
-                        status: e.target.value as StockStatus,
-                      })
+                        id_log: source.id_log,
+                        sortimen: source.sortimen,
+                        grade: source.grade as PlankGrade,
+                        thickness: source.tinggi * 10,
+                        width: source.lebar * 10,
+                        length: source.panjang * 10,
+                      });
                     }
-                    className="w-full h-10 pl-3 pr-8 bg-white border border-neutral-800 rounded text-green-700 font-semibold appearance-none focus:outline-none focus:border-green-700 cursor-pointer"
-                  >
-                    <option value="Available">Available (Tersedia)</option>
-                    <option value="Low Stock">Low Stock (Menipis)</option>
-                    <option value="Out of Stock">Out of Stock (Habis)</option>
-                  </select>
-                  <ChevronDown className="w-4 h-4 text-stone-500 absolute right-2.5 top-3 pointer-events-none" />
-                </div>
+                  }}
+                  className="w-full h-10 px-3 bg-white border border-stone-300 rounded font-mono text-green-700 focus:outline-none focus:border-green-700"
+                >
+                  <option value="">Pilih palet yang selesai Dry-Kiln</option>
+                  {eligiblePallets.map((pallet) => (
+                    <option key={pallet.id} value={pallet.id}>{pallet.id} ({pallet.items.length} plank)</option>
+                  ))}
+                </select>
+                {eligiblePallets.length === 0 && <p className="text-[11px] text-amber-700">Belum ada palet dengan status selesai Dry-Kiln.</p>}
+              </div>
+
+              {selectedPalletId && (() => {
+                const pallet = eligiblePallets.find((item) => item.id === selectedPalletId);
+                if (!pallet) return null;
+                return <div className="grid grid-cols-4 gap-2 text-[11px] text-stone-600"><ReadOnly label="Ketebalan" value={pallet.thickness} /><ReadOnly label="Panjang" value={pallet.length} /><ReadOnly label="Lebar" value={pallet.width} /><ReadOnly label="Grade" value={pallet.grade} /></div>;
+              })()}
+
+              {/* Jumlah plank berasal dari isi palet selesai Dry-Kiln */}
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-green-700">Jumlah Plank</span>
+                <p className="text-[11px] text-stone-500">Jumlah plank dan status akan diambil dari palet yang dipilih. Saat ini: {selectedPalletId ? `${eligiblePallets.find((item) => item.id === selectedPalletId)?.items.length ?? 0}/${eligiblePallets.find((item) => item.id === selectedPalletId)?.items.length ?? 0}` : '-'}</p>
               </div>
 
               <FormError message={formError} />

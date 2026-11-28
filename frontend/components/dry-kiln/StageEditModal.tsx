@@ -26,7 +26,7 @@ export default function StageEditModal({ item, onClose, onSave }: Props) {
         </div>
         <div className="mt-4 flex flex-col gap-1.5 text-xs">
           <span className="font-semibold text-green-800">ID Palet</span>
-          <span className="h-10 px-3 flex items-center bg-stone-100 border border-stone-300 rounded-md font-mono text-stone-600">PAL-{item.id_log}</span>
+          <span className="h-10 px-3 flex items-center bg-stone-100 border border-stone-300 rounded-md font-mono text-stone-600">{item.id_palet || `PAL-L-${new Date().getFullYear()}-${String(item.idOven || 0).padStart(3, '0')}`}</span>
           <label className="mt-3 flex flex-col gap-1.5 font-semibold text-green-800">Stage
             <select value={stage} onChange={(e) => setStage(e.target.value as DryKilnStage)} className="h-10 px-3 bg-white border border-stone-300 rounded-md font-normal text-stone-800">
               {stages.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}

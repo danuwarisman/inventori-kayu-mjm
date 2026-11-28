@@ -1000,10 +1000,8 @@ export const salesApi = {
 function normalizePurchaseDetail(detail: PurchaseDetail): PurchaseDetail {
   return {
     ...detail,
-    panjang: toNumber(detail.panjang),
-    diameter: toNumber(detail.diameter),
-    jumlahDipesan: toNumber(detail.jumlahDipesan),
-    hargaPerLog: toNumber(detail.hargaPerLog),
+    volume: toNumber(detail.volume),
+    hargaPerKubik: toNumber(detail.hargaPerKubik ?? detail.hargaPerLog),
   };
 }
 
@@ -1012,7 +1010,7 @@ function normalizePurchaseOrder(order: PurchaseOrder): PurchaseOrder {
     normalizePurchaseDetail
   );
   const totalHarga = detailPembelian.reduce(
-    (sum, item) => sum + item.jumlahDipesan * item.hargaPerLog,
+    (sum, item) => sum + (item.volume ?? 0) * (item.hargaPerKubik ?? 0),
     0
   );
 
@@ -1059,11 +1057,8 @@ export const purchaseApi = {
       tanggalBeli: data.tanggalBeli,
       detailPembelian: (data.detailPembelian ?? []).map((d) => ({
         asalSortimen: d.asalSortimen,
-        panjang: Number(d.panjang),
-        diameter: Number(d.diameter),
-        dimensiLog: d.dimensiLog || `${d.panjang} x ${d.diameter}`,
-        jumlahDipesan: Number(d.jumlahDipesan),
-        hargaPerLog: Number(d.hargaPerLog),
+        volume: Number(d.volume),
+        hargaPerKubik: Number(d.hargaPerKubik),
       })),
     };
     return normalizePurchaseOrder(
